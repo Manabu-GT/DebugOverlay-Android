@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ms_square.debugoverlay">
+
+    <!-- To overlay view above all the application UIs -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application>
+        <service android:name=".DebugOverlayService" android:exported="false"/>
+    </application>
+
+</manifest>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- for DebugOverlay's Notification -->
+    <string name="debug_notification_title">%1$s:%2$s</string>
+    <string name="debug_notification_small_text">Control DebugOverlay</string>
+    <string name="debug_notification_big_text">Control DebugOverlay</string>
+    <string name="debug_notification_action_show">Show</string>
+    <string name="debug_notification_action_hide">Hide</string>
+
+    <string name="debug_overlay_permission_prompt">Permission required to show the debug overlay</string>
+</resources>

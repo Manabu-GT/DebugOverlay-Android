@@ -1,0 +1,470 @@
+package com.ms_square.debugoverlay;
+
+import android.app.Activity;
+import android.app.Application;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.annotation.ColorInt;
+import android.support.annotation.FloatRange;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+
+import com.ms_square.debugoverlay.modules.CpuUsageModule;
+import com.ms_square.debugoverlay.modules.FpsModule;
+import com.ms_square.debugoverlay.modules.LogcatModule;
+import com.ms_square.debugoverlay.modules.MemInfoModule;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DebugOverlay {
+
+    private static final String TAG = DebugOverlay.class.getSimpleName();
+
+    public static final int DEFAULT_BG_COLOR = Color.TRANSPARENT;
+    public static final int DEFAULT_TEXT_COLOR = Color.parseColor("#424242");
+    public static final float DEFAULT_TEXT_SIZE = 14f; // 14sp
+    public static final float DEFAULT_TEXT_ALPHA = 1f;
+
+    static final String KEY_CONFIG = "com.ms_square.debugoverlay.extra.CONFIG";
+
+    static final String ACTION_UNBIND = "com.ms_square.debugoverlay.ACTION_UNBIND";
+
+    static boolean DEBUG = false;
+
+    private final Application application;
+
+    private final List<OverlayModule> overlayModules;
+
+    private final Config config;
+
+    private DebugOverlayService overlayService;
+
+    private OverlayViewManager overlayViewManager;
+
+    private boolean installed;
+
+    private boolean unBindRequestReceived;
+
+    private DebugOverlay(Application application, List<OverlayModule> overlayModules, Config config) {
+        this.application = application;
+        this.overlayModules = overlayModules;
+        this.config = config;
+    }
+
+    /**
+     * Convenience method to create the default {@link DebugOverlay} instance.
+     * <p>
+     * This instance is automatically initialized with the following default settings.
+     * <ul>
+     *     <li></li>
+     *     <li></li>
+     *     <li></li>
+     *     <li></li>
+     *     <li></li>
+     * </ul>
+     * <p>
+     * If these settings do not meet the requirements of your application you can construct your own
+     * with full control over the configuration by using {@link DebugOverlay.Builder} to create a
+     * {@link DebugOverlay} instance.
+     *
+     * @param application
+     * @return
+     */
+    public static DebugOverlay with(@NonNull Application application) {
+        return new Builder(application).build();
+    }
+
+    /**
+     * Control whether the DebugOverlay's internal debugging logs are turned on.
+     * If enabled, you will see output in logcat as the components of DebugOverlay operates.
+     */
+    public static void enableDebugLogging(boolean enabled) {
+        DEBUG = enabled;
+    }
+
+    /**
+     * Tells whether the DebugOverlay's internal debugging logs are turned on.
+     * @return true if the DebugOverlay's internal debugging logs are enabled.
+     */
+    public static boolean isDebugLoggingEnabled() {
+        return DEBUG;
+    }
+
+    /**
+     *
+     */
+    public void install() {
+        if (installed) {
+            throw new IllegalStateException("install() can be called only once!");
+        }
+
+        overlayViewManager = new OverlayViewManager(application, config);
+        overlayViewManager.setOverlayModules(overlayModules);
+
+        startAndBindDebugOverlayService();
+
+        application.registerActivityLifecycleCallbacks(new ActivityLifecycleHandler());
+
+        installed = true;
+    }
+
+    private void startAndBindDebugOverlayService() {
+        // start & bind DebugOverlayService
+        Intent intent = new Intent(application, DebugOverlayService.class);
+        intent.putExtra(KEY_CONFIG, config);
+        application.startService(intent);
+        bindToDebugOverlayService();
+    }
+
+    private void bindToDebugOverlayService() {
+        boolean bound = application.bindService(DebugOverlayService.createIntent(application),
+                serviceConnection, Context.BIND_AUTO_CREATE);
+        if (!bound) {
+            throw new RuntimeException("Could not bind the DebugOverlayService");
+        }
+        LocalBroadcastManager.getInstance(application).registerReceiver(receiver, new IntentFilter(ACTION_UNBIND));
+    }
+
+    private void unbindFromDebugOverlayService() {
+        if (overlayService != null) {
+            application.unbindService(serviceConnection);
+            overlayService = null;
+        }
+        LocalBroadcastManager.getInstance(application).unregisterReceiver(receiver);
+    }
+
+    final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "service is connected");
+            // We've bound to DebugOverlayService, cast the IBinder and get DebugOverlayService instance
+            DebugOverlayService.LocalBinder binder = (DebugOverlayService.LocalBinder) service;
+            overlayService = binder.getService();
+            overlayService.setOverlayModules(overlayModules);
+            overlayService.setOverlayViewManager(overlayViewManager);
+            overlayService.startModules();
+        }
+        // This is called when the connection with the service has been
+        // unexpectedly disconnected -- that is, its process crashed.
+        // So, this is not called when the client unbinds.
+        @Override
+        public void onServiceDisconnected(ComponentName name) {}
+    };
+
+    final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (ACTION_UNBIND.equals(intent.getAction())) {
+                Log.d(TAG, "unbind request received");
+                unBindRequestReceived = true;
+                unbindFromDebugOverlayService();
+            }
+        }
+    };
+
+    public static class Builder {
+
+        private final Application application;
+
+        private List<OverlayModule> overlayModules;
+
+        private Position position;
+
+        @ColorInt
+        private int bgColor;
+
+        @ColorInt
+        private int textColor;
+
+        private float textSize;
+
+        private float textAlpha;
+
+        private boolean allowSystemLayer;
+
+        private boolean showNotification;
+
+        private String activityName;
+
+        public Builder(@NonNull Application application) {
+            this.application = application;
+
+            // default values
+            this.position = Position.BOTTOM_START;
+            this.bgColor = DEFAULT_BG_COLOR;
+            this.textColor = DEFAULT_TEXT_COLOR;
+            this.textSize = DEFAULT_TEXT_SIZE;
+            this.textAlpha = DEFAULT_TEXT_ALPHA;
+            this.allowSystemLayer = true;
+            this.showNotification = true;
+            this.overlayModules = new ArrayList<>();
+            this.overlayModules.add(new CpuUsageModule());
+            this.overlayModules.add(new MemInfoModule(application));
+            this.overlayModules.add(new FpsModule());
+            this.overlayModules.add(new LogcatModule());
+        }
+
+        public Builder modules(List<OverlayModule> overlayModules) {
+            if (overlayModules.size() <= 0) {
+                throw new IllegalArgumentException("Module list cat be empty");
+            }
+            this.overlayModules = overlayModules;
+            return this;
+        }
+
+        public Builder position(Position position) {
+            this.position = position;
+            return this;
+        }
+
+        public Builder bgColor(@ColorInt int color) {
+            this.bgColor = color;
+            return this;
+        }
+
+        public Builder textColor(@ColorInt int color) {
+            this.textColor = color;
+            return this;
+        }
+
+        public Builder textSize(float size) {
+            this.textSize = size;
+            return this;
+        }
+
+        public Builder textAlpha(@FloatRange(from=0.0, to=1.0) float alpha) {
+            this.textAlpha = alpha;
+            return this;
+        }
+
+        public Builder allowSystemLayer(boolean allowSystemLayer) {
+            this.allowSystemLayer = allowSystemLayer;
+            return this;
+        }
+
+        public Builder notification(boolean show) {
+            this.showNotification = show;
+            return this;
+        }
+
+        public Builder notification(boolean show, @Nullable String activityName) {
+            this.showNotification = show;
+            this.activityName = activityName;
+            return this;
+        }
+
+        public DebugOverlay build() {
+            if (!allowSystemLayer) {
+                if (showNotification) {
+                    Log.w(TAG, "if systemLayer is not allowed, notification is not supported; thus don't show notification.");
+                    showNotification = false;
+                }
+            }
+            return new DebugOverlay(application, overlayModules,
+                    new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
+                            showNotification, activityName));
+        }
+    }
+
+    static class Config implements Parcelable {
+
+        private final Position position;
+
+        @ColorInt
+        private final int bgColor;
+
+        @ColorInt
+        private final int textColor;
+
+        private final float textSize;
+
+        private final float textAlpha;
+
+        private final boolean allowSystemLayer;
+
+        private final boolean showNotification;
+
+        private final String activityName;
+
+        public Config(Position position, @ColorInt int bgColor, @ColorInt int textColor, float textSize,
+                      float textAlpha, boolean allowSystemLayer, boolean showNotification, String activityName) {
+            this.position = position;
+            this.bgColor = bgColor;
+            this.textColor = textColor;
+            this.textSize = textSize;
+            this.textAlpha = textAlpha;
+            this.allowSystemLayer = allowSystemLayer;
+            this.showNotification = showNotification;
+            this.activityName = activityName;
+        }
+
+        public Position getPosition() {
+            return position;
+        }
+
+        public int getBgColor() {
+            return bgColor;
+        }
+
+        public int getTextColor() {
+            return textColor;
+        }
+
+        public float getTextSize() {
+            return textSize;
+        }
+
+        public float getTextAlpha() {
+            return textAlpha;
+        }
+
+        public boolean isAllowSystemLayer() {
+            return allowSystemLayer;
+        }
+
+        public boolean isShowNotification() {
+            return showNotification;
+        }
+
+        public String getActivityName() {
+            return activityName;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(this.position == null ? -1 : this.position.ordinal());
+            dest.writeInt(this.bgColor);
+            dest.writeInt(this.textColor);
+            dest.writeFloat(this.textSize);
+            dest.writeFloat(this.textAlpha);
+            dest.writeByte(this.allowSystemLayer ? (byte) 1 : (byte) 0);
+            dest.writeByte(this.showNotification ? (byte) 1 : (byte) 0);
+            dest.writeString(this.activityName);
+        }
+
+        protected Config(Parcel in) {
+            int tmpPosition = in.readInt();
+            this.position = tmpPosition == -1 ? null : Position.values()[tmpPosition];
+            this.bgColor = in.readInt();
+            this.textColor = in.readInt();
+            this.textSize = in.readFloat();
+            this.textAlpha = in.readFloat();
+            this.allowSystemLayer = in.readByte() != 0;
+            this.showNotification = in.readByte() != 0;
+            this.activityName = in.readString();
+        }
+
+        public static final Parcelable.Creator<Config> CREATOR = new Parcelable.Creator<Config>() {
+            @Override
+            public Config createFromParcel(Parcel source) {
+                return new Config(source);
+            }
+
+            @Override
+            public Config[] newArray(int size) {
+                return new Config[size];
+            }
+        };
+    }
+
+    class ActivityLifecycleHandler implements Application.ActivityLifecycleCallbacks {
+
+        private int numRunningActivities;
+
+        @Override
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            Log.d(TAG, "onCreate() - " + activity.getClass().getSimpleName() + "-" + activity.getWindow().getAttributes().token);
+            if (!config.isAllowSystemLayer()) {
+                activity.getWindow().getDecorView()
+                        .addOnAttachStateChangeListener(overlayViewManager.createOnAttachStateChangeListener());
+            }
+        }
+
+        @Override
+        public void onActivityStarted(Activity activity) {
+            Log.d(TAG, "onStart() - " + activity.getClass().getSimpleName());
+            incrementNumRunningActivities();
+        }
+
+        @Override
+        public void onActivityResumed(Activity activity) {
+            Log.d(TAG, "onResume() - " + activity.getClass().getSimpleName());
+            if (config.isAllowSystemLayer() && overlayViewManager.isOverlayPermissionRequested()) {
+                if (OverlayViewManager.canDrawOnSystemLayer(activity, OverlayViewManager.getWindowTypeForOverlay(true))) {
+                    overlayViewManager.showDebugSystemOverlay();
+                    if (overlayService != null) {
+                        overlayService.updateNotification();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onActivityPaused(Activity activity) {
+            Log.d(TAG, "onPause() - " + activity.getClass().getSimpleName());
+        }
+
+        @Override
+        public void onActivityStopped(Activity activity) {
+            Log.d(TAG, "onStop() - " + activity.getClass().getSimpleName());
+            decrementNumRunningActivities();
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity activity) {
+            Log.d(TAG, "onDestroy() - " + activity.getClass().getSimpleName());
+        }
+
+        private void incrementNumRunningActivities() {
+            if (numRunningActivities == 0) {
+                Log.d(TAG, "App is now in foreground");
+                if (config.isAllowSystemLayer()) {
+                    if (overlayService == null && unBindRequestReceived) {
+                        // service already un-bound by a explicit request, but restart here since it is now in foreground
+                        startAndBindDebugOverlayService();
+                        unBindRequestReceived = false;
+                    }
+                } else {
+                    // restart modules since it may have been stopped
+                    if (overlayService != null) {
+                        overlayService.startModules();
+                    }
+                }
+            }
+            numRunningActivities++;
+        }
+
+        private void decrementNumRunningActivities() {
+            numRunningActivities--;
+            if (numRunningActivities <= 0) {
+                numRunningActivities = 0;
+                Log.d(TAG, "App is now in background");
+                if (!config.isAllowSystemLayer() && overlayService != null) {
+                    overlayService.stopModules();
+                }
+            }
+        }
+    }
+}
