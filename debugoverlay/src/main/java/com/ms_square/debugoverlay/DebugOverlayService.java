@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -137,6 +140,7 @@ public class DebugOverlayService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(getString(R.string.debug_notification_big_text)))
                 .setSmallIcon(R.drawable.ic_notification)
+                .setLargeIcon(getAppIcon(this))
                 .setOngoing(true)
                 .setContentTitle(getString(R.string.debug_notification_title, getAppName(this), getAppVersion(this)))
                 .setContentText(getString(R.string.debug_notification_small_text))
@@ -196,6 +200,17 @@ public class DebugOverlayService extends Service {
             }
         }
     };
+
+    @Nullable
+    private static Bitmap getAppIcon(@NonNull Context context) {
+        Drawable drawable = null;
+        try {
+            drawable = context.getPackageManager().getApplicationIcon(context.getPackageName());
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.w(TAG, "Package Not found:" + context.getPackageName());
+        }
+        return (drawable instanceof BitmapDrawable) ? ((BitmapDrawable) drawable).getBitmap() : null;
+    }
 
     @NonNull
     private static String getAppName(@NonNull Context context) {
