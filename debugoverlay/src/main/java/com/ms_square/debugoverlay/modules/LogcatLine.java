@@ -163,6 +163,10 @@ public class LogcatLine {
         return pid;
     }
 
+    public int getTid() {
+        return tid;
+    }
+
     public String getMessage() {
         return message;
     }
