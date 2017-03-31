@@ -49,12 +49,14 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
             adapter.remove(adapter.getItem(0));
         }
         adapter.add(logcatLine);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         ListView listView = (ListView) LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
         adapter = new LogcatLineArrayAdapter(root.getContext(), textColor, textAlpha, colorScheme);
+        adapter.setNotifyOnChange(false);
         listView.setAdapter(adapter);
 
         if (textColor != DebugOverlay.DEFAULT_TEXT_COLOR) {
@@ -85,6 +87,17 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
         }
 
         @Override
+        public boolean hasStableIds() {
+            return true;
+        }
+
+        @Override
+        public long getItemId(int position){
+            LogcatLine line = getItem(position);
+            return line.getRawLine().hashCode();
+        }
+
+        @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             final ViewHolder holder;
 
@@ -112,13 +125,25 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
 
             LogcatLine line = getItem(position);
 
+            final int textColor = colorScheme.getTextColor(line.getPriority(), line.getTag());
+            holder.priority_and_tag.setTextColor(textColor);
+            holder.message.setTextColor(textColor);
+
             holder.date_and_time.setText(line.getDate() + " " + line.getTime());
             holder.priority_and_tag.setText(line.getPriority().getValue() + "/" + line.getTag());
             holder.message.setText(line.getMessage());
 
-            int textColor = colorScheme.getTextColor(line.getPriority(), line.getTag());
-            holder.priority_and_tag.setTextColor(textColor);
-            holder.message.setTextColor(textColor);
+            if (holder.date_and_time.getLayoutParams().width == ViewGroup.LayoutParams.WRAP_CONTENT
+                    && holder.date_and_time.getWidth() > 0) {
+                // set the exact width to prevent second layout pass from running
+                holder.date_and_time.getLayoutParams().width = holder.date_and_time.getWidth();
+            }
+
+            if (holder.message.getLayoutParams().height == ViewGroup.LayoutParams.WRAP_CONTENT
+                    && holder.message.getHeight() > 0) {
+                // set the exact height to prevent second layout pass from running
+                holder.message.getLayoutParams().height = holder.message.getHeight();
+            }
 
             return convertView;
         }
