@@ -11,7 +11,8 @@ import com.ms_square.debugoverlay.OverlayViewDelegateFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static java.lang.Runtime.getRuntime;
 
 public class LogcatModule extends BaseOverlayModule<LogcatLine> {
 
@@ -73,7 +74,7 @@ public class LogcatModule extends BaseOverlayModule<LogcatLine> {
 
     class ReaderThread extends Thread {
 
-        private AtomicReference<Process> logcatProcess = new AtomicReference<>();
+        private Process logcatProcess;
         private BufferedReader logcatReader;
 
         @Override
@@ -106,26 +107,33 @@ public class LogcatModule extends BaseOverlayModule<LogcatLine> {
         }
 
         private void openLogcatProcess() {
-            try {
-                logcatProcess.compareAndSet(null, Runtime.getRuntime().exec(new String[]{"logcat", "-v", "threadtime"}));
-            } catch (IOException e) {
-                Log.w(TAG, "Can not execute logcat - " + e.getMessage());
-            }
-        }
-
-        private void openLogcatReader() {
-            Process process = logcatProcess.get();
-            if (process != null) {
-                if (logcatReader == null) {
-                    logcatReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            synchronized (this) {
+                if (logcatProcess == null) {
+                    try {
+                        logcatProcess = Runtime.getRuntime().exec(new String[]{"logcat", "-v", "threadtime"});
+                    } catch (IOException e) {
+                        Log.w(TAG, "Can not execute logcat - " + e.getMessage());
+                    }
                 }
             }
         }
 
         private void closeLogcatProcess() {
-            Process process = logcatProcess.getAndSet(null);
-            if (process != null) {
-                process.destroy();
+            synchronized (this) {
+                if (logcatProcess != null) {
+                    logcatProcess.destroy();
+                    logcatProcess = null;
+                }
+            }
+        }
+
+        private void openLogcatReader() {
+            synchronized (this) {
+                if (logcatProcess != null) {
+                    if (logcatReader == null) {
+                        logcatReader = new BufferedReader(new InputStreamReader(logcatProcess.getInputStream()));
+                    }
+                }
             }
         }
 
@@ -141,7 +149,7 @@ public class LogcatModule extends BaseOverlayModule<LogcatLine> {
         private void clearLogcatBuffer() {
             Process process = null;
             try {
-                process = Runtime.getRuntime().exec(new String[] {"logcat", "-c"});
+                process = getRuntime().exec(new String[] {"logcat", "-c"});
                 process.waitFor();
             } catch (InterruptedException | IOException e) {
                 Log.w(TAG, "Clearing logcat buffer failed - " + e.getMessage());
