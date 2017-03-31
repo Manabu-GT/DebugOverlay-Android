@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CpuUsageModule extends BaseOverlayModule<CpuUsageModule.CpuUsage> {
@@ -139,7 +138,7 @@ public class CpuUsageModule extends BaseOverlayModule<CpuUsageModule.CpuUsage> {
             if (totalCpuReader != null) {
                 try {
                     String[] cpuData = totalCpuReader.readLine().split("[ ]+", 9);
-                    Log.d(TAG, "CPU total:" + Arrays.toString(cpuData));
+                    //Log.d(TAG, "CPU total:" + Arrays.toString(cpuData));
                     // add user, nice, and system
                     jiffies = Long.parseLong(cpuData[1]) + Long.parseLong(cpuData[2]) + Long.parseLong(cpuData[3]);
                     // ignore 'iowait' value since it is not reliable
@@ -152,7 +151,7 @@ public class CpuUsageModule extends BaseOverlayModule<CpuUsageModule.CpuUsage> {
             if (myPidCpuReader != null) {
                 try {
                     String[] cpuData = myPidCpuReader.readLine().split("[ ]+", 18);
-                    Log.d(TAG, "CPU for mypid:" + Arrays.toString(cpuData));
+                    //Log.d(TAG, "CPU for mypid:" + Arrays.toString(cpuData));
                     // add utime, stime, cutime, and cstime
                     jiffiesMyPid = Long.parseLong(cpuData[13]) + Long.parseLong(cpuData[14])
                             + Long.parseLong(cpuData[15]) + Long.parseLong(cpuData[16]);
