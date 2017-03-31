@@ -4,15 +4,36 @@
         <item name="android:textColor">#ff0000</item>
     </style>
 
+    <style name="OverlayText">
+        <item name="android:typeface">monospace</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:shadowColor">#7F000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
+
     <style name="LogcatMetaText">
+        <item name="android:typeface">monospace</item>
         <item name="android:ellipsize">end</item>
         <item name="android:lines">1</item>
         <item name="android:textSize">10sp</item>
+        <item name="android:shadowColor">#7F000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">1</item>
     </style>
 
     <style name="LogcatMessageText">
+        <item name="android:typeface">monospace</item>
         <item name="android:ellipsize">end</item>
         <item name="android:lines">2</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:shadowColor">#7F000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">1</item>
     </style>
 </resources>
