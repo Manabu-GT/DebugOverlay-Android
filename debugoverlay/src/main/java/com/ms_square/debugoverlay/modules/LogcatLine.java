@@ -91,7 +91,8 @@ public class LogcatLine {
         String[] outputs = rawLine.split(": ");
         String[] metaFields = outputs[0].split("[ ]+");
 
-        if (metaFields.length >= TAG_INDEX + 1) {
+        // tag could be empty, so >= TAG_INDEX, not plus 1
+        if (metaFields.length >= TAG_INDEX) {
             date = metaFields[DATE_INDEX];
             time = metaFields[TIME_INDEX];
 
