@@ -152,7 +152,7 @@ public class DebugOverlay {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             if (DEBUG) {
-                Log.d(TAG, "DebugOverlayService is connected");
+                Log.i(TAG, "DebugOverlayService is connected");
             }
             // We've bound to DebugOverlayService, cast the IBinder and get DebugOverlayService instance
             DebugOverlayService.LocalBinder binder = (DebugOverlayService.LocalBinder) service;
@@ -398,7 +398,7 @@ public class DebugOverlay {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
             if (DEBUG) {
-                Log.d(TAG, "onCreate():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onCreate():" + activity.getClass().getSimpleName());
             }
             if (!config.isAllowSystemLayer()) {
                 activity.getWindow().getDecorView()
@@ -409,7 +409,7 @@ public class DebugOverlay {
         @Override
         public void onActivityStarted(Activity activity) {
             if (DEBUG) {
-                Log.d(TAG, "onStart():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onStart():" + activity.getClass().getSimpleName());
             }
             incrementNumRunningActivities();
         }
@@ -417,7 +417,7 @@ public class DebugOverlay {
         @Override
         public void onActivityResumed(Activity activity) {
             if (DEBUG) {
-                Log.d(TAG, "onResume():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onResume():" + activity.getClass().getSimpleName());
             }
             if (config.isAllowSystemLayer() && overlayViewManager.isOverlayPermissionRequested()) {
                 if (OverlayViewManager.canDrawOnSystemLayer(activity, OverlayViewManager.getWindowTypeForOverlay(true))) {
@@ -432,14 +432,14 @@ public class DebugOverlay {
         @Override
         public void onActivityPaused(Activity activity) {
             if (DEBUG) {
-                Log.d(TAG, "onPause():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onPause():" + activity.getClass().getSimpleName());
             }
         }
 
         @Override
         public void onActivityStopped(Activity activity) {
             if (DEBUG) {
-                Log.d(TAG, "onStop():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onStop():" + activity.getClass().getSimpleName());
             }
             decrementNumRunningActivities();
         }
@@ -447,14 +447,14 @@ public class DebugOverlay {
         @Override
         public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
             if (DEBUG) {
-                Log.d(TAG, "onSaveInstanceState():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onSaveInstanceState():" + activity.getClass().getSimpleName());
             }
         }
 
         @Override
         public void onActivityDestroyed(Activity activity) {
             if (DEBUG) {
-                Log.d(TAG, "onDestroy():" + activity.getClass().getSimpleName());
+                Log.i(TAG, "onDestroy():" + activity.getClass().getSimpleName());
             }
         }
 
