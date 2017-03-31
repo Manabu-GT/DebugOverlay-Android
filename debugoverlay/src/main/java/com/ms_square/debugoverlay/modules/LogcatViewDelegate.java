@@ -24,7 +24,7 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
 
     private static final int DEFAULT_MAX_LINE_ITEMS = 15;
 
-    private final int maxLineItems;
+    private final int maxLines;
 
     private final LogcatLineFilter lineFilter;
 
@@ -32,10 +32,10 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
 
     private LogcatLineArrayAdapter adapter;
 
-    private LogcatViewDelegate(@LayoutRes int layoutResId, @Size(min=1,max=100) int maxLineItems,
+    private LogcatViewDelegate(@LayoutRes int layoutResId, @Size(min=1,max=100) int maxLines,
                                LogcatLineFilter lineFilter, LogcatLineColorScheme colorScheme) {
         super(layoutResId);
-        this.maxLineItems = maxLineItems;
+        this.maxLines = maxLines;
         this.lineFilter = lineFilter;
         this.colorScheme = colorScheme;
     }
@@ -45,7 +45,7 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
         if (lineFilter.shouldFilterOut(logcatLine.getPriority(), logcatLine.getTag())) {
             return;
         }
-        if (adapter.getCount() >= maxLineItems) {
+        if (adapter.getCount() >= maxLines) {
             adapter.remove(adapter.getItem(0));
         }
         adapter.add(logcatLine);
@@ -60,11 +60,11 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
         listView.setAdapter(adapter);
 
         if (textColor != DebugOverlay.DEFAULT_TEXT_COLOR) {
-            Log.d(TAG, "textColor passed will be ignored for logcat priority/tag and message.\n" +
+            Log.i(TAG, "textColor passed will be ignored for logcat priority/tag and message.\n" +
                     "Please use LogcatLineColorScheme for such purpose.");
         }
         if (Float.compare(textSize, DebugOverlay.DEFAULT_TEXT_SIZE) != 0) {
-            Log.d(TAG, "textSize passed will be ignored for this view.");
+            Log.i(TAG, "textSize passed will be ignored for this view.");
         }
 
         return listView;
@@ -160,7 +160,7 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
         @LayoutRes
         private final int layoutResId;
 
-        private final int maxLineItems;
+        private final int maxLines;
 
         private final LogcatLineFilter lineFilter;
 
@@ -172,33 +172,33 @@ public class LogcatViewDelegate extends BaseOverlayViewDelegate<LogcatLine>  {
                     LogcatLineColorScheme.DEFAULT_COLOR_SCHEME);
         }
 
-        public Factory(@Size(min=1,max=100) int maxLineItems) {
-            this(R.layout.logcat, maxLineItems,
+        public Factory(@Size(min=1,max=100) int maxLines) {
+            this(R.layout.logcat, maxLines,
                     new LogcatLineFilter.SimpleLogcatLineFilter(LogcatLine.Priority.VERBOSE),
                     LogcatLineColorScheme.DEFAULT_COLOR_SCHEME);
         }
 
-        public Factory(@Size(min=1,max=100) int maxLineItems, LogcatLineFilter lineFilter) {
-            this(R.layout.logcat, maxLineItems, lineFilter,
+        public Factory(@Size(min=1,max=100) int maxLines, LogcatLineFilter lineFilter) {
+            this(R.layout.logcat, maxLines, lineFilter,
                     LogcatLineColorScheme.DEFAULT_COLOR_SCHEME);
         }
 
-        public Factory(@Size(min=1,max=100) int maxLineItems, LogcatLineFilter lineFilter,
+        public Factory(@Size(min=1,max=100) int maxLines, LogcatLineFilter lineFilter,
                        LogcatLineColorScheme colorScheme) {
-            this(R.layout.logcat, maxLineItems, lineFilter, colorScheme);
+            this(R.layout.logcat, maxLines, lineFilter, colorScheme);
         }
 
-        private Factory(@LayoutRes int layoutResId, @Size(min=1,max=100) int maxLineItems,
+        private Factory(@LayoutRes int layoutResId, @Size(min=1,max=100) int maxLines,
                        LogcatLineFilter lineFilter, LogcatLineColorScheme colorScheme) {
             this.layoutResId = layoutResId;
-            this.maxLineItems = maxLineItems;
+            this.maxLines = maxLines;
             this.lineFilter = lineFilter;
             this.colorScheme = colorScheme;
         }
 
         @Override
         public OverlayViewDelegate<LogcatLine> create() {
-            return new LogcatViewDelegate(layoutResId, maxLineItems, lineFilter, colorScheme);
+            return new LogcatViewDelegate(layoutResId, maxLines, lineFilter, colorScheme);
         }
     }
 }
