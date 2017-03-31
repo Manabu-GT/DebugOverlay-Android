@@ -146,7 +146,9 @@ class OverlayViewManager {
 
         @Override
         public void onViewAttachedToWindow(View v) {
-            Log.d(TAG, "attached");
+            if (DebugOverlay.DEBUG) {
+                Log.d(TAG, "attachedToWindow");
+            }
             _rootView = createRoot();
 
             int layoutParamsWidth = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -170,13 +172,14 @@ class OverlayViewManager {
 
         @Override
         public void onViewDetachedFromWindow(View v) {
-            Log.d(TAG, "detached");
+            if (DebugOverlay.DEBUG) {
+                Log.d(TAG, "detachedFromWindow");
+            }
             for (OverlayModule overlayModule : overlayModules) {
                 overlayModule.removeObserver(_moduleToViewDelegate.get(overlayModule));
             }
             _moduleToViewDelegate.clear();
             windowManager.removeViewImmediate(_rootView);
-            Log.d(TAG, "remove onAttachListener");
             v.removeOnAttachStateChangeListener(this);
         }
     }

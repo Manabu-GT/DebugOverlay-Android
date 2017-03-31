@@ -57,7 +57,9 @@ public class DebugOverlayService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate() called");
+        if (DebugOverlay.DEBUG) {
+            Log.d(TAG, "onCreate() called");
+        }
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         IntentFilter intentFilter = new IntentFilter();
@@ -68,7 +70,9 @@ public class DebugOverlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand() called");
+        if (DebugOverlay.DEBUG) {
+            Log.d(TAG, "onStartCommand() called");
+        }
         config = intent.getParcelableExtra(DebugOverlay.KEY_CONFIG);
         // no need to restart this service
         return Service.START_NOT_STICKY;
@@ -76,7 +80,9 @@ public class DebugOverlayService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy() called");
+        if (DebugOverlay.DEBUG) {
+            Log.d(TAG, "onDestroy() called");
+        }
         unregisterReceiver(receiver);
         cancelNotification();
         stopModules();
@@ -86,14 +92,17 @@ public class DebugOverlayService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind() called");
+        if (DebugOverlay.DEBUG) {
+            Log.d(TAG, "onBind() called");
+        }
         return binder;
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-        Log.d(TAG, "onTaskRemoved() called");
+        if (DebugOverlay.DEBUG) {
+            Log.d(TAG, "onTaskRemoved() called");
+        }
         stopSelf();
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(new Intent(DebugOverlay.ACTION_UNBIND));
     }
@@ -118,7 +127,9 @@ public class DebugOverlayService extends Service {
                 overlayModule.start();
             }
             modulesStarted = true;
-            Log.d(TAG, "Started modules");
+            if (DebugOverlay.DEBUG) {
+                Log.d(TAG, "Started overlay modules");
+            }
         }
     }
 
@@ -128,7 +139,9 @@ public class DebugOverlayService extends Service {
                 overlayModule.stop();
             }
             modulesStarted = false;
-            Log.d(TAG, "Stopped modules");
+            if (DebugOverlay.DEBUG) {
+                Log.d(TAG, "Stopped overlay modules");
+            }
         }
     }
 
