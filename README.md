@@ -135,7 +135,7 @@ Customization
 
 #### Filtering
 
-* [LogcatLineFilter][5]
+* [LogcatLineFilter][1]
 
 implement the follwing IF method
 
@@ -145,7 +145,7 @@ boolean shouldFilterOut(LogcatLine.Priority priority, @NonNull String tag)
 
 #### Coloring
 
-* [LogcatLineColorScheme][6]
+* [LogcatLineColorScheme][2]
 
 implement the follwing IF method
 
