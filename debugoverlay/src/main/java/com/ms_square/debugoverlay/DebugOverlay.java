@@ -22,19 +22,22 @@ import android.util.Log;
 
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
 import com.ms_square.debugoverlay.modules.FpsModule;
-import com.ms_square.debugoverlay.modules.LogcatModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class DebugOverlay {
 
     private static final String TAG = DebugOverlay.class.getSimpleName();
 
-    public static final int DEFAULT_BG_COLOR = Color.TRANSPARENT;
-    public static final int DEFAULT_TEXT_COLOR = Color.parseColor("#424242");
-    public static final float DEFAULT_TEXT_SIZE = 14f; // 14sp
+    public static final Position DEFAULT_POSITION = Position.BOTTOM_START;
+    public static final int DEFAULT_BG_COLOR = Color.parseColor("#40000000");
+    public static final int DEFAULT_TEXT_COLOR = Color.WHITE;
+    public static final float DEFAULT_TEXT_SIZE = 12f; // 12sp
     public static final float DEFAULT_TEXT_ALPHA = 1f;
 
     static final String KEY_CONFIG = "com.ms_square.debugoverlay.extra.CONFIG";
@@ -68,11 +71,14 @@ public class DebugOverlay {
      * <p>
      * This instance is automatically initialized with the following default settings.
      * <ul>
-     *     <li></li>
-     *     <li></li>
-     *     <li></li>
-     *     <li></li>
-     *     <li></li>
+     *     <li>Overlay is placed at BOTTOM_START (bottom left)</li>
+     *     <li>Overlay's background color is black of opacity 25%</li>
+     *     <li>Overlay's textColor is white.</li>
+     *     <li>Overlay's textSize is 12sp.</li>
+     *     <li>Overlay's textAlpha is 1 (opaque).</li>
+     *     <li>Overlay is placed on System window layer.</li>
+     *     <li>Notification is shown to control(show/hide) the overlay.</li>
+     *     <li>Activity to start when the fore-mentioned notification is tapped is null; thus does nothing when tapped.</li>
      * </ul>
      * <p>
      * If these settings do not meet the requirements of your application you can construct your own
@@ -102,9 +108,6 @@ public class DebugOverlay {
         return DEBUG;
     }
 
-    /**
-     *
-     */
     public void install() {
         if (installed) {
             throw new IllegalStateException("install() can be called only once!");
@@ -148,7 +151,9 @@ public class DebugOverlay {
     final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "service is connected");
+            if (DEBUG) {
+                Log.i(TAG, "DebugOverlayService is connected");
+            }
             // We've bound to DebugOverlayService, cast the IBinder and get DebugOverlayService instance
             DebugOverlayService.LocalBinder binder = (DebugOverlayService.LocalBinder) service;
             overlayService = binder.getService();
@@ -167,7 +172,9 @@ public class DebugOverlay {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (ACTION_UNBIND.equals(intent.getAction())) {
-                Log.d(TAG, "unbind request received");
+                if (DEBUG) {
+                    Log.d(TAG, "DebugOverlayService unbind request received");
+                }
                 unBindRequestReceived = true;
                 unbindFromDebugOverlayService();
             }
@@ -202,7 +209,7 @@ public class DebugOverlay {
             this.application = application;
 
             // default values
-            this.position = Position.BOTTOM_START;
+            this.position = DEFAULT_POSITION;
             this.bgColor = DEFAULT_BG_COLOR;
             this.textColor = DEFAULT_TEXT_COLOR;
             this.textSize = DEFAULT_TEXT_SIZE;
@@ -210,10 +217,6 @@ public class DebugOverlay {
             this.allowSystemLayer = true;
             this.showNotification = true;
             this.overlayModules = new ArrayList<>();
-            this.overlayModules.add(new CpuUsageModule());
-            this.overlayModules.add(new MemInfoModule(application));
-            this.overlayModules.add(new FpsModule());
-            this.overlayModules.add(new LogcatModule());
         }
 
         public Builder modules(List<OverlayModule> overlayModules) {
@@ -221,6 +224,15 @@ public class DebugOverlay {
                 throw new IllegalArgumentException("Module list cat be empty");
             }
             this.overlayModules = overlayModules;
+            return this;
+        }
+
+        public Builder modules(OverlayModule overlayModule, OverlayModule... other) {
+            this.overlayModules.clear();
+            this.overlayModules.add(overlayModule);
+            if (other != null && other.length > 0) {
+                this.overlayModules.addAll(Arrays.asList(other));
+            }
             return this;
         }
 
@@ -271,6 +283,11 @@ public class DebugOverlay {
                     Log.w(TAG, "if systemLayer is not allowed, notification is not supported; thus don't show notification.");
                     showNotification = false;
                 }
+            }
+            if (overlayModules.size() == 0) {
+                overlayModules.add(new CpuUsageModule());
+                overlayModules.add(new MemInfoModule(application));
+                overlayModules.add(new FpsModule());
             }
             return new DebugOverlay(application, overlayModules,
                     new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
@@ -386,60 +403,93 @@ public class DebugOverlay {
 
     class ActivityLifecycleHandler implements Application.ActivityLifecycleCallbacks {
 
+        private Map<Activity, OverlayViewManager.OverlayViewAttachStateChangeListener> attachStateChangeListeners;
+
         private int numRunningActivities;
+
+        public ActivityLifecycleHandler() {
+            if (!config.isAllowSystemLayer()) {
+                attachStateChangeListeners = new WeakHashMap<>();
+            }
+        }
 
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            Log.d(TAG, "onCreate() - " + activity.getClass().getSimpleName() + "-" + activity.getWindow().getAttributes().token);
+            if (DEBUG) {
+                Log.i(TAG, "onCreate():" + activity.getClass().getSimpleName());
+            }
             if (!config.isAllowSystemLayer()) {
-                activity.getWindow().getDecorView()
-                        .addOnAttachStateChangeListener(overlayViewManager.createOnAttachStateChangeListener());
+                OverlayViewManager.OverlayViewAttachStateChangeListener listener =
+                        overlayViewManager.createAttachStateChangeListener();
+                activity.getWindow().getDecorView().addOnAttachStateChangeListener(listener);
+                attachStateChangeListeners.put(activity, listener);
             }
         }
 
         @Override
         public void onActivityStarted(Activity activity) {
-            Log.d(TAG, "onStart() - " + activity.getClass().getSimpleName());
+            if (DEBUG) {
+                Log.i(TAG, "onStart():" + activity.getClass().getSimpleName());
+            }
             incrementNumRunningActivities();
         }
 
         @Override
         public void onActivityResumed(Activity activity) {
-            Log.d(TAG, "onResume() - " + activity.getClass().getSimpleName());
-            if (config.isAllowSystemLayer() && overlayViewManager.isOverlayPermissionRequested()) {
-                if (OverlayViewManager.canDrawOnSystemLayer(activity, OverlayViewManager.getWindowTypeForOverlay(true))) {
+            if (DEBUG) {
+                Log.i(TAG, "onResume():" + activity.getClass().getSimpleName());
+            }
+            if (config.isAllowSystemLayer()) {
+                if (overlayViewManager.isOverlayPermissionRequested() &&
+                        OverlayViewManager.canDrawOnSystemLayer(activity, OverlayViewManager.getWindowTypeForOverlay(true))) {
                     overlayViewManager.showDebugSystemOverlay();
                     if (overlayService != null) {
                         overlayService.updateNotification();
                     }
+                }
+            } else {
+                OverlayViewManager.OverlayViewAttachStateChangeListener listener = attachStateChangeListeners.get(activity);
+                if (listener != null) {
+                    listener.onActivityResumed();
                 }
             }
         }
 
         @Override
         public void onActivityPaused(Activity activity) {
-            Log.d(TAG, "onPause() - " + activity.getClass().getSimpleName());
+            if (DEBUG) {
+                Log.i(TAG, "onPause():" + activity.getClass().getSimpleName());
+            }
         }
 
         @Override
         public void onActivityStopped(Activity activity) {
-            Log.d(TAG, "onStop() - " + activity.getClass().getSimpleName());
+            if (DEBUG) {
+                Log.i(TAG, "onStop():" + activity.getClass().getSimpleName());
+            }
             decrementNumRunningActivities();
         }
 
         @Override
         public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
+            if (DEBUG) {
+                Log.i(TAG, "onSaveInstanceState():" + activity.getClass().getSimpleName());
+            }
         }
 
         @Override
         public void onActivityDestroyed(Activity activity) {
-            Log.d(TAG, "onDestroy() - " + activity.getClass().getSimpleName());
+            if (DEBUG) {
+                Log.i(TAG, "onDestroy():" + activity.getClass().getSimpleName());
+            }
+            if (attachStateChangeListeners != null) {
+                attachStateChangeListeners.remove(activity);
+            }
         }
 
         private void incrementNumRunningActivities() {
             if (numRunningActivities == 0) {
-                Log.d(TAG, "App is now in foreground");
+                // app is in foreground
                 if (config.isAllowSystemLayer()) {
                     if (overlayService == null && unBindRequestReceived) {
                         // service already un-bound by a explicit request, but restart here since it is now in foreground
@@ -460,7 +510,7 @@ public class DebugOverlay {
             numRunningActivities--;
             if (numRunningActivities <= 0) {
                 numRunningActivities = 0;
-                Log.d(TAG, "App is now in background");
+                // apps is in background
                 if (!config.isAllowSystemLayer() && overlayService != null) {
                     overlayService.stopModules();
                 }
