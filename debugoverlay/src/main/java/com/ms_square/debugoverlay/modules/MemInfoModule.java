@@ -8,9 +8,11 @@ import com.ms_square.debugoverlay.OverlayModule;
 import com.ms_square.debugoverlay.ViewModule;
 
 public class MemInfoModule extends OverlayModule<MemInfoDataModule.MemInfo> {
-    
+
+    public static final int DEFAULT_INTERVAL = 1500; // 1500ms
+
     public MemInfoModule(@NonNull Context context) {
-        super(new MemInfoDataModule(context), new MemInfoViewModule());
+        super(new MemInfoDataModule(context, DEFAULT_INTERVAL), new MemInfoViewModule());
     }
 
     public MemInfoModule(@NonNull Context context, int interval) {
@@ -22,7 +24,7 @@ public class MemInfoModule extends OverlayModule<MemInfoDataModule.MemInfo> {
     }
 
     public MemInfoModule(@NonNull Context context, @NonNull ViewModule<MemInfoDataModule.MemInfo> viewModule) {
-        super(new MemInfoDataModule(context), viewModule);
+        super(new MemInfoDataModule(context, DEFAULT_INTERVAL), viewModule);
     }
 
     public MemInfoModule(@NonNull Context context, int interval, @NonNull ViewModule<MemInfoDataModule.MemInfo> viewModule) {

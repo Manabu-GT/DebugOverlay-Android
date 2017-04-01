@@ -22,8 +22,6 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
     private static final String TAG = LogcatViewModule.class.getSimpleName();
 
-    private static final int DEFAULT_MAX_LINE_ITEMS = 15;
-
     private final int maxLines;
 
     private final LogcatLineFilter lineFilter;
@@ -31,12 +29,6 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
     private final LogcatLineColorScheme colorScheme;
 
     private LogcatLineArrayAdapter adapter;
-
-    public LogcatViewModule() {
-        this(R.layout.logcat, DEFAULT_MAX_LINE_ITEMS,
-                LogcatLineFilter.DEFAULT_LINE_FILTER,
-                LogcatLineColorScheme.DEFAULT_COLOR_SCHEME);
-    }
 
     public LogcatViewModule(@Size(min=1,max=100) int maxLines) {
         this(R.layout.logcat, maxLines,
@@ -68,14 +60,16 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
     @Override
     public void onDataAvailable(LogcatLine logcatLine) {
-        if (lineFilter.shouldFilterOut(logcatLine.getPriority(), logcatLine.getTag())) {
-            return;
+        if (logcatLine != null) {
+            if (lineFilter.shouldFilterOut(logcatLine.getPriority(), logcatLine.getTag())) {
+                return;
+            }
+            if (adapter.getCount() >= maxLines) {
+                adapter.remove(adapter.getItem(0));
+            }
+            adapter.add(logcatLine);
+            adapter.notifyDataSetChanged();
         }
-        if (adapter.getCount() >= maxLines) {
-            adapter.remove(adapter.getItem(0));
-        }
-        adapter.add(logcatLine);
-        adapter.notifyDataSetChanged();
     }
 
     @Override

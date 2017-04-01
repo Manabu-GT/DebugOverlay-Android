@@ -8,8 +8,10 @@ import com.ms_square.debugoverlay.ViewModule;
 
 public class CpuUsageModule extends OverlayModule<CpuUsageDataModule.CpuUsage> {
 
+    public static final int DEFAULT_INTERVAL = 1000; // 1000ms
+
     public CpuUsageModule() {
-        super(new CpuUsageDataModule(), new CpuUsageViewModule());
+        super(new CpuUsageDataModule(DEFAULT_INTERVAL), new CpuUsageViewModule());
     }
 
     public CpuUsageModule(int interval) {
@@ -21,7 +23,7 @@ public class CpuUsageModule extends OverlayModule<CpuUsageDataModule.CpuUsage> {
     }
 
     public CpuUsageModule(@NonNull ViewModule<CpuUsageDataModule.CpuUsage> viewModule) {
-        super(new CpuUsageDataModule(), viewModule);
+        super(new CpuUsageDataModule(DEFAULT_INTERVAL), viewModule);
     }
 
     public CpuUsageModule(int interval, @NonNull ViewModule<CpuUsageDataModule.CpuUsage> viewModule) {

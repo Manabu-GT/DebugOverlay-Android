@@ -8,8 +8,10 @@ import com.ms_square.debugoverlay.ViewModule;
 
 public class FpsModule extends OverlayModule<Double> {
 
+    public static final int DEFAULT_INTERVAL = 1000; // 1000ms
+
     public FpsModule() {
-        super(new FpsDataModule(), new FpsViewModule());
+        super(new FpsDataModule(DEFAULT_INTERVAL), new FpsViewModule());
     }
 
     public FpsModule(int interval) {
@@ -21,7 +23,7 @@ public class FpsModule extends OverlayModule<Double> {
     }
 
     public FpsModule(@NonNull ViewModule<Double> viewModule) {
-        super(new FpsDataModule(), viewModule);
+        super(new FpsDataModule(DEFAULT_INTERVAL), viewModule);
     }
 
     public FpsModule(int interval, @NonNull ViewModule<Double> viewModule) {

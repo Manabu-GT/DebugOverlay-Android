@@ -10,17 +10,11 @@ import android.support.annotation.NonNull;
 
 class MemInfoDataModule extends BaseDataModule<MemInfoDataModule.MemInfo> {
 
-    public static final int DEFAULT_INTERVAL = 1500; // 1500ms
-
     private Handler handler = new Handler(Looper.getMainLooper());
 
     private final ActivityManager am;
 
     private MemInfo memInfo;
-
-    public MemInfoDataModule(@NonNull Context context) {
-        this(context, DEFAULT_INTERVAL);
-    }
 
     public MemInfoDataModule(@NonNull Context context, int interval) {
         super(interval);

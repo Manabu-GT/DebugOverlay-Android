@@ -6,20 +6,12 @@ import java.util.concurrent.TimeUnit;
 
 class FpsDataModule extends BaseDataModule<Double> implements Choreographer.FrameCallback {
 
-    public static final int DEFAULT_INTERVAL = 1000; // 1000ms
-
     private final Choreographer choreographer;
-
-    private int interval = DEFAULT_INTERVAL;
 
     private long startFrameTimeMillis;
     private int numFramesRendered;
 
     private double fps;
-
-    public FpsDataModule() {
-        this(DEFAULT_INTERVAL);
-    }
 
     public FpsDataModule(int interval) {
         super(interval);
@@ -44,7 +36,7 @@ class FpsDataModule extends BaseDataModule<Double> implements Choreographer.Fram
             long duration = currentFrameTimeMillis - startFrameTimeMillis;
             numFramesRendered++;
 
-            if (duration > interval) {
+            if (duration > getInterval()) {
                 fps = numFramesRendered * 1000f / duration;
 
                 notifyObservers();

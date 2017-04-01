@@ -15,17 +15,11 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsageDataModule.CpuUsage> {
 
     private static final String TAG = CpuUsageDataModule.class.getSimpleName();
 
-    public static final int DEFAULT_INTERVAL = 1000; // 1000ms
-
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     private final AtomicReference<CpuUsage> cpuUsage = new AtomicReference<>();
 
     private ReaderThread cpuReaderThread;
-
-    public CpuUsageDataModule() {
-        this(DEFAULT_INTERVAL);
-    }
 
     public CpuUsageDataModule(int interval) {
         super(interval);

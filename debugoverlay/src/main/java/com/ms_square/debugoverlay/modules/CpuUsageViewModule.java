@@ -34,16 +34,18 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsa
 
     @Override
     public void onDataAvailable(CpuUsageDataModule.CpuUsage data) {
-        String totalCpuUsage = DECIMAL_FORMAT.format(data.getTotal());
-        String myPidCpuUsage = DECIMAL_FORMAT.format(data.getMyPid());
+        if (data != null) {
+            String totalCpuUsage = DECIMAL_FORMAT.format(data.getTotal());
+            String myPidCpuUsage = DECIMAL_FORMAT.format(data.getMyPid());
 
-        if (DebugOverlay.isDebugLoggingEnabled()) {
-            Log.d(TAG, "Total CPU Usage(%): " + totalCpuUsage);
-            Log.d(TAG, "App CPU Usage(%): " + myPidCpuUsage);
+            if (DebugOverlay.isDebugLoggingEnabled()) {
+                Log.d(TAG, "Total CPU Usage(%): " + totalCpuUsage);
+                Log.d(TAG, "App CPU Usage(%): " + myPidCpuUsage);
+            }
+
+            StringBuilder builder = new StringBuilder("cpu: ");
+            cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
         }
-
-        StringBuilder builder = new StringBuilder("cpu: ");
-        cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
     }
 
     @Override

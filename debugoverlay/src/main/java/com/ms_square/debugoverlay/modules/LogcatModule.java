@@ -8,8 +8,10 @@ import com.ms_square.debugoverlay.ViewModule;
 
 public class LogcatModule extends OverlayModule<LogcatLine> {
 
+    public static final int DEFAULT_MAX_LINES = 15;
+
     public LogcatModule() {
-        super(new LogcatDataModule(), new LogcatViewModule());
+        super(new LogcatDataModule(), new LogcatViewModule(DEFAULT_MAX_LINES));
     }
 
     public LogcatModule(@Size(min=1,max=100) int maxLines) {
