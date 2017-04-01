@@ -14,17 +14,15 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.ms_square.debugoverlay.DebugOverlay;
-import com.ms_square.debugoverlay.OverlayViewDelegate;
-import com.ms_square.debugoverlay.OverlayViewDelegateFactory;
 import com.ms_square.debugoverlay.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class MemInfoViewDelegate extends BaseOverlayViewDelegate<MemInfoModule.MemInfo> {
+public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo> {
 
-    private static final String TAG = MemInfoViewDelegate.class.getSimpleName();
+    private static final String TAG = MemInfoViewModule.class.getSimpleName();
 
     private static final String HEADER = "memory(mb):\n";
 
@@ -33,12 +31,16 @@ public class MemInfoViewDelegate extends BaseOverlayViewDelegate<MemInfoModule.M
 
     private TextView memInfoTxtView;
 
-    private MemInfoViewDelegate(@LayoutRes int layoutResId) {
+    public MemInfoViewModule() {
+        super(R.layout.mem_usage);
+    }
+
+    public MemInfoViewModule(@LayoutRes int layoutResId) {
         super(layoutResId);
     }
 
     @Override
-    public void onDataAvailable(MemInfoModule.MemInfo data) {
+    public void onDataAvailable(MemInfoDataModule.MemInfo data) {
         ActivityManager.MemoryInfo systemMemInfo = data.getSystemMemInfo();
         Debug.MemoryInfo procMemInfo = data.getProcessMemInfo();
 
@@ -75,24 +77,5 @@ public class MemInfoViewDelegate extends BaseOverlayViewDelegate<MemInfoModule.M
         memInfoTxtView.setTextSize(textSize);
         memInfoTxtView.setAlpha(textAlpha);
         return view;
-    }
-
-    public static class Factory implements OverlayViewDelegateFactory<MemInfoModule.MemInfo> {
-
-        @LayoutRes
-        private final int layoutResId;
-
-        public Factory() {
-            this(R.layout.mem_usage);
-        }
-
-        public Factory(@LayoutRes int layoutResId) {
-            this.layoutResId = layoutResId;
-        }
-
-        @Override
-        public OverlayViewDelegate<MemInfoModule.MemInfo> create() {
-            return new MemInfoViewDelegate(layoutResId);
-        }
     }
 }

@@ -9,29 +9,31 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.ms_square.debugoverlay.DebugOverlay;
-import com.ms_square.debugoverlay.OverlayViewDelegate;
-import com.ms_square.debugoverlay.OverlayViewDelegateFactory;
 import com.ms_square.debugoverlay.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class CpuUsageViewDelegate extends BaseOverlayViewDelegate<CpuUsageModule.CpuUsage> {
+public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsage> {
 
-    private static final String TAG = CpuUsageViewDelegate.class.getSimpleName();
+    private static final String TAG = CpuUsageViewModule.class.getSimpleName();
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.0",
             DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
     private TextView cpuUsageTextView;
 
-    private CpuUsageViewDelegate(@LayoutRes int layoutResId) {
+    public CpuUsageViewModule() {
+        super(R.layout.cpu_usage);
+    }
+
+    public CpuUsageViewModule(@LayoutRes int layoutResId) {
         super(layoutResId);
     }
 
     @Override
-    public void onDataAvailable(CpuUsageModule.CpuUsage data) {
+    public void onDataAvailable(CpuUsageDataModule.CpuUsage data) {
         String totalCpuUsage = DECIMAL_FORMAT.format(data.getTotal());
         String myPidCpuUsage = DECIMAL_FORMAT.format(data.getMyPid());
 
@@ -52,24 +54,5 @@ public class CpuUsageViewDelegate extends BaseOverlayViewDelegate<CpuUsageModule
         cpuUsageTextView.setTextSize(textSize);
         cpuUsageTextView.setAlpha(textAlpha);
         return view;
-    }
-
-    public static class Factory implements OverlayViewDelegateFactory<CpuUsageModule.CpuUsage> {
-
-        @LayoutRes
-        private final int layoutResId;
-
-        public Factory() {
-            this(R.layout.cpu_usage);
-        }
-
-        public Factory(@LayoutRes int layoutResId) {
-            this.layoutResId = layoutResId;
-        }
-
-        @Override
-        public OverlayViewDelegate<CpuUsageModule.CpuUsage> create() {
-            return new CpuUsageViewDelegate(layoutResId);
-        }
     }
 }

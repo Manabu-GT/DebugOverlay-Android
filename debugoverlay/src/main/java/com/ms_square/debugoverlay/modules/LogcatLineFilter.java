@@ -6,6 +6,9 @@ public interface LogcatLineFilter {
 
     boolean shouldFilterOut(LogcatLine.Priority priority, @NonNull String tag);
 
+    LogcatLineFilter DEFAULT_LINE_FILTER =
+            new LogcatLineFilter.SimpleLogcatLineFilter(LogcatLine.Priority.VERBOSE);
+
     class SimpleLogcatLineFilter implements LogcatLineFilter {
 
         private final LogcatLine.Priority minPriority;

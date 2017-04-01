@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 
-public interface OverlayViewDelegate<T> extends OverlayModuleObserver<T> {
+public interface ViewModule<T> extends DataObserver<T> {
 
     /**
      * Given the root (overlay's view container), create an overlay view to add
@@ -19,5 +19,6 @@ public interface OverlayViewDelegate<T> extends OverlayModuleObserver<T> {
      * @param textAlpha
      * @return View to be added to the overlay container.
      */
+    @NonNull
     View createView(@NonNull ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha);
 }

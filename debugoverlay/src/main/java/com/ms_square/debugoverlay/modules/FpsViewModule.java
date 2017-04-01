@@ -7,22 +7,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.ms_square.debugoverlay.OverlayViewDelegate;
-import com.ms_square.debugoverlay.OverlayViewDelegateFactory;
 import com.ms_square.debugoverlay.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class FpsViewDelegate extends BaseOverlayViewDelegate<Double> {
+public class FpsViewModule extends BaseViewModule<Double> {
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("'fps:' 0.0",
             DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
     private TextView fpsTxtView;
 
-    private FpsViewDelegate(@LayoutRes int layoutResId) {
+    public FpsViewModule() {
+        super(R.layout.fps);
+    }
+
+    public FpsViewModule(@LayoutRes int layoutResId) {
         super(layoutResId);
     }
 
@@ -39,24 +41,5 @@ public class FpsViewDelegate extends BaseOverlayViewDelegate<Double> {
         fpsTxtView.setTextSize(textSize);
         fpsTxtView.setAlpha(textAlpha);
         return view;
-    }
-
-    public static class Factory implements OverlayViewDelegateFactory<Double> {
-
-        @LayoutRes
-        private final int layoutResId;
-
-        public Factory() {
-            this(R.layout.fps);
-        }
-
-        public Factory(@LayoutRes int layoutResId) {
-            this.layoutResId = layoutResId;
-        }
-
-        @Override
-        public OverlayViewDelegate<Double> create() {
-            return new FpsViewDelegate(layoutResId);
-        }
     }
 }

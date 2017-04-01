@@ -22,17 +22,20 @@ import android.util.Log;
 
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
 import com.ms_square.debugoverlay.modules.FpsModule;
-import com.ms_square.debugoverlay.modules.LogcatModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public class DebugOverlay {
 
     private static final String TAG = DebugOverlay.class.getSimpleName();
 
-    public static final int DEFAULT_BG_COLOR = Color.TRANSPARENT;
+    public static final Position DEFAULT_POSITION = Position.BOTTOM_START;
+    public static final int DEFAULT_BG_COLOR = Color.parseColor("#40000000");
     public static final int DEFAULT_TEXT_COLOR = Color.WHITE;
     public static final float DEFAULT_TEXT_SIZE = 12f; // 12sp
     public static final float DEFAULT_TEXT_ALPHA = 1f;
@@ -69,7 +72,7 @@ public class DebugOverlay {
      * This instance is automatically initialized with the following default settings.
      * <ul>
      *     <li>Overlay is placed at BOTTOM_START (bottom left)</li>
-     *     <li>Overlay's background color is transparent</li>
+     *     <li>Overlay's background color is black of opacity 25%</li>
      *     <li>Overlay's textColor is white.</li>
      *     <li>Overlay's textSize is 12sp.</li>
      *     <li>Overlay's textAlpha is 1 (opaque).</li>
@@ -105,9 +108,6 @@ public class DebugOverlay {
         return DEBUG;
     }
 
-    /**
-     *
-     */
     public void install() {
         if (installed) {
             throw new IllegalStateException("install() can be called only once!");
@@ -209,7 +209,7 @@ public class DebugOverlay {
             this.application = application;
 
             // default values
-            this.position = Position.BOTTOM_START;
+            this.position = DEFAULT_POSITION;
             this.bgColor = DEFAULT_BG_COLOR;
             this.textColor = DEFAULT_TEXT_COLOR;
             this.textSize = DEFAULT_TEXT_SIZE;
@@ -217,10 +217,6 @@ public class DebugOverlay {
             this.allowSystemLayer = true;
             this.showNotification = true;
             this.overlayModules = new ArrayList<>();
-            this.overlayModules.add(new CpuUsageModule());
-            this.overlayModules.add(new MemInfoModule(application));
-            this.overlayModules.add(new FpsModule());
-            this.overlayModules.add(new LogcatModule());
         }
 
         public Builder modules(List<OverlayModule> overlayModules) {
@@ -228,6 +224,15 @@ public class DebugOverlay {
                 throw new IllegalArgumentException("Module list cat be empty");
             }
             this.overlayModules = overlayModules;
+            return this;
+        }
+
+        public Builder modules(OverlayModule overlayModule, OverlayModule... other) {
+            this.overlayModules.clear();
+            this.overlayModules.add(overlayModule);
+            if (other != null && other.length > 0) {
+                this.overlayModules.addAll(Arrays.asList(other));
+            }
             return this;
         }
 
@@ -278,6 +283,11 @@ public class DebugOverlay {
                     Log.w(TAG, "if systemLayer is not allowed, notification is not supported; thus don't show notification.");
                     showNotification = false;
                 }
+            }
+            if (overlayModules.size() == 0) {
+                overlayModules.add(new CpuUsageModule());
+                overlayModules.add(new MemInfoModule(application));
+                overlayModules.add(new FpsModule());
             }
             return new DebugOverlay(application, overlayModules,
                     new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
@@ -393,7 +403,15 @@ public class DebugOverlay {
 
     class ActivityLifecycleHandler implements Application.ActivityLifecycleCallbacks {
 
+        private Map<Activity, OverlayViewManager.OverlayViewAttachStateChangeListener> attachStateChangeListeners;
+
         private int numRunningActivities;
+
+        public ActivityLifecycleHandler() {
+            if (!config.isAllowSystemLayer()) {
+                attachStateChangeListeners = new WeakHashMap<>();
+            }
+        }
 
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -401,8 +419,10 @@ public class DebugOverlay {
                 Log.i(TAG, "onCreate():" + activity.getClass().getSimpleName());
             }
             if (!config.isAllowSystemLayer()) {
-                activity.getWindow().getDecorView()
-                        .addOnAttachStateChangeListener(overlayViewManager.createOnAttachStateChangeListener());
+                OverlayViewManager.OverlayViewAttachStateChangeListener listener =
+                        overlayViewManager.createAttachStateChangeListener();
+                activity.getWindow().getDecorView().addOnAttachStateChangeListener(listener);
+                attachStateChangeListeners.put(activity, listener);
             }
         }
 
@@ -419,12 +439,18 @@ public class DebugOverlay {
             if (DEBUG) {
                 Log.i(TAG, "onResume():" + activity.getClass().getSimpleName());
             }
-            if (config.isAllowSystemLayer() && overlayViewManager.isOverlayPermissionRequested()) {
-                if (OverlayViewManager.canDrawOnSystemLayer(activity, OverlayViewManager.getWindowTypeForOverlay(true))) {
+            if (config.isAllowSystemLayer()) {
+                if (overlayViewManager.isOverlayPermissionRequested() &&
+                        OverlayViewManager.canDrawOnSystemLayer(activity, OverlayViewManager.getWindowTypeForOverlay(true))) {
                     overlayViewManager.showDebugSystemOverlay();
                     if (overlayService != null) {
                         overlayService.updateNotification();
                     }
+                }
+            } else {
+                OverlayViewManager.OverlayViewAttachStateChangeListener listener = attachStateChangeListeners.get(activity);
+                if (listener != null) {
+                    listener.onActivityResumed();
                 }
             }
         }
@@ -455,6 +481,9 @@ public class DebugOverlay {
         public void onActivityDestroyed(Activity activity) {
             if (DEBUG) {
                 Log.i(TAG, "onDestroy():" + activity.getClass().getSimpleName());
+            }
+            if (attachStateChangeListeners != null) {
+                attachStateChangeListeners.remove(activity);
             }
         }
 
