@@ -25,7 +25,7 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
     private TextView cpuUsageTextView;
 
     public CpuUsageViewModule() {
-        super(R.layout.cpu_usage);
+        super(R.layout.debugoverlay_cpu_usage);
     }
 
     public CpuUsageViewModule(@LayoutRes int layoutResId) {
@@ -51,7 +51,7 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        cpuUsageTextView = (TextView) view.findViewById(R.id.overlay_module_text);
+        cpuUsageTextView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
         cpuUsageTextView.setTextColor(textColor);
         cpuUsageTextView.setTextSize(textSize);
         cpuUsageTextView.setAlpha(textAlpha);

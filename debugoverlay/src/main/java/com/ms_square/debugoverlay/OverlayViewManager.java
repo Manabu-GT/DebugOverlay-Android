@@ -55,7 +55,7 @@ class OverlayViewManager {
     public void showDebugSystemOverlay() {
         if (config.isAllowSystemLayer() && rootView == null) {
             if (!canDrawOnSystemLayer(context, getWindowTypeForOverlay(true))) {
-                Toast.makeText(context, R.string.debug_overlay_permission_prompt, Toast.LENGTH_LONG);
+                Toast.makeText(context, R.string.debugoverlay_overlay_permission_prompt, Toast.LENGTH_LONG);
                 requestDrawOnSystemLayerPermission(context);
                 overlayPermissionRequested = true;
                 return;

@@ -31,23 +31,23 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
     private LogcatLineArrayAdapter adapter;
 
     public LogcatViewModule(@Size(min=1,max=100) int maxLines) {
-        this(R.layout.logcat, maxLines,
+        this(R.layout.debugoverlay_logcat, maxLines,
                 LogcatLineFilter.DEFAULT_LINE_FILTER,
                 LogcatLineColorScheme.DEFAULT_COLOR_SCHEME);
     }
 
     public LogcatViewModule(@Size(min=1,max=100) int maxLines, LogcatLineFilter lineFilter) {
-        this(R.layout.logcat, maxLines, lineFilter,
+        this(R.layout.debugoverlay_logcat, maxLines, lineFilter,
                 LogcatLineColorScheme.DEFAULT_COLOR_SCHEME);
     }
 
     public LogcatViewModule(@Size(min=1,max=100) int maxLines, LogcatLineColorScheme colorScheme) {
-        this(R.layout.logcat, maxLines, DEFAULT_LINE_FILTER, colorScheme);
+        this(R.layout.debugoverlay_logcat, maxLines, DEFAULT_LINE_FILTER, colorScheme);
     }
 
     public LogcatViewModule(@Size(min=1,max=100) int maxLines, LogcatLineFilter lineFilter,
                    LogcatLineColorScheme colorScheme) {
-        this(R.layout.logcat, maxLines, lineFilter, colorScheme);
+        this(R.layout.debugoverlay_logcat, maxLines, lineFilter, colorScheme);
     }
 
     public LogcatViewModule(@LayoutRes int layoutResId, @Size(min=1,max=100) int maxLines,
@@ -125,7 +125,7 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
             final ViewHolder holder;
 
             if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.line_logcat, parent, false);
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.debugoverlay_line_logcat, parent, false);
                 TextView dateAndTime = (TextView) convertView.findViewById(R.id.date_and_time);
                 TextView priorityAndTag = (TextView) convertView.findViewById(R.id.priority_and_tag);
                 TextView message = (TextView) convertView.findViewById(R.id.message);

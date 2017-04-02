@@ -32,7 +32,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfo> {
     private TextView memInfoTxtView;
 
     public MemInfoViewModule() {
-        super(R.layout.mem_usage);
+        super(R.layout.debugoverlay_mem_usage);
     }
 
     public MemInfoViewModule(@LayoutRes int layoutResId) {
@@ -60,7 +60,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfo> {
         SpannableStringBuilder spannableBuilder = new SpannableStringBuilder(builder.toString());
         if (systemMemInfo.lowMemory) {
             spannableBuilder.setSpan(
-                    new TextAppearanceSpan(memInfoTxtView.getContext(), R.style.LowMemoryTextAppearance),
+                    new TextAppearanceSpan(memInfoTxtView.getContext(), R.style.debugoverlay_LowMemoryTextAppearance),
                     HEADER.length(),
                     spannableBuilder.length(),
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -72,7 +72,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfo> {
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        memInfoTxtView = (TextView) view.findViewById(R.id.overlay_module_text);
+        memInfoTxtView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
         memInfoTxtView.setTextColor(textColor);
         memInfoTxtView.setTextSize(textSize);
         memInfoTxtView.setAlpha(textAlpha);

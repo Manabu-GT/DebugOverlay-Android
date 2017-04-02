@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="LowMemoryTextAppearance">
+    <style name="debugoverlay_LowMemoryTextAppearance">
         <item name="android:textColor">#ff0000</item>
     </style>
 
-    <style name="OverlayText">
+    <style name="debugoverlay_OverlayText">
         <item name="android:typeface">monospace</item>
         <item name="android:ellipsize">end</item>
         <item name="android:maxLines">2</item>
         <item name="android:textSize">12sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingRight">2dp</item>
         <item name="android:shadowColor">#7F000000</item>
         <item name="android:shadowDx">1</item>
         <item name="android:shadowDy">1</item>
         <item name="android:shadowRadius">2</item>
     </style>
 
-    <style name="LogcatMetaText">
+    <style name="debugoverlay_LogcatMetaText">
         <item name="android:typeface">monospace</item>
         <item name="android:ellipsize">end</item>
         <item name="android:lines">1</item>
@@ -26,7 +29,7 @@
         <item name="android:shadowRadius">1</item>
     </style>
 
-    <style name="LogcatMessageText">
+    <style name="debugoverlay_LogcatMessageText">
         <item name="android:typeface">monospace</item>
         <item name="android:ellipsize">end</item>
         <item name="android:lines">2</item>
