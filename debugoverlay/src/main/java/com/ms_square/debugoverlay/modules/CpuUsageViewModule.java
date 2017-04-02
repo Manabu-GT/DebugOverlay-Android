@@ -15,7 +15,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsage> {
+public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
 
     private static final String TAG = CpuUsageViewModule.class.getSimpleName();
 
@@ -33,7 +33,7 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsa
     }
 
     @Override
-    public void onDataAvailable(CpuUsageDataModule.CpuUsage data) {
+    public void onDataAvailable(CpuUsage data) {
         if (data != null) {
             String totalCpuUsage = DECIMAL_FORMAT.format(data.getTotal());
             String myPidCpuUsage = DECIMAL_FORMAT.format(data.getMyPid());

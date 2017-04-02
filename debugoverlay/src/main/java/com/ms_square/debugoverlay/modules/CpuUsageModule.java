@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import com.ms_square.debugoverlay.OverlayModule;
 import com.ms_square.debugoverlay.ViewModule;
 
-public class CpuUsageModule extends OverlayModule<CpuUsageDataModule.CpuUsage> {
+public class CpuUsageModule extends OverlayModule<CpuUsage> {
 
     public static final int DEFAULT_INTERVAL = 1000; // 1000ms
 
@@ -22,11 +22,11 @@ public class CpuUsageModule extends OverlayModule<CpuUsageDataModule.CpuUsage> {
         super(new CpuUsageDataModule(interval), new CpuUsageViewModule(layoutResId));
     }
 
-    public CpuUsageModule(@NonNull ViewModule<CpuUsageDataModule.CpuUsage> viewModule) {
+    public CpuUsageModule(@NonNull ViewModule<CpuUsage> viewModule) {
         super(new CpuUsageDataModule(DEFAULT_INTERVAL), viewModule);
     }
 
-    public CpuUsageModule(int interval, @NonNull ViewModule<CpuUsageDataModule.CpuUsage> viewModule) {
+    public CpuUsageModule(int interval, @NonNull ViewModule<CpuUsage> viewModule) {
         super(new CpuUsageDataModule(interval), viewModule);
     }
 }

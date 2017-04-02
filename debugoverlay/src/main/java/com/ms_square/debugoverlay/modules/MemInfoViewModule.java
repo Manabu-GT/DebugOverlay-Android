@@ -20,7 +20,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo> {
+public class MemInfoViewModule extends BaseViewModule<MemInfo> {
 
     private static final String TAG = MemInfoViewModule.class.getSimpleName();
 
@@ -40,7 +40,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo>
     }
 
     @Override
-    public void onDataAvailable(MemInfoDataModule.MemInfo data) {
+    public void onDataAvailable(MemInfo data) {
         ActivityManager.MemoryInfo systemMemInfo = data.getSystemMemInfo();
         Debug.MemoryInfo procMemInfo = data.getProcessMemInfo();
 
