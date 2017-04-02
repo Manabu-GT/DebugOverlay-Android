@@ -1,13 +1,3 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.3'
-    }
-}
-
 apply plugin: 'com.android.application'
 // make sure this line comes *after* you apply the Android plugin
 apply plugin: 'com.getkeepsafe.dexcount'
@@ -37,7 +27,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':debugoverlay')
+
+    debugCompile project(':debugoverlay-no-op')
+    releaseCompile project(":debugoverlay-no-op")
+    testCompile project(":debugoverlay-no-op")
 
     compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
