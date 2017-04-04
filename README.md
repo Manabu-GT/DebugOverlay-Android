@@ -28,12 +28,12 @@ dependencies {
 Please note that `com.ms-square:debugoverlay:1.0.0`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
 Threfore, you should avoid to use that dependency for your release build.
 
-FYI, the following table describes the number of method/field references in this library's package.
+FYI, the following table describes the number of method/field references by this library's package.
 This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepSafe/dexcount-gradle-plugin).
 
 | library  | package name | methods  | fields |
 |:------------- |:---------------|:-------------|:-------------|
-|com.ms-square:debugoverlay:1.0.0|com.ms_square.debugoverlay|324|203|
+|com.ms-square:debugoverlay:1.0.0|com.ms_square.debugoverlay|325|204|
 |com.ms-square:debugoverlay-no-op:1.0.0|com.ms_square.debugoverlay|124|36|
 
 Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
@@ -266,7 +266,7 @@ Thanks for reading!
 
 Change logs
 ----------
-* 1.0.0 : Initial Release. (3/2017)
+* 1.0.0 : Initial Release. (4/2017)
 
 License
 ----------
