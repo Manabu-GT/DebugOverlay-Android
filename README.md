@@ -35,7 +35,7 @@ FYI, the following table describes the total number of method/field references i
 This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepSafe/dexcount-gradle-plugin).
 
 | library  | methods  | fields |
-|:------------- |:---------------|:-------------|:-------------|
+|:------------- |:-------------|:-------------|
 |com.ms-square:debugoverlay:1.0.0|515|227|
 |com.ms-square:debugoverlay-no-op:1.0.0|127|36|
 
