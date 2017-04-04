@@ -26,7 +26,6 @@ import com.ms_square.debugoverlay.modules.FpsModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -231,19 +230,21 @@ public class DebugOverlay {
             this.overlayModules = new ArrayList<>();
         }
 
-        public Builder modules(List<OverlayModule> overlayModules) {
+        public Builder modules(@NonNull List<OverlayModule> overlayModules) {
             if (overlayModules.size() <= 0) {
-                throw new IllegalArgumentException("Module list cat be empty");
+                throw new IllegalArgumentException("Module list cat not be empty");
             }
             this.overlayModules = overlayModules;
             return this;
         }
 
-        public Builder modules(OverlayModule overlayModule, OverlayModule... other) {
+        public Builder modules(@NonNull OverlayModule overlayModule, OverlayModule... other) {
             this.overlayModules.clear();
             this.overlayModules.add(overlayModule);
-            if (other != null && other.length > 0) {
-                this.overlayModules.addAll(Arrays.asList(other));
+            for (OverlayModule otherModule : other) {
+                if (otherModule != null) {
+                    this.overlayModules.add(otherModule);
+                }
             }
             return this;
         }
