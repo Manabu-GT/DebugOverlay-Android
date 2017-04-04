@@ -197,8 +197,8 @@ public class DebugOverlayService extends Service {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case ACTION_SHOW: {
-                    startModules();
                     overlayViewManager.showDebugSystemOverlay();
+                    startModules();
                     // update notification
                     showNotification();
                     break;

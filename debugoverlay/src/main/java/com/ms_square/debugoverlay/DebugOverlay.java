@@ -17,6 +17,7 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -55,6 +56,8 @@ public class DebugOverlay {
     private DebugOverlayService overlayService;
 
     private OverlayViewManager overlayViewManager;
+
+    private ActivityLifecycleHandler activityLifecycleHandler;
 
     private boolean installed;
 
@@ -118,9 +121,18 @@ public class DebugOverlay {
 
         startAndBindDebugOverlayService();
 
-        application.registerActivityLifecycleCallbacks(new ActivityLifecycleHandler());
+        activityLifecycleHandler = new ActivityLifecycleHandler();
+        application.registerActivityLifecycleCallbacks(activityLifecycleHandler);
 
         installed = true;
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.NONE)
+    void uninstall() {
+        unbindFromDebugOverlayService();
+        application.stopService(DebugOverlayService.createIntent(application));
+        application.unregisterActivityLifecycleCallbacks(activityLifecycleHandler);
+        installed = false;
     }
 
     private void startAndBindDebugOverlayService() {

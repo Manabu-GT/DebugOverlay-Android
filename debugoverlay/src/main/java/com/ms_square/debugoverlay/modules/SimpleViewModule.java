@@ -20,7 +20,9 @@ public class SimpleViewModule extends BaseViewModule<String> {
 
     @Override
     public void onDataAvailable(String data) {
-        textView.setText(data);
+        if (textView != null) {
+            textView.setText(data);
+        }
     }
 
     @Override

@@ -60,7 +60,7 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
     @Override
     public void onDataAvailable(LogcatLine logcatLine) {
-        if (logcatLine != null) {
+        if (logcatLine != null && adapter != null) {
             if (lineFilter.shouldFilterOut(logcatLine.getPriority(), logcatLine.getTag())) {
                 return;
             }

@@ -30,7 +30,9 @@ public class FpsViewModule extends BaseViewModule<Double> {
 
     @Override
     public void onDataAvailable(Double data) {
-        fpsTxtView.setText(DECIMAL_FORMAT.format(data));
+        if (fpsTxtView != null) {
+            fpsTxtView.setText(DECIMAL_FORMAT.format(data));
+        }
     }
 
     @Override

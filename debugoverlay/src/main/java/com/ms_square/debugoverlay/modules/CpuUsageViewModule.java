@@ -43,8 +43,10 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
                 Log.d(TAG, "App CPU Usage(%): " + myPidCpuUsage);
             }
 
-            StringBuilder builder = new StringBuilder("cpu: ");
-            cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
+            if (cpuUsageTextView != null) {
+                StringBuilder builder = new StringBuilder("cpu: ");
+                cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
+            }
         }
     }
 

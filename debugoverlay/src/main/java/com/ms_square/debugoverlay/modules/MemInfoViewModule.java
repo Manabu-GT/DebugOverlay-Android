@@ -51,22 +51,24 @@ public class MemInfoViewModule extends BaseViewModule<MemInfo> {
             Log.d(TAG, "TotalPss(MB):" + DECIMAL_FORMAT.format(procMemInfo.getTotalPss() / 1024f));
             Log.d(TAG, "TotalPrivateDirty(MB):" + DECIMAL_FORMAT.format(procMemInfo.getTotalPrivateDirty() / 1024f));
         }
+        
+        if (memInfoTxtView != null) {
+            StringBuilder builder = new StringBuilder(HEADER);
+            builder.append(DECIMAL_FORMAT.format(systemMemInfo.availMem / 1048576f)).append(" ")
+                    .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPss() / 1024f)).append(" ")
+                    .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPrivateDirty() / 1024f));
 
-        StringBuilder builder = new StringBuilder(HEADER);
-        builder.append(DECIMAL_FORMAT.format(systemMemInfo.availMem / 1048576f)).append(" ")
-                .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPss() / 1024f)).append(" ")
-                .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPrivateDirty() / 1024f));
-
-        SpannableStringBuilder spannableBuilder = new SpannableStringBuilder(builder.toString());
-        if (systemMemInfo.lowMemory) {
-            spannableBuilder.setSpan(
-                    new TextAppearanceSpan(memInfoTxtView.getContext(), R.style.debugoverlay_LowMemoryTextAppearance),
-                    HEADER.length(),
-                    spannableBuilder.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
+            SpannableStringBuilder spannableBuilder = new SpannableStringBuilder(builder.toString());
+            if (systemMemInfo.lowMemory) {
+                spannableBuilder.setSpan(
+                        new TextAppearanceSpan(memInfoTxtView.getContext(), R.style.debugoverlay_LowMemoryTextAppearance),
+                        HEADER.length(),
+                        spannableBuilder.length(),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+            }
+            memInfoTxtView.setText(spannableBuilder);
         }
-        memInfoTxtView.setText(spannableBuilder);
     }
 
     @Override
