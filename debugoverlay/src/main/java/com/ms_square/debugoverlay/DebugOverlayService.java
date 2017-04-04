@@ -29,8 +29,8 @@ public class DebugOverlayService extends Service {
 
     private static final int NOTIFICATION_ID = 10000;
 
-    private static final String ACTION_SHOW = "com.ms_square.debugoverlay.ACTION_SHOW";
-    private static final String ACTION_HIDE = "com.ms_square.debugoverlay.ACTION_HIDE";
+    private static final String ACTION_SHOW_SUFFIX = ".debugoverlay_ACTION_SHOW";
+    private static final String ACTION_HIDE_SUFFIX = ".debugoverlay_ACTION_HIDE";
 
     private final IBinder binder = new LocalBinder();
 
@@ -43,6 +43,9 @@ public class DebugOverlayService extends Service {
     private NotificationManager notificationManager;
 
     private boolean modulesStarted;
+
+    private String actionShow = "";
+    private String actionHide = "";
 
     public static Intent createIntent(Context context) {
         return new Intent(context, DebugOverlayService.class);
@@ -62,9 +65,13 @@ public class DebugOverlayService extends Service {
         }
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
+        String packageName = getPackageName();
+        actionShow = packageName + ACTION_SHOW_SUFFIX;
+        actionHide = packageName + ACTION_HIDE_SUFFIX;
+
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ACTION_SHOW);
-        intentFilter.addAction(ACTION_HIDE);
+        intentFilter.addAction(actionShow);
+        intentFilter.addAction(actionHide);
         registerReceiver(receiver, intentFilter);
     }
 
@@ -160,10 +167,10 @@ public class DebugOverlayService extends Service {
                 .setContentIntent(getNotificationIntent(null));
         if (overlayViewManager.isSystemOverlayShown()) {
             builder.addAction(R.drawable.debugoverlay_ic_action_pause, getString(R.string.debugoverlay_notification_action_hide),
-                    getNotificationIntent(ACTION_HIDE));
+                    getNotificationIntent(actionHide));
         } else {
             builder.addAction(R.drawable.debugoverlay_ic_action_play, getString(R.string.debugoverlay_notification_action_show),
-                    getNotificationIntent(ACTION_SHOW));
+                    getNotificationIntent(actionShow));
         }
 
         // show the notification
@@ -195,21 +202,17 @@ public class DebugOverlayService extends Service {
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()) {
-                case ACTION_SHOW: {
-                    overlayViewManager.showDebugSystemOverlay();
-                    startModules();
-                    // update notification
-                    showNotification();
-                    break;
-                }
-                case ACTION_HIDE: {
-                    stopModules();
-                    overlayViewManager.hideDebugSystemOverlay();
-                    // update notification
-                    showNotification();
-                    break;
-                }
+            String action = intent.getAction();
+            if (actionShow.equals(action)) {
+                overlayViewManager.showDebugSystemOverlay();
+                startModules();
+                // update notification
+                showNotification();
+            } else if (actionHide.equals(action)) {
+                stopModules();
+                overlayViewManager.hideDebugSystemOverlay();
+                // update notification
+                showNotification();
             }
         }
     };
