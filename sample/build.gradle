@@ -27,10 +27,29 @@ android {
 
         testInstrumentationRunner "com.ms_square.debugoverlay.DebugOverlayTestRunner"
     }
+
+    signingConfigs {
+        release {
+            def Properties keyProps = new Properties()
+            // double check if keystore.properties exists to avoid exception
+            if (file("../keystore.properties").exists()) {
+                keyProps.load(new FileInputStream(file('../keystore.properties')))
+            }
+            storeFile keyProps["storeFile"] != null ? file(keyProps["storeFile"]) : null
+            storePassword keyProps["storePassword"]
+            keyAlias keyProps["keyAlias"]
+            keyPassword keyProps["keyPassword"]
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // check if keystore.properties exists in the root
+            if (file("../keystore.properties").exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
