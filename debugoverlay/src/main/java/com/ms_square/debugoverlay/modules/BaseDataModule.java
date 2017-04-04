@@ -12,7 +12,7 @@ public abstract class BaseDataModule<T> implements DataModule<T> {
 
     private final List<DataObserver> observers = new ArrayList<>();
 
-    private int interval;
+    private final int interval;
 
     public BaseDataModule(int interval) {
         this.interval = interval;
