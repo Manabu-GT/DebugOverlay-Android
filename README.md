@@ -1,5 +1,8 @@
 DebugOverlay-Android
 ===========
+
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay)
+
 **DebugOverlay** is an Android library that allows developers to easily add custom overlay window/view for debugging purpose.
 
 You can use it to show some performance related metrics such as cpu, memory, and fps. Or you can show logcat messages within your app for light debugging.
@@ -33,7 +36,7 @@ This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepS
 
 | library  | methods  | fields |
 |:------------- |:---------------|:-------------|:-------------|
-|com.ms-square:debugoverlay:1.0.0|511|225|
+|com.ms-square:debugoverlay:1.0.0|515|227|
 |com.ms-square:debugoverlay-no-op:1.0.0|127|36|
 
 Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
