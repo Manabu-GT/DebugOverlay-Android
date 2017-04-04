@@ -39,19 +39,14 @@ public class DebugOverlaySampleApplication extends Application {
 //                .build()
 //                .install();
 
-//        new Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.v(TAG, "hello world V");
-//                Log.d(TAG, "hello world D");
-//
-//                Log.i(TAG, "hello world I");
-//                Log.w(TAG, "hello world W");
-//
-//                Log.e(TAG, "hello world E");
-//                Log.wtf(TAG, "hello world WTF");
-//            }
-//        }, 1000);
+        // Use custom module
+//        new DebugOverlay.Builder(this)
+//                .modules(new CpuUsageModule(),
+//                        new MemInfoModule(this),
+//                        new FpsModule(),
+//                        new IPAddressModule(this))
+//                .build()
+//                .install();
 
         // Enable debug logging of DebugOverlay for its development.
         // You do not need to enable this if you use this library without any further customization.

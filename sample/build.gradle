@@ -1,16 +1,17 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.6.3'
+repositories {
+    jcenter()
+    flatDir {
+        dirs 'libs'
     }
 }
 
 apply plugin: 'com.android.application'
 // make sure this line comes *after* you apply the Android plugin
 apply plugin: 'com.getkeepsafe.dexcount'
+
+def gitHash() {
+    return 'git rev-parse --short HEAD'.execute().text.trim()
+}
 
 android {
     compileSdkVersion 25
@@ -21,12 +22,34 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName "1.0.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "GIT_HASH", "\"${gitHash()}\""
+
+        testInstrumentationRunner "com.ms_square.debugoverlay.DebugOverlayTestRunner"
     }
+
+    signingConfigs {
+        release {
+            def Properties keyProps = new Properties()
+            // double check if keystore.properties exists to avoid exception
+            if (file("../keystore.properties").exists()) {
+                keyProps.load(new FileInputStream(file('../keystore.properties')))
+            }
+            storeFile keyProps["storeFile"] != null ? file(keyProps["storeFile"]) : null
+            storePassword keyProps["storePassword"]
+            keyAlias keyProps["keyAlias"]
+            keyPassword keyProps["keyPassword"]
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // check if keystore.properties exists in the root
+            if (file("../keystore.properties").exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
@@ -37,7 +60,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':debugoverlay')
+
+    debugCompile project(':debugoverlay')
+    releaseCompile project(':debugoverlay-no-op')
+    testCompile project(':debugoverlay-no-op')
 
     compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
@@ -47,8 +73,13 @@ dependencies {
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
     testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
 
+    // Set this dependency to build and run Espresso tests
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
+    // ScreenShot taker for instrumentation tests
+    androidTestCompile(name:'cloudtestingscreenshotter_lib', ext:'aar')
+
     testCompile 'junit:junit:4.12'
 }

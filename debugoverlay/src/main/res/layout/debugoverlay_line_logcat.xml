@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/date_and_time"
+        style="@style/debugoverlay_LogcatMetaText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="03-29 23:12:17.349"/>
+
+    <TextView
+        android:id="@+id/priority_and_tag"
+        style="@style/debugoverlay_LogcatMetaText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/date_and_time"
+        android:layout_toRightOf="@id/date_and_time"
+        android:layout_marginStart="2dp"
+        android:layout_marginLeft="2dp"
+        tools:text="D/StatusBar"/>
+
+    <TextView
+        android:id="@+id/message"
+        style="@style/debugoverlay_LogcatMessageText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/priority_and_tag"
+        android:layout_marginStart="2dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginEnd="2dp"
+        android:layout_marginRight="2dp"
+        tools:text="changing data overlay icon id to 0"/>
+</RelativeLayout>

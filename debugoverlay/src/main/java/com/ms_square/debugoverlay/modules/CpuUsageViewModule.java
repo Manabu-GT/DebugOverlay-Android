@@ -15,7 +15,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsage> {
+public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
 
     private static final String TAG = CpuUsageViewModule.class.getSimpleName();
 
@@ -25,7 +25,7 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsa
     private TextView cpuUsageTextView;
 
     public CpuUsageViewModule() {
-        super(R.layout.cpu_usage);
+        super(R.layout.debugoverlay_cpu_usage);
     }
 
     public CpuUsageViewModule(@LayoutRes int layoutResId) {
@@ -33,7 +33,7 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsa
     }
 
     @Override
-    public void onDataAvailable(CpuUsageDataModule.CpuUsage data) {
+    public void onDataAvailable(CpuUsage data) {
         if (data != null) {
             String totalCpuUsage = DECIMAL_FORMAT.format(data.getTotal());
             String myPidCpuUsage = DECIMAL_FORMAT.format(data.getMyPid());
@@ -43,15 +43,17 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsageDataModule.CpuUsa
                 Log.d(TAG, "App CPU Usage(%): " + myPidCpuUsage);
             }
 
-            StringBuilder builder = new StringBuilder("cpu: ");
-            cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
+            if (cpuUsageTextView != null) {
+                StringBuilder builder = new StringBuilder("cpu: ");
+                cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
+            }
         }
     }
 
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        cpuUsageTextView = (TextView) view.findViewById(R.id.overlay_module_text);
+        cpuUsageTextView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
         cpuUsageTextView.setTextColor(textColor);
         cpuUsageTextView.setTextSize(textSize);
         cpuUsageTextView.setAlpha(textAlpha);

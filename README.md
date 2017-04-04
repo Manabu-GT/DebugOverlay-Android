@@ -12,21 +12,32 @@ Requirements
 -------------
 API Level 16 (Android 4.1) and above.
 
-Setup (Still working...will be released soon)
+Setup
 ------
 The library is pushed to Maven Central as an AAR, 
 so you just need to add the followings to your ***build.gradle*** file:
 
 ```groovy
 dependencies {
-  compile 'com.ms-square:debugoverlay:1.0.0'
+  debugCompile 'com.ms-square:debugoverlay:1.0.0'
   releaseCompile 'com.ms-square:debugoverlay-no-op:1.0.0'
   testCompile 'com.ms-square:debugoverlay-no-op:1.0.0'
 }
 ```
 
-Please note that ` com.ms-square:debugoverlay:1.0.0`  will add ` android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
+Please note that `com.ms-square:debugoverlay:1.0.0`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
 Threfore, you should avoid to use that dependency for your release build.
+
+FYI, the following table describes the total number of method/field references in this library's release aar.
+This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepSafe/dexcount-gradle-plugin).
+
+| library  | methods  | fields |
+|:------------- |:---------------|:-------------|:-------------|
+|com.ms-square:debugoverlay:1.0.0|511|225|
+|com.ms-square:debugoverlay-no-op:1.0.0|127|36|
+
+Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
+If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.0.0'` in the dependencies section of build.gradle.
 
 Usage
 ------
@@ -113,7 +124,7 @@ Provided Modules
 #### MemInfoModule
 
 `default`
-> Collects device's current available memory, app's total PSS, and app's total private dirty info.
+> Collects device's current available memory, app's total PSS, and app's total private dirty info. Display unit is in `Megabyte`.
 
 Refer to [Investigating Your RAM Usage](https://developer.android.com/studio/profile/investigate-ram.html#ViewingAllocations) for more info about PSS and private dirty RAM.
 
@@ -183,7 +194,7 @@ Example:
 module = new CpuUsageModule(new MyCpuViewModule());
 ```
 
-For **CpuUsage, MemInfo, and Fps modules**, you can pass your own layout resource id as long as it contains TextView as a direct child with id set to `overlay_module_text` which is already defined in this library. This allows you to style the TextView used within those modules very easily without fully implementing new [ViewModule][5] by yourself.
+For **CpuUsage, MemInfo, and Fps modules**, you can pass your own layout resource id as long as it contains TextView as a direct child with id set to `debugoverlay_overlay_text` which is already defined in this library. This allows you to style the TextView used within those modules very easily without fully implementing new [ViewModule][5] by yourself.
 
 ### Adding your own overlay module
 
@@ -223,7 +234,7 @@ public class IPAddressDataModule extends BaseDataModule<String> {
 }
 ```
 
-We're almost done. OverlayModule should be easy to write and it's actually just a few lines of code in this case.
+We're almost done. Now just subclass [OverlayModule][3] and create `IPAddressModule` class  using the `IPAddressDataModule` as its data module.
 
 ```java
 public class IPAddressModule extends OverlayModule<String> {
@@ -234,7 +245,7 @@ public class IPAddressModule extends OverlayModule<String> {
 }
 ```
 
-Since we just added a new custom module called `IPAddressModule `, let's actually show it on the overlay.
+Since a new custom module called `IPAddressModule` is created, let's actually show it on the overlay.
 
 ```java
 // inside Application's onCreate()
@@ -247,7 +258,7 @@ new DebugOverlay.Builder(this)
                 .install();
 ```
 
-Now, the overlay successfully shows the newly added custom module.
+Now, the overlay successfully shows the newly added custom module at the bottom.
 
 <img src="art/overlay_with_custom_module_small.png" width="50%" alt="DebugOverlay Screen Capture">
 
@@ -255,7 +266,7 @@ Thanks for reading!
 
 Change logs
 ----------
-* 1.0.0 : Initial Release. (3/2017)
+* 1.0.0 : Initial Release. (4/2017)
 
 License
 ----------

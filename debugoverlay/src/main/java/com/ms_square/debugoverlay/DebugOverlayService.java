@@ -151,18 +151,18 @@ public class DebugOverlayService extends Service {
 
     private void showNotification() {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(getString(R.string.debug_notification_big_text)))
-                .setSmallIcon(R.drawable.ic_notification)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(getString(R.string.debugoverlay_notification_big_text)))
+                .setSmallIcon(R.drawable.debugoverlay_ic_notification)
                 .setLargeIcon(getAppIcon(this))
                 .setOngoing(true)
-                .setContentTitle(getString(R.string.debug_notification_title, getAppName(this), getAppVersion(this)))
-                .setContentText(getString(R.string.debug_notification_small_text))
+                .setContentTitle(getString(R.string.debugoverlay_notification_title, getAppName(this), getAppVersion(this)))
+                .setContentText(getString(R.string.debugoverlay_notification_small_text))
                 .setContentIntent(getNotificationIntent(null));
         if (overlayViewManager.isSystemOverlayShown()) {
-            builder.addAction(R.drawable.ic_action_pause, getString(R.string.debug_notification_action_hide),
+            builder.addAction(R.drawable.debugoverlay_ic_action_pause, getString(R.string.debugoverlay_notification_action_hide),
                     getNotificationIntent(ACTION_HIDE));
         } else {
-            builder.addAction(R.drawable.ic_action_play, getString(R.string.debug_notification_action_show),
+            builder.addAction(R.drawable.debugoverlay_ic_action_play, getString(R.string.debugoverlay_notification_action_show),
                     getNotificationIntent(ACTION_SHOW));
         }
 
@@ -197,8 +197,8 @@ public class DebugOverlayService extends Service {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()) {
                 case ACTION_SHOW: {
-                    startModules();
                     overlayViewManager.showDebugSystemOverlay();
+                    startModules();
                     // update notification
                     showNotification();
                     break;

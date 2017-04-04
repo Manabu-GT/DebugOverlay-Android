@@ -11,7 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-class CpuUsageDataModule extends BaseDataModule<CpuUsageDataModule.CpuUsage> {
+class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
     private static final String TAG = CpuUsageDataModule.class.getSimpleName();
 
@@ -175,23 +175,5 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsageDataModule.CpuUsage> {
             return 0f;
         }
         return percent;
-    }
-
-    public static class CpuUsage {
-        private final double total;
-        private final double myPid;
-
-        public CpuUsage(double total, double myPid) {
-            this.total = total;
-            this.myPid = myPid;
-        }
-
-        public double getTotal() {
-            return total;
-        }
-
-        public double getMyPid() {
-            return myPid;
-        }
     }
 }

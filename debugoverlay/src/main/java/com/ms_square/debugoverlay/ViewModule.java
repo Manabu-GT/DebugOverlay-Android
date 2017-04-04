@@ -13,6 +13,11 @@ public interface ViewModule<T> extends DataObserver<T> {
      * You are also given the preferred textColor, textSize, and textAlpha for your overlay view.
      * Please respect those passed values unless you have good reason not to do so.
      *
+     * Note:
+     * {@link DataObserver}'s onDataAvailable could be called before this method if systemLayer is
+     * not allowed to use. So, it's safe to do null checks within onDataAvailable()
+     * for any view variable references you keep as a result of this method.
+     *
      * @param root
      * @param textColor
      * @param textSize - in sp

@@ -1,4 +1,6 @@
 apply plugin: 'com.android.library'
+// make sure this line comes *after* you apply the Android plugin
+apply plugin: 'com.getkeepsafe.dexcount'
 
 android {
     compileSdkVersion 25
@@ -7,9 +9,16 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 25
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
+
+    // force usage of prefix to avoid naming conflicts
+    resourcePrefix 'debugoverlay_'
+
+    sourceSets {
+        // limit the exposed library resources
+        main.res.srcDirs += 'src/main/res-public'
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -20,9 +29,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
     compile 'com.android.support:appcompat-v7:25.3.0'
-    testCompile 'junit:junit:4.12'
 }
+
+// for maven central deployment
+apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'

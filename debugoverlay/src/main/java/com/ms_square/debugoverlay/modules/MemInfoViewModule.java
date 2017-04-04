@@ -20,7 +20,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo> {
+public class MemInfoViewModule extends BaseViewModule<MemInfo> {
 
     private static final String TAG = MemInfoViewModule.class.getSimpleName();
 
@@ -32,7 +32,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo>
     private TextView memInfoTxtView;
 
     public MemInfoViewModule() {
-        super(R.layout.mem_usage);
+        super(R.layout.debugoverlay_mem_usage);
     }
 
     public MemInfoViewModule(@LayoutRes int layoutResId) {
@@ -40,7 +40,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo>
     }
 
     @Override
-    public void onDataAvailable(MemInfoDataModule.MemInfo data) {
+    public void onDataAvailable(MemInfo data) {
         ActivityManager.MemoryInfo systemMemInfo = data.getSystemMemInfo();
         Debug.MemoryInfo procMemInfo = data.getProcessMemInfo();
 
@@ -51,28 +51,30 @@ public class MemInfoViewModule extends BaseViewModule<MemInfoDataModule.MemInfo>
             Log.d(TAG, "TotalPss(MB):" + DECIMAL_FORMAT.format(procMemInfo.getTotalPss() / 1024f));
             Log.d(TAG, "TotalPrivateDirty(MB):" + DECIMAL_FORMAT.format(procMemInfo.getTotalPrivateDirty() / 1024f));
         }
+        
+        if (memInfoTxtView != null) {
+            StringBuilder builder = new StringBuilder(HEADER);
+            builder.append(DECIMAL_FORMAT.format(systemMemInfo.availMem / 1048576f)).append(" ")
+                    .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPss() / 1024f)).append(" ")
+                    .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPrivateDirty() / 1024f));
 
-        StringBuilder builder = new StringBuilder(HEADER);
-        builder.append(DECIMAL_FORMAT.format(systemMemInfo.availMem / 1048576f)).append(" ")
-                .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPss() / 1024f)).append(" ")
-                .append(DECIMAL_FORMAT.format(procMemInfo.getTotalPrivateDirty() / 1024f));
-
-        SpannableStringBuilder spannableBuilder = new SpannableStringBuilder(builder.toString());
-        if (systemMemInfo.lowMemory) {
-            spannableBuilder.setSpan(
-                    new TextAppearanceSpan(memInfoTxtView.getContext(), R.style.LowMemoryTextAppearance),
-                    HEADER.length(),
-                    spannableBuilder.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
+            SpannableStringBuilder spannableBuilder = new SpannableStringBuilder(builder.toString());
+            if (systemMemInfo.lowMemory) {
+                spannableBuilder.setSpan(
+                        new TextAppearanceSpan(memInfoTxtView.getContext(), R.style.debugoverlay_LowMemoryTextAppearance),
+                        HEADER.length(),
+                        spannableBuilder.length(),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+            }
+            memInfoTxtView.setText(spannableBuilder);
         }
-        memInfoTxtView.setText(spannableBuilder);
     }
 
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        memInfoTxtView = (TextView) view.findViewById(R.id.overlay_module_text);
+        memInfoTxtView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
         memInfoTxtView.setTextColor(textColor);
         memInfoTxtView.setTextSize(textSize);
         memInfoTxtView.setAlpha(textAlpha);
