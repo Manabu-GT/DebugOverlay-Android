@@ -22,13 +22,13 @@ so you just need to add the followings to your ***build.gradle*** file:
 
 ```groovy
 dependencies {
-  debugCompile 'com.ms-square:debugoverlay:1.0.0'
-  releaseCompile 'com.ms-square:debugoverlay-no-op:1.0.0'
-  testCompile 'com.ms-square:debugoverlay-no-op:1.0.0'
+  debugCompile 'com.ms-square:debugoverlay:1.0.1'
+  releaseCompile 'com.ms-square:debugoverlay-no-op:1.0.1'
+  testCompile 'com.ms-square:debugoverlay-no-op:1.0.1'
 }
 ```
 
-Please note that `com.ms-square:debugoverlay:1.0.0`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
+Please note that `com.ms-square:debugoverlay:1.0.1`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
 Threfore, you should avoid to use that dependency for your release build.
 
 FYI, the following table describes the total number of method/field references in this library's release aar.
@@ -36,11 +36,11 @@ This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepS
 
 | library  | methods  | fields |
 |:------------- |:-------------|:-------------|
-|com.ms-square:debugoverlay:1.0.0|515|227|
-|com.ms-square:debugoverlay-no-op:1.0.0|127|36|
+|com.ms-square:debugoverlay:1.0.1|515|227|
+|com.ms-square:debugoverlay-no-op:1.0.1|127|36|
 
 Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
-If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.0.0'` in the dependencies section of build.gradle.
+If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.0.1'` in the dependencies section of build.gradle.
 
 Usage
 ------
@@ -266,10 +266,6 @@ Now, the overlay successfully shows the newly added custom module at the bottom.
 <img src="art/overlay_with_custom_module_small.png" width="50%" alt="DebugOverlay Screen Capture">
 
 Thanks for reading!
-
-Change logs
-----------
-* 1.0.0 : Initial Release. (4/2017)
 
 License
 ----------
