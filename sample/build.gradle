@@ -65,9 +65,9 @@ dependencies {
     releaseCompile project(':debugoverlay-no-op')
     testCompile project(':debugoverlay-no-op')
 
-    compile 'com.android.support:appcompat-v7:25.3.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
-    compile 'com.android.support:design:25.3.0'
+    compile 'com.android.support:design:25.3.1'
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
