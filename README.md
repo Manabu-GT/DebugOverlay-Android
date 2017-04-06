@@ -2,6 +2,7 @@ DebugOverlay-Android
 ===========
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay)
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-DebugOverlay--Android-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5516)
 
 **DebugOverlay** is an Android library that allows developers to easily add custom overlay window/view for debugging purpose.
 
