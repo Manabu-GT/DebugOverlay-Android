@@ -44,7 +44,7 @@ public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
             }
 
             if (cpuUsageTextView != null) {
-                StringBuilder builder = new StringBuilder("cpu: ");
+                StringBuilder builder = new StringBuilder("cpu(%): ");
                 cpuUsageTextView.setText(builder.append(totalCpuUsage).append(" ").append(myPidCpuUsage).toString());
             }
         }
