@@ -17,7 +17,7 @@ import java.util.Locale;
 
 public class CpuUsageViewModule extends BaseViewModule<CpuUsage> {
 
-    private static final String TAG = CpuUsageViewModule.class.getSimpleName();
+    private static final String TAG = "CpuUsageViewModule";
 
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0.0",
             DecimalFormatSymbols.getInstance(Locale.ENGLISH));

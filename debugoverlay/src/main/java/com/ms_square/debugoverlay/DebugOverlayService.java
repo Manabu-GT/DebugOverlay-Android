@@ -27,7 +27,7 @@ import java.util.List;
 
 public class DebugOverlayService extends Service {
 
-    private static final String TAG = DebugOverlayService.class.getSimpleName();
+    private static final String TAG = "DebugOverlayService";
 
     private static final String NOTIFICATION_CHANNEL_ID = "com.ms_square.debugoverlay";
     private static final int NOTIFICATION_ID = Integer.MAX_VALUE - 100;

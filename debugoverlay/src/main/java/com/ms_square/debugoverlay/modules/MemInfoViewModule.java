@@ -22,7 +22,7 @@ import java.util.Locale;
 
 public class MemInfoViewModule extends BaseViewModule<MemInfo> {
 
-    private static final String TAG = MemInfoViewModule.class.getSimpleName();
+    private static final String TAG = "MemInfoViewModule";
 
     private static final String HEADER = "memory(mb):\n";
 

@@ -20,7 +20,7 @@ import static com.ms_square.debugoverlay.modules.LogcatLineFilter.DEFAULT_LINE_F
 
 public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
-    private static final String TAG = LogcatViewModule.class.getSimpleName();
+    private static final String TAG = "LogcatViewModule";
 
     private final int maxLines;
 

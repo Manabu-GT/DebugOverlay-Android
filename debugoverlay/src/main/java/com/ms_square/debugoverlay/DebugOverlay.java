@@ -32,7 +32,7 @@ import java.util.WeakHashMap;
 
 public class DebugOverlay {
 
-    private static final String TAG = DebugOverlay.class.getSimpleName();
+    private static final String TAG = "DebugOverlay";
 
     public static final Position DEFAULT_POSITION = Position.BOTTOM_START;
     public static final int DEFAULT_BG_COLOR = Color.parseColor("#40000000");

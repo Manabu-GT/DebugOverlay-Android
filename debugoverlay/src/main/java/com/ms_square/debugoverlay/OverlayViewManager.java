@@ -32,7 +32,7 @@ import static android.view.WindowManager.LayoutParams.TYPE_TOAST;
 
 class OverlayViewManager {
 
-    private static final String TAG = OverlayViewManager.class.getSimpleName();
+    private static final String TAG = "OverlayViewManager";
 
     private final Context context;
     private final DebugOverlay.Config config;

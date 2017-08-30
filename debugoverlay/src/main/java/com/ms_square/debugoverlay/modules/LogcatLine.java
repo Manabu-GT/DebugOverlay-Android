@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class LogcatLine {
 
-    private static final String TAG = LogcatLine.class.getSimpleName();
+    private static final String TAG = "LogcatLine";
 
     public enum Priority {
 

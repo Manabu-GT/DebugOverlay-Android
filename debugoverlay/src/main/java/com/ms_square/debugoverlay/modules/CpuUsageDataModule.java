@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
-    private static final String TAG = CpuUsageDataModule.class.getSimpleName();
+    private static final String TAG = "CpuUsageDataModule";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
