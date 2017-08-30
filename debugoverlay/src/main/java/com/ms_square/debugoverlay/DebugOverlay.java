@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -26,6 +27,7 @@ import com.ms_square.debugoverlay.modules.FpsModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -302,6 +304,17 @@ public class DebugOverlay {
                 overlayModules.add(new MemInfoModule(application));
                 overlayModules.add(new FpsModule());
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Removes any CpuUsageModule if a device is running Android O and above
+                Iterator<OverlayModule> iterator = overlayModules.iterator();
+                while (iterator.hasNext()) {
+                    if (iterator.next() instanceof CpuUsageModule) {
+                        iterator.remove();
+                    }
+                }
+            }
+
             return new DebugOverlay(application, overlayModules,
                     new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
                             showNotification, activityName));

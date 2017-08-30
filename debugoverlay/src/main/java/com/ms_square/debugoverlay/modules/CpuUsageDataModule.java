@@ -1,5 +1,6 @@
 package com.ms_square.debugoverlay.modules;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
@@ -27,6 +28,10 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
     @Override
     public void start() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.w(TAG, "CpuUsageModule is not supported on Android O and above and will be no-op.");
+            return;
+        }
         if (cpuReaderThread == null) {
             cpuReaderThread = new ReaderThread();
             cpuReaderThread.start();
