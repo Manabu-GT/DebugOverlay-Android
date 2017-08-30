@@ -1,5 +1,6 @@
 package com.ms_square.debugoverlay;
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -13,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,7 +29,8 @@ public class DebugOverlayService extends Service {
 
     private static final String TAG = DebugOverlayService.class.getSimpleName();
 
-    private static final int NOTIFICATION_ID = 10000;
+    private static final String NOTIFICATION_CHANNEL_ID = "com.ms_square.debugoverlay";
+    private static final int NOTIFICATION_ID = Integer.MAX_VALUE - 100;
 
     private static final String ACTION_SHOW_SUFFIX = ".debugoverlay_ACTION_SHOW";
     private static final String ACTION_HIDE_SUFFIX = ".debugoverlay_ACTION_HIDE";
@@ -64,6 +67,8 @@ public class DebugOverlayService extends Service {
             Log.i(TAG, "onCreate() called");
         }
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        createNotificationChannel();
 
         String packageName = getPackageName();
         actionShow = packageName + ACTION_SHOW_SUFFIX;
@@ -156,8 +161,18 @@ public class DebugOverlayService extends Service {
         showNotification();
     }
 
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
+                NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
+                        getString(R.string.debugoverlay_notification_channel_name), NotificationManager.IMPORTANCE_LOW);
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+    }
+
     private void showNotification() {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(getString(R.string.debugoverlay_notification_big_text)))
                 .setSmallIcon(R.drawable.debugoverlay_ic_notification)
                 .setLargeIcon(getAppIcon(this))
