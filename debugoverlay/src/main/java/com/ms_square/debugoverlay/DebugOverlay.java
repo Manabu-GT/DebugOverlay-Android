@@ -22,6 +22,7 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.ms_square.debugoverlay.modules.CpuFreqModule;
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
 import com.ms_square.debugoverlay.modules.FpsModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
@@ -306,10 +307,11 @@ public class DebugOverlay {
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // Removes any CpuUsageModule if a device is running Android O and above
+                // Removes any CpuUsageModule/CpuFreqModule if a device is running Android O and above
                 Iterator<OverlayModule> iterator = overlayModules.iterator();
                 while (iterator.hasNext()) {
-                    if (iterator.next() instanceof CpuUsageModule) {
+                    OverlayModule overlayModule = iterator.next();
+                    if (overlayModule instanceof CpuUsageModule || overlayModule instanceof CpuFreqModule) {
                         iterator.remove();
                     }
                 }
