@@ -38,7 +38,7 @@ public class FpsViewModule extends BaseViewModule<Double> {
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        fpsTxtView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
+        fpsTxtView = view.findViewById(R.id.debugoverlay_overlay_text);
         fpsTxtView.setTextColor(textColor);
         fpsTxtView.setTextSize(textSize);
         fpsTxtView.setAlpha(textAlpha);

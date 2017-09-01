@@ -74,7 +74,7 @@ public class MemInfoViewModule extends BaseViewModule<MemInfo> {
     @Override
     public View createView(ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        memInfoTxtView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
+        memInfoTxtView = view.findViewById(R.id.debugoverlay_overlay_text);
         memInfoTxtView.setTextColor(textColor);
         memInfoTxtView.setTextSize(textSize);
         memInfoTxtView.setAlpha(textAlpha);
