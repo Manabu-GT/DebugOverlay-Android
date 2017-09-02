@@ -41,7 +41,8 @@ public class DebugOverlaySampleApplication extends Application {
 
         // Use custom module
 //        new DebugOverlay.Builder(this)
-//                .modules(new CpuUsageModule(),
+//                .modules(new CpuFreqModule(),
+//                        new CpuUsageModule(),
 //                        new MemInfoModule(this),
 //                        new FpsModule(),
 //                        new IPAddressModule(this))
