@@ -56,11 +56,11 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
                     for (File cpuFile : cpuFiles) {
                         double minFreq = -1f;
                         double maxFreq = -1f;
+                        BufferedReader minFreqReader = null;
+                        BufferedReader maxFreqReader = null;
                         try {
-                            BufferedReader minFreqReader =
-                                    new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/cpuinfo_min_freq"));
-                            BufferedReader maxFreqReader =
-                                    new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/cpuinfo_max_freq"));
+                            minFreqReader = new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/cpuinfo_min_freq"));
+                            maxFreqReader = new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/cpuinfo_max_freq"));
                             minFreq = parseDouble(minFreqReader.readLine());
                             maxFreq = parseDouble(maxFreqReader.readLine());
 
@@ -70,6 +70,17 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
                             }
                         } catch (IOException ie) {
                             Log.w(TAG, "Error reading the min/max cpufreq", ie);
+                        } finally {
+                            if (minFreqReader != null) {
+                                try {
+                                    minFreqReader.close();
+                                } catch (IOException ignore) {}
+                            }
+                            if (maxFreqReader != null) {
+                                try {
+                                    maxFreqReader.close();
+                                } catch (IOException ignore) {}
+                            }
                         }
                         cachedFrequencies.put(cpuFile, new CpuFreq(cpuFile.getName(), minFreq, -1f, maxFreq));
                     }
@@ -81,8 +92,9 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
             for (File cpuFile : cachedFrequencies.keySet()) {
                 CpuFreq cached = cachedFrequencies.get(cpuFile);
                 double curFreq = -1f;
+                BufferedReader curFreqReader = null;
                 try {
-                    BufferedReader curFreqReader = new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/scaling_cur_freq"));
+                    curFreqReader = new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/scaling_cur_freq"));
                     curFreq = parseDouble(curFreqReader.readLine());
 
                     if (DebugOverlay.isDebugLoggingEnabled()) {
@@ -91,6 +103,12 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
                 } catch (IOException ie) {
                     Log.w(TAG, "Error reading the current cpufreq", ie);
+                } finally {
+                    if (curFreqReader != null) {
+                        try {
+                            curFreqReader.close();
+                        } catch (IOException ignore) {}
+                    }
                 }
 
                 newCpuFreqList.add(new CpuFreq(cached.getCpuName(), cached.getMinFreq(), curFreq, cached.getMaxFreq()));
@@ -144,15 +162,11 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
     private static File[] getCpuFiles() {
         File dir = new File("/sys/devices/system/cpu/");
-        File[] files = dir.listFiles(new FileFilter() {
+        return dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
-                if(Pattern.matches("cpu[0-9]+", file.getName())) {
-                    return true;
-                }
-                return false;
+                return Pattern.matches("cpu[0-9]+", file.getName());
             }
         });
-        return files;
     }
 }
