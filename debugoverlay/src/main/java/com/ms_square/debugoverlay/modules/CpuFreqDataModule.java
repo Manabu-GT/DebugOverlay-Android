@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.Double.parseDouble;
 
-public class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
+class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
     private static final String TAG = "CpuFreqDataModule";
 
