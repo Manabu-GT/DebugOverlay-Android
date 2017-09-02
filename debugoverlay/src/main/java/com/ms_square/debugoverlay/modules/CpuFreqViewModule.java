@@ -29,7 +29,10 @@ public class CpuFreqViewModule extends BaseViewModule<List<CpuFreq>> {
         if (cpuFreqList != null && cpuFreqTextView != null) {
             StringBuilder builder = new StringBuilder();
             for (CpuFreq cpuFreq : cpuFreqList) {
-                builder.append(cpuFreq.toString()).append("\n");
+                if (builder.length() > 0) {
+                    builder.append("\n");
+                }
+                builder.append(cpuFreq.toString());
             }
             cpuFreqTextView.setText(builder.toString());
         }
