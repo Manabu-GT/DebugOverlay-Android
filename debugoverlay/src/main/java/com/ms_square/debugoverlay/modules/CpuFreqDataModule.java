@@ -54,23 +54,24 @@ public class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
                 File[] cpuFiles = getCpuFiles();
                 if (cpuFiles != null) {
                     for (File cpuFile : cpuFiles) {
+                        double minFreq = -1f;
+                        double maxFreq = -1f;
                         try {
                             BufferedReader minFreqReader =
                                     new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/cpuinfo_min_freq"));
                             BufferedReader maxFreqReader =
                                     new BufferedReader(new FileReader(cpuFile.getAbsolutePath() + "/cpufreq/cpuinfo_max_freq"));
-                            double minFreq = parseDouble(minFreqReader.readLine());
-                            double maxFreq = parseDouble(maxFreqReader.readLine());
+                            minFreq = parseDouble(minFreqReader.readLine());
+                            maxFreq = parseDouble(maxFreqReader.readLine());
 
                             if (DebugOverlay.isDebugLoggingEnabled()) {
                                 Log.d(TAG, cpuFile.getName() + " minFreq(kHz):" + minFreq);
                                 Log.d(TAG, cpuFile.getName() + " maxFreq(kHz):" + maxFreq);
                             }
-
-                            cachedFrequencies.put(cpuFile, new CpuFreq(cpuFile.getName(), minFreq, -1f, maxFreq));
                         } catch (IOException ie) {
                             Log.w(TAG, "Error reading the min/max cpufreq", ie);
                         }
+                        cachedFrequencies.put(cpuFile, new CpuFreq(cpuFile.getName(), minFreq, -1f, maxFreq));
                     }
                 }
             }

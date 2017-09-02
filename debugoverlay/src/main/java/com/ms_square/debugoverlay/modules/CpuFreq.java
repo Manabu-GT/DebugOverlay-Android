@@ -40,7 +40,7 @@ public class CpuFreq {
     @Override
     public String toString() {
         return String.format(Locale.US, "%s(GHz): %s/%s ", cpuName,
-                DECIMAL_FORMAT.format(curFreq / 1000000f),
-                DECIMAL_FORMAT.format(maxFreq / 1000000f));
+                curFreq >= 0 ? DECIMAL_FORMAT.format(curFreq / 1000000f) : "NA",
+                maxFreq >= 0 ? DECIMAL_FORMAT.format(maxFreq / 1000000f) : "NA");
     }
 }
