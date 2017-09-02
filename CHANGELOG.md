@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 1.1.1 *(2017-09-02)*
+
+* Fix to close filereaders in CpuFreqDataModule after reading data
+
 ## Version 1.1.0 *(2017-09-01)*
 
 * Android O support (Note: CpuUsageModule/CpuFreqModule will not work on Android O and above)
