@@ -3,6 +3,7 @@ package com.ms_square.debugoverlay;
 import android.app.Application;
 import android.graphics.Color;
 
+import com.ms_square.debugoverlay.modules.CpuFreqModule;
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
 import com.ms_square.debugoverlay.modules.FpsModule;
 import com.ms_square.debugoverlay.modules.LogcatLine;
@@ -38,12 +39,23 @@ public class DebugOverlayNoOpTest {
     OverlayModule mockOverlayModule;
 
     @Test
-    public void cpuModuleConstructors() {
+    public void cpuUsageModuleConstructors() {
         new CpuUsageModule();
         new CpuUsageModule(0);
         new CpuUsageModule(0, 0);
         new CpuUsageModule(mockViewModule);
         new CpuUsageModule(0, mockViewModule);
+
+        Mockito.verifyZeroInteractions(mockViewModule);
+    }
+
+    @Test
+    public void cpuFreqModuleConstructors() {
+        new CpuFreqModule();
+        new CpuFreqModule(0);
+        new CpuFreqModule(0, 0);
+        new CpuFreqModule(mockViewModule);
+        new CpuFreqModule(0, mockViewModule);
 
         Mockito.verifyZeroInteractions(mockViewModule);
     }
