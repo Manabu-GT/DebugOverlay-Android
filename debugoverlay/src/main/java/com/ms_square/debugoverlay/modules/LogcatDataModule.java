@@ -13,7 +13,7 @@ import static java.lang.Runtime.getRuntime;
 
 class LogcatDataModule extends BaseDataModule<LogcatLine> {
 
-    private static final String TAG = LogcatDataModule.class.getSimpleName();
+    private static final String TAG = "LogcatDataModule";
 
     private static final int LINE_UPDATED = 10000;
 

@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.1.0 *(2017-09-01)*
+
+* Android O support (Note: CpuUsageModule/CpuFreqModule will not work on Android O and above)
+* Add a CpuFreqModule to show current/max frequencies of all the cpu cores
+* Support Library 25.3.1 -> 26.0.1
+
 ## Version 1.0.1 *(2017-04-05)*
 
 * Use split v4 support library as dependencies for less size

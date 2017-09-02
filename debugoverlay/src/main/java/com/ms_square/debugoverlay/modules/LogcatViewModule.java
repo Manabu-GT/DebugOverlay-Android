@@ -20,7 +20,7 @@ import static com.ms_square.debugoverlay.modules.LogcatLineFilter.DEFAULT_LINE_F
 
 public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
-    private static final String TAG = LogcatViewModule.class.getSimpleName();
+    private static final String TAG = "LogcatViewModule";
 
     private final int maxLines;
 
@@ -126,9 +126,9 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
             if (convertView == null) {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.debugoverlay_line_logcat, parent, false);
-                TextView dateAndTime = (TextView) convertView.findViewById(R.id.date_and_time);
-                TextView priorityAndTag = (TextView) convertView.findViewById(R.id.priority_and_tag);
-                TextView message = (TextView) convertView.findViewById(R.id.message);
+                TextView dateAndTime = convertView.findViewById(R.id.date_and_time);
+                TextView priorityAndTag = convertView.findViewById(R.id.priority_and_tag);
+                TextView message = convertView.findViewById(R.id.message);
 
                 dateAndTime.setTextColor(textColor);
 

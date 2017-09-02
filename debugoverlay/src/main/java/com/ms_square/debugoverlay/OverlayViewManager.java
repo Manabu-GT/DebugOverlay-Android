@@ -26,12 +26,13 @@ import java.util.List;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
+import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
 import static android.view.WindowManager.LayoutParams.TYPE_TOAST;
 
 class OverlayViewManager {
 
-    private static final String TAG = OverlayViewManager.class.getSimpleName();
+    private static final String TAG = "OverlayViewManager";
 
     private final Context context;
     private final DebugOverlay.Config config;
@@ -237,7 +238,9 @@ class OverlayViewManager {
 
     public static int getWindowTypeForOverlay(boolean allowSystemLayer) {
         if (allowSystemLayer) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                return TYPE_APPLICATION_OVERLAY;
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                 return TYPE_SYSTEM_ALERT;
             } else {
                 return TYPE_TOAST;

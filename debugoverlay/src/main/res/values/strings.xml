@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- for DebugOverlay's Notification -->
+    <string name="debugoverlay_notification_channel_name">DebugOverlay</string>
     <string name="debugoverlay_notification_title">%1$s:%2$s</string>
     <string name="debugoverlay_notification_small_text">Control DebugOverlay</string>
     <string name="debugoverlay_notification_big_text">Control DebugOverlay</string>

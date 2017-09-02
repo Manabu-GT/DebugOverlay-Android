@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -21,18 +22,20 @@ import android.support.annotation.VisibleForTesting;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.ms_square.debugoverlay.modules.CpuFreqModule;
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
 import com.ms_square.debugoverlay.modules.FpsModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 public class DebugOverlay {
 
-    private static final String TAG = DebugOverlay.class.getSimpleName();
+    private static final String TAG = "DebugOverlay";
 
     public static final Position DEFAULT_POSITION = Position.BOTTOM_START;
     public static final int DEFAULT_BG_COLOR = Color.parseColor("#40000000");
@@ -302,6 +305,18 @@ public class DebugOverlay {
                 overlayModules.add(new MemInfoModule(application));
                 overlayModules.add(new FpsModule());
             }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Removes any CpuUsageModule/CpuFreqModule if a device is running Android O and above
+                Iterator<OverlayModule> iterator = overlayModules.iterator();
+                while (iterator.hasNext()) {
+                    OverlayModule overlayModule = iterator.next();
+                    if (overlayModule instanceof CpuUsageModule || overlayModule instanceof CpuFreqModule) {
+                        iterator.remove();
+                    }
+                }
+            }
+
             return new DebugOverlay(application, overlayModules,
                     new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
                             showNotification, activityName));
