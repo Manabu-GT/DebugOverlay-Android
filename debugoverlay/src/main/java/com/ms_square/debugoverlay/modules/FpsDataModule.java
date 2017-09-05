@@ -13,8 +13,10 @@ class FpsDataModule extends BaseDataModule<Double> implements Choreographer.Fram
 
     private double fps;
 
+    private final int interval;
+
     public FpsDataModule(int interval) {
-        super(interval);
+        this.interval = interval;
         this.choreographer = Choreographer.getInstance();
     }
 
@@ -36,7 +38,7 @@ class FpsDataModule extends BaseDataModule<Double> implements Choreographer.Fram
             long duration = currentFrameTimeMillis - startFrameTimeMillis;
             numFramesRendered++;
 
-            if (duration > getInterval()) {
+            if (duration > interval) {
                 fps = numFramesRendered * 1000f / duration;
 
                 notifyObservers();

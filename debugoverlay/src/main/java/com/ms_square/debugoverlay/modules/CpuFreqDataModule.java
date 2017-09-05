@@ -122,8 +122,10 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
     private ScheduledExecutorService executorService;
 
+    private final int interval;
+
     public CpuFreqDataModule(int interval) {
-        super(interval);
+        this.interval = interval;
     }
 
     @Override
@@ -134,7 +136,7 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
         }
         if (executorService == null) {
             executorService = Executors.newSingleThreadScheduledExecutor();
-            executorService.scheduleWithFixedDelay(cpuFreqReadRunnable, 0, getInterval(), TimeUnit.MILLISECONDS);
+            executorService.scheduleWithFixedDelay(cpuFreqReadRunnable, 0, interval, TimeUnit.MILLISECONDS);
         }
     }
 

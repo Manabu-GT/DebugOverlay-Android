@@ -31,10 +31,6 @@ class LogcatDataModule extends BaseDataModule<LogcatLine> {
 
     private LogcatLine latestLine;
 
-    public LogcatDataModule() {
-        super(0);
-    }
-
     @Override
     public void start() {
         if (logcatReaderThread == null || !logcatReaderThread.isAlive()) {

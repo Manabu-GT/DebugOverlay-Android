@@ -26,8 +26,6 @@ public class IPAddressDataModule extends BaseDataModule<String> {
     private String ipAddresses;
 
     public IPAddressDataModule(@NonNull Context context) {
-        // pass 0 as interval since we don't use it anyway in this module
-        super(0);
         this.context = context;
     }
 
