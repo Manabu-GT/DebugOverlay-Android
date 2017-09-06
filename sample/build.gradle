@@ -14,12 +14,14 @@ def gitHash() {
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
     defaultConfig {
         applicationId "com.ms_square.debugoverlay.sample"
-        minSdkVersion 16
-        targetSdkVersion 26
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+
         versionCode 1
         versionName "1.0.0"
 
@@ -65,9 +67,12 @@ dependencies {
     releaseCompile project(':debugoverlay-no-op')
     testCompile project(':debugoverlay-no-op')
 
-    compile 'com.android.support:appcompat-v7:26.0.1'
+    compile project(':debugoverlay-ext-timber')
+
+    compile "com.android.support:appcompat-v7:${supportLibraryVersion}"
+    compile "com.android.support:design:${supportLibraryVersion}"
+
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:26.0.1'
 
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
@@ -81,5 +86,5 @@ dependencies {
     // ScreenShot taker for instrumentation tests
     androidTestCompile(name:'cloudtestingscreenshotter_lib', ext:'aar')
 
-    testCompile 'junit:junit:4.12'
+    testCompile deps.junit
 }
