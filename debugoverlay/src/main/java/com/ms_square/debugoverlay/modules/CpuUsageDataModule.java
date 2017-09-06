@@ -22,8 +22,10 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
     private ReaderThread cpuReaderThread;
 
+    private final int interval;
+
     public CpuUsageDataModule(int interval) {
-        super(interval);
+        this.interval = interval;
     }
 
     @Override
@@ -88,7 +90,7 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
                 read();
                 closeCpuReaders();
                 try {
-                    Thread.currentThread().sleep(getInterval());
+                    Thread.currentThread().sleep(interval);
                 } catch (InterruptedException e) {
                     break;
                 }

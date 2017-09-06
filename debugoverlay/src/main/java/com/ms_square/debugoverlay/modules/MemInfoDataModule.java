@@ -16,8 +16,10 @@ class MemInfoDataModule extends BaseDataModule<MemInfo> {
 
     private MemInfo memInfo;
 
+    private final int interval;
+
     public MemInfoDataModule(@NonNull Context context, int interval) {
-        super(interval);
+        this.interval = interval;
         am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
@@ -44,7 +46,7 @@ class MemInfoDataModule extends BaseDataModule<MemInfo> {
             Debug.MemoryInfo processMemInfo = am.getProcessMemoryInfo(new int[]{Process.myPid()})[0];
             memInfo = new MemInfo(systemMemInfo, processMemInfo);
             notifyObservers();
-            handler.postDelayed(memInfoQueryRunnable, getInterval());
+            handler.postDelayed(memInfoQueryRunnable, interval);
         }
     };
 }

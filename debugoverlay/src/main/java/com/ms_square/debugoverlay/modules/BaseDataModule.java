@@ -12,12 +12,6 @@ public abstract class BaseDataModule<T> implements DataModule<T> {
 
     private final List<DataObserver> observers = new ArrayList<>();
 
-    private final int interval;
-
-    public BaseDataModule(int interval) {
-        this.interval = interval;
-    }
-
     @Override
     public void notifyObservers() {
         T data = getLatestData();
@@ -36,10 +30,6 @@ public abstract class BaseDataModule<T> implements DataModule<T> {
     @Override
     public void removeObserver(@NonNull DataObserver observer) {
         observers.remove(observer);
-    }
-
-    protected int getInterval() {
-        return interval;
     }
 
     protected abstract T getLatestData();

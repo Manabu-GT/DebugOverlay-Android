@@ -5,10 +5,6 @@ import com.ms_square.debugoverlay.DataObserver;
 
 public abstract class BaseDataModule<T> implements DataModule<T> {
 
-    public BaseDataModule(int interval) {
-
-    }
-
     @Override
     public void notifyObservers() {
 
@@ -21,10 +17,6 @@ public abstract class BaseDataModule<T> implements DataModule<T> {
 
     @Override
     public void removeObserver(DataObserver observer) {
-    }
-
-    protected int getInterval() {
-        return 0;
     }
 
     protected abstract T getLatestData();
