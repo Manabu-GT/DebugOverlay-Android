@@ -59,7 +59,7 @@ class TimberDataModule extends BaseDataModule<LogcatLine> {
      * @param isDebug - should be your BuildConfig.DEBUG
      */
     public TimberDataModule(boolean isDebug) {
-        super(0);
+        super();
         if (isDebug) {
             // try not to miss logs which are emitted during the application start up
             Timber.plant(overlayLogTree);
