@@ -67,7 +67,9 @@ dependencies {
     releaseCompile project(':debugoverlay-no-op')
     testCompile project(':debugoverlay-no-op')
 
-    compile project(':debugoverlay-ext-timber')
+    compile(project(':debugoverlay-ext-timber')) {
+        exclude module: 'debugoverlay'
+    }
 
     compile "com.android.support:appcompat-v7:${supportLibraryVersion}"
     compile "com.android.support:design:${supportLibraryVersion}"

@@ -151,6 +151,14 @@ If low memory situation is detected by reading [lowMemory](https://developer.and
 
 Note: CpuFreqModule will be no-op on Android O and above. Please see this [issue](https://github.com/Manabu-GT/DebugOverlay-Android/issues/11) for why.
 
+Extension Modules (available separately)
+------
+#### TimberModule
+`optional`
+> An extension module which shows [Timber](https://github.com/JakeWharton/timber) logs for debugging.
+
+For details, please check out [debugoverlay-ext-timber](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-timber).
+
 Customization
 ------
 
