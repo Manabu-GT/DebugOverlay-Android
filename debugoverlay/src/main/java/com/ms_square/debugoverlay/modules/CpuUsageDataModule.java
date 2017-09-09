@@ -64,7 +64,7 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
         return cpuUsage.get();
     }
 
-    class ReaderThread extends Thread {
+    private class ReaderThread extends Thread {
 
         private BufferedReader totalCpuReader;
 

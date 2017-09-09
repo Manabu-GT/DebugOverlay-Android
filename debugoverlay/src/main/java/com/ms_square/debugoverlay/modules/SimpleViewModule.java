@@ -28,7 +28,7 @@ public class SimpleViewModule extends BaseViewModule<String> {
     @Override
     public View createView(@NonNull ViewGroup root, @ColorInt int textColor, float textSize, float textAlpha) {
         View view = LayoutInflater.from(root.getContext()).inflate(layoutResId, root, false);
-        textView = (TextView) view.findViewById(R.id.debugoverlay_overlay_text);
+        textView = view.findViewById(R.id.debugoverlay_overlay_text);
         textView.setTextColor(textColor);
         textView.setTextSize(textSize);
         textView.setAlpha(textAlpha);

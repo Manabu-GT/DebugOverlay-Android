@@ -19,8 +19,8 @@ class TimberDataModule extends BaseDataModule<LogcatLine> {
 
     private static final int LINE_UPDATED = Integer.MAX_VALUE - 100 + 1;
 
-    private static DateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd", Locale.US);
-    private static DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd", Locale.US);
+    private static final DateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
         @Override

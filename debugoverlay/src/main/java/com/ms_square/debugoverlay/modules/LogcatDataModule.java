@@ -15,7 +15,7 @@ class LogcatDataModule extends BaseDataModule<LogcatLine> {
 
     private static final String TAG = "LogcatDataModule";
 
-    private static final int LINE_UPDATED = 10000;
+    private static final int LINE_UPDATED = Integer.MAX_VALUE - 100;
 
     private final Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -56,7 +56,7 @@ class LogcatDataModule extends BaseDataModule<LogcatLine> {
         return latestLine;
     }
 
-    class ReaderThread extends Thread {
+    private class ReaderThread extends Thread {
 
         private Process logcatProcess;
         private BufferedReader logcatReader;

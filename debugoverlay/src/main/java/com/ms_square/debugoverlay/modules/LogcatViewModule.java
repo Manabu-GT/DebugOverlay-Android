@@ -93,7 +93,7 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
         return listView;
     }
 
-    static class LogcatLineArrayAdapter extends ArrayAdapter<LogcatLine> {
+    private static class LogcatLineArrayAdapter extends ArrayAdapter<LogcatLine> {
 
         private final int textColor;
 
