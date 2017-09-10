@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 1.1.2 *(2017-09-09)*
+
+* Add a TimberModule as an extension module
+* Update the LogcatLine to make it work with the TimberModule
+
 ## Version 1.1.1 *(2017-09-02)*
 
 * Fix to close filereaders in CpuFreqDataModule after reading data

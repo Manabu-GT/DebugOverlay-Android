@@ -24,13 +24,13 @@ so you just need to add the followings to your ***build.gradle*** file:
 
 ```groovy
 dependencies {
-  debugCompile 'com.ms-square:debugoverlay:1.1.1'
-  releaseCompile 'com.ms-square:debugoverlay-no-op:1.1.1'
-  testCompile 'com.ms-square:debugoverlay-no-op:1.1.1'
+  debugCompile 'com.ms-square:debugoverlay:1.1.2'
+  releaseCompile 'com.ms-square:debugoverlay-no-op:1.1.2'
+  testCompile 'com.ms-square:debugoverlay-no-op:1.1.2'
 }
 ```
 
-Please note that `com.ms-square:debugoverlay:1.1.1`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
+Please note that `com.ms-square:debugoverlay:1.1.2`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
 Threfore, you should avoid to use that dependency for your release build.
 
 FYI, the following table describes the total number of method/field references in this library's release aar.
@@ -38,11 +38,11 @@ This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepS
 
 | library  | methods  | fields |
 |:------------- |:-------------|:-------------|
-|com.ms-square:debugoverlay:1.1.1|565|249|
-|com.ms-square:debugoverlay-no-op:1.1.1|142|37|
+|com.ms-square:debugoverlay:1.1.2|566|252|
+|com.ms-square:debugoverlay-no-op:1.1.2|141|37|
 
 Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
-If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.1.1'` in the dependencies section of build.gradle.
+If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.1.2'` in the dependencies section of build.gradle.
 
 Usage
 ------
@@ -150,6 +150,14 @@ If low memory situation is detected by reading [lowMemory](https://developer.and
 > Collects each cpu core's current and max frequency by reading `/sys/devices/system/cpu/cpu[num]/cpufreq/scaling_cur_freq` and `/sys/devices/system/cpu/cpu[num]/cpufreq/cpuinfo_max_freq` respectively.
 
 Note: CpuFreqModule will be no-op on Android O and above. Please see this [issue](https://github.com/Manabu-GT/DebugOverlay-Android/issues/11) for why.
+
+Extension Modules (available separately)
+------
+#### TimberModule
+`optional`
+> An extension module which shows [Timber](https://github.com/JakeWharton/timber) logs for debugging.
+
+For details, please check out [debugoverlay-ext-timber](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-timber).
 
 Customization
 ------

@@ -140,6 +140,17 @@ public class LogcatLine {
         }
     }
 
+    public LogcatLine(String date, String time, int pid, int tid, Priority priority, String tag, String message) {
+        this.rawLine = "";
+        this.date = date;
+        this.time = time;
+        this.pid = pid;
+        this.tid = tid;
+        this.priority = priority;
+        this.tag = tag;
+        this.message = message;
+    }
+
     public String getRawLine() {
         return rawLine;
     }

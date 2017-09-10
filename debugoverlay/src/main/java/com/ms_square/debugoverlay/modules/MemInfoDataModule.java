@@ -38,7 +38,7 @@ class MemInfoDataModule extends BaseDataModule<MemInfo> {
         return memInfo;
     }
 
-    final Runnable memInfoQueryRunnable = new Runnable() {
+    private final Runnable memInfoQueryRunnable = new Runnable() {
         @Override
         public void run() {
             ActivityManager.MemoryInfo systemMemInfo = new ActivityManager.MemoryInfo();
