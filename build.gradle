@@ -20,6 +20,10 @@ allprojects {
             url "https://maven.google.com"
         }
     }
+
+    // This ensures a group and version are defined for all modules.
+    group = GROUP
+    version = VERSION_NAME
 }
 
 // http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html
