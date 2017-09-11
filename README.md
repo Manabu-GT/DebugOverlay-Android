@@ -19,7 +19,7 @@ API Level 16 (Android 4.1) and above.
 
 Setup
 ------
-The library is pushed to Maven Central as an AAR, 
+The library is pushed to Maven Central as an AAR,
 so you just need to add the followings to your ***build.gradle*** file:
 
 ```groovy
@@ -30,7 +30,7 @@ dependencies {
 }
 ```
 
-Please note that `com.ms-square:debugoverlay:1.1.2`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app. 
+Please note that `com.ms-square:debugoverlay:1.1.2`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app.
 Threfore, you should avoid to use that dependency for your release build.
 
 FYI, the following table describes the total number of method/field references in this library's release aar.
@@ -96,7 +96,7 @@ new DebugOverlay.Builder(this)
 
 * bgColor - [color]
 >Color used for the background of the overlay. Default is `25% Black`.
- 
+
 * textColor - [color]
 >Color used for text on the overlay. Default is `White`.
 
@@ -110,9 +110,9 @@ new DebugOverlay.Builder(this)
 >If true, it adds the overlay window on Android's system window layer; in Android 7.1.1 and after, it will ask you for the overlay permission by taking you to the Android's settings screen when you first set up. If set to false, it  will automatically add the overlay on each application window. In most cases, you want to set this to `true`.
 Default is `true`.
 
-* notification - [boolean, string(optional)] 
+* notification - [boolean, string(optional)]
 > *applicable only when allowSystemLayer is set to true*
-> 
+>
 > When set to true, it will show notification which allows you to show/hide the overlay window.
 Default is `true`.
 You can optionally supply string which must be your *activity's class name*.
@@ -158,6 +158,12 @@ Extension Modules (available separately)
 > An extension module which shows [Timber](https://github.com/JakeWharton/timber) logs for debugging.
 
 For details, please check out [debugoverlay-ext-timber](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-timber).
+
+#### NetStatsModule
+`optional`
+> An extension module which shows the total network usage of the application. The stats include all network interfaces, and both TCP and UDP usage.
+
+For details, please check out [debugoverlay-ext-netstats](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-netstats).
 
 Customization
 ------
