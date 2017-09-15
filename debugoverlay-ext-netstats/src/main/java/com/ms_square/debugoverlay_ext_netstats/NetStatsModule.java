@@ -7,11 +7,10 @@ public class NetStatsModule extends OverlayModule<String> {
 
     private static final int DEFAULT_INTERVAL = 1000; // ms
 
-    public NetStatsModule() {
-        this(DEFAULT_INTERVAL, android.os.Process.myUid());
+    public NetStatsModule() {this(DEFAULT_INTERVAL);
     }
 
-    public NetStatsModule(int interval, int uid) {
-        super(new NetStatsDataModule(interval, uid), new SimpleViewModule(R.layout.debugoverlay_netstats));
+    public NetStatsModule(int interval) {
+        super(new NetStatsDataModule(interval), new SimpleViewModule(R.layout.debugoverlay_netstats));
     }
 }

@@ -14,25 +14,27 @@ public class NetStatsDataModule extends BaseDataModule<String> {
 
     private static final String HEADER = "Received: %8s/s\nSent: %12s/s";
 
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private final int interval;
+    private final int intervalMilliseconds;
     private final int uid;
+    private final double intervalSeconds;
 
-    private double mPreviousReceived = 0;
-    private double mPreviousSent = 0;
-    private double mReceived;
-    private double mSent;
+    private Double previousReceived = null;
+    private Double previousSent = null;
+    private double received;
+    private double sent;
 
-    public NetStatsDataModule(int interval, int uid) {
-        this.interval = interval;
-        this.uid = uid;
+    public NetStatsDataModule(int intervalMilliseconds) {
+        this.uid = android.os.Process.myUid();
+        this.intervalMilliseconds = intervalMilliseconds;
+        this.intervalSeconds = intervalMilliseconds * 0.001;
     }
 
     @Override
     protected String getLatestData() {
         return String.format(
-                Locale.ENGLISH, HEADER, bytesToPrettyString(mReceived), bytesToPrettyString(mSent));
+                Locale.US, HEADER, bytesToPrettyString(received), bytesToPrettyString(sent));
     }
 
     @Override
@@ -49,28 +51,32 @@ public class NetStatsDataModule extends BaseDataModule<String> {
 
         @Override
         public void run() {
-            double seconds = interval * 0.001;
-            double totalBytesReceived = TrafficStats.getUidRxBytes(uid) / seconds;
-            double totalBytesSent = TrafficStats.getUidTxBytes(uid) / seconds;
-            mReceived = totalBytesReceived - mPreviousReceived + Math.random() * 10000000;
-            mSent = totalBytesSent - mPreviousSent + Math.random() * 100000;
-            mPreviousSent = totalBytesSent;
-            mPreviousReceived = totalBytesReceived;
+            double totalBytesReceived = TrafficStats.getUidRxBytes(uid);
+            double totalBytesSent = TrafficStats.getUidTxBytes(uid);
+            if (previousReceived == null)
+                previousReceived = totalBytesReceived;
+            if (previousSent == null)
+                previousSent = totalBytesSent;
+
+            received = (totalBytesReceived - previousReceived) / intervalSeconds;
+            sent = (totalBytesSent - previousSent) / intervalSeconds;
+            previousSent = totalBytesSent;
+            previousReceived = totalBytesReceived;
 
             notifyObservers();
-            handler.postDelayed(networkStatisticsQueryRunnable, interval);
+            handler.postDelayed(networkStatisticsQueryRunnable, intervalMilliseconds);
         }
     };
 
     private String bytesToPrettyString(double bytes)
     {
         if (bytes >= 1000000000.0)
-            return String.format(Locale.ENGLISH, "%.1f GB", bytes / 1000000000.0);
+            return String.format(Locale.US, "%.1f GB", bytes / 1000000000.0);
         else if (bytes >= 1000000.0)
-            return String.format(Locale.ENGLISH, "%.1f MB", bytes / 1000000.0);
+            return String.format(Locale.US, "%.1f MB", bytes / 1000000.0);
         else if (bytes >= 1000.0)
-            return String.format(Locale.ENGLISH, "%.1f kB", bytes / 1000.0);
+            return String.format(Locale.US, "%.1f kB", bytes / 1000.0);
         else
-            return String.format(Locale.ENGLISH, "%.1f  B", bytes);
+            return String.format(Locale.US, "%.1f  B", bytes);
     }
 }
