@@ -161,7 +161,7 @@ For details, please check out [debugoverlay-ext-timber](https://github.com/Manab
 
 #### NetStatsModule
 `optional`
-> An extension module which shows the network usage of the app or device.
+> An extension module which shows the total network usage of the application. The stats include all network interfaces, and both TCP and UDP usage.
 
 For details, please check out [debugoverlay-ext-netstats](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-netstats).
 

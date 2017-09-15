@@ -1,7 +1,8 @@
 Network Statistics Extension Module
 ===================================
 
-**NetStatsModule** is an extension module for DebugOverlay which shows the network usage.
+**NetStatsModule** is an extension module which shows the total network usage of the application.
+The stats include all network interfaces, and both TCP and UDP usage.
 
 <img src="../art/overlay_with_netstats_module_small.png" width="50%" alt="DebugOverlay Screen Capture">
 
