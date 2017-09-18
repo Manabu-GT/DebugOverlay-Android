@@ -20,8 +20,8 @@ public class NetStatsDataModule extends BaseDataModule<String> {
     private final int uid;
     private final double intervalSeconds;
 
-    private Double previousReceived = null;
-    private Double previousSent = null;
+    private double previousReceived = TrafficStats.UNSUPPORTED;
+    private double previousSent = TrafficStats.UNSUPPORTED;
     private double received;
     private double sent;
 
@@ -53,10 +53,12 @@ public class NetStatsDataModule extends BaseDataModule<String> {
         public void run() {
             double totalBytesReceived = TrafficStats.getUidRxBytes(uid);
             double totalBytesSent = TrafficStats.getUidTxBytes(uid);
-            if (previousReceived == null)
+
+            if (previousReceived == TrafficStats.UNSUPPORTED || previousSent == TrafficStats.UNSUPPORTED) {
                 previousReceived = totalBytesReceived;
-            if (previousSent == null)
                 previousSent = totalBytesSent;
+                return;
+            }
 
             received = (totalBytesReceived - previousReceived) / intervalSeconds;
             sent = (totalBytesSent - previousSent) / intervalSeconds;
@@ -68,15 +70,23 @@ public class NetStatsDataModule extends BaseDataModule<String> {
         }
     };
 
+    private static final double BYTES_PER_GIGABYTE = 1000000000f;
+    private static final double BYTES_PER_MEGABYTE = 1000000f;
+    private static final double BYTES_PER_KILOBYTE = 1000f;
+
     private String bytesToPrettyString(double bytes)
     {
-        if (bytes >= 1000000000.0)
-            return String.format(Locale.US, "%.1f GB", bytes / 1000000000.0);
-        else if (bytes >= 1000000.0)
-            return String.format(Locale.US, "%.1f MB", bytes / 1000000.0);
-        else if (bytes >= 1000.0)
-            return String.format(Locale.US, "%.1f kB", bytes / 1000.0);
-        else
+        if (bytes >= BYTES_PER_GIGABYTE) {
+            return String.format(Locale.US, "%.1f GB", bytes / BYTES_PER_GIGABYTE);
+        }
+        else if (bytes >= BYTES_PER_MEGABYTE) {
+            return String.format(Locale.US, "%.1f MB", bytes / BYTES_PER_MEGABYTE);
+        }
+        else if (bytes >= BYTES_PER_KILOBYTE) {
+            return String.format(Locale.US, "%.1f kB", bytes / BYTES_PER_KILOBYTE);
+        }
+        else {
             return String.format(Locale.US, "%.1f  B", bytes);
+        }
     }
 }

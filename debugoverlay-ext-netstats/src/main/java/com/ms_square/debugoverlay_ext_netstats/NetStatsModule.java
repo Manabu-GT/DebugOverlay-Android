@@ -7,7 +7,8 @@ public class NetStatsModule extends OverlayModule<String> {
 
     private static final int DEFAULT_INTERVAL = 1000; // ms
 
-    public NetStatsModule() {this(DEFAULT_INTERVAL);
+    public NetStatsModule() {
+        this(DEFAULT_INTERVAL);
     }
 
     public NetStatsModule(int interval) {
