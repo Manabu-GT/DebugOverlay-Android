@@ -40,7 +40,6 @@ public class NetStatsDataModule extends BaseDataModule<String> {
 
     @Override
     public void start() {
-        // initialize these values here as
         previousReceived = -1f;
         previousSent = -1f;
         handler.post(networkStatisticsQueryRunnable);
