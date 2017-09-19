@@ -3,6 +3,7 @@ package com.ms_square.debugoverlay_ext_netstats;
 import android.net.TrafficStats;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.ms_square.debugoverlay.modules.BaseDataModule;
 
@@ -20,8 +21,8 @@ public class NetStatsDataModule extends BaseDataModule<String> {
     private final int uid;
     private final double intervalSeconds;
 
-    private double previousReceived = TrafficStats.UNSUPPORTED;
-    private double previousSent = TrafficStats.UNSUPPORTED;
+    private double previousReceived;
+    private double previousSent;
     private double received;
     private double sent;
 
@@ -39,6 +40,9 @@ public class NetStatsDataModule extends BaseDataModule<String> {
 
     @Override
     public void start() {
+        // initialize these values here as
+        previousReceived = -1f;
+        previousSent = -1f;
         handler.post(networkStatisticsQueryRunnable);
     }
 
@@ -51,22 +55,24 @@ public class NetStatsDataModule extends BaseDataModule<String> {
 
         @Override
         public void run() {
+
             double totalBytesReceived = TrafficStats.getUidRxBytes(uid);
             double totalBytesSent = TrafficStats.getUidTxBytes(uid);
 
-            if (previousReceived == TrafficStats.UNSUPPORTED || previousSent == TrafficStats.UNSUPPORTED) {
-                previousReceived = totalBytesReceived;
-                previousSent = totalBytesSent;
+            if (totalBytesReceived == TrafficStats.UNSUPPORTED || totalBytesSent == TrafficStats.UNSUPPORTED) {
+                Log.w(TAG, "The use of TrafficStats is not supported on this device.");
                 return;
             }
 
-            received = (totalBytesReceived - previousReceived) / intervalSeconds;
-            sent = (totalBytesSent - previousSent) / intervalSeconds;
-            previousSent = totalBytesSent;
+            if (previousReceived >= 0 && previousSent >= 0) {
+                received = (totalBytesReceived - previousReceived) / intervalSeconds;
+                sent = (totalBytesSent - previousSent) / intervalSeconds;
+                notifyObservers();
+            }
             previousReceived = totalBytesReceived;
+            previousSent = totalBytesSent;
 
-            notifyObservers();
-            handler.postDelayed(networkStatisticsQueryRunnable, intervalMilliseconds);
+            handler.postDelayed(this, intervalMilliseconds);
         }
     };
 
