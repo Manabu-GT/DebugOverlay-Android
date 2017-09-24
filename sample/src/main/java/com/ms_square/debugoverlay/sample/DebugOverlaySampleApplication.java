@@ -46,6 +46,7 @@ public class DebugOverlaySampleApplication extends Application {
 //                        new MemInfoModule(this),
 //                        new FpsModule(),
 //                        new IPAddressModule(this),
+//                        new NetStatsModule(),
 //                        new TimberModule(BuildConfig.DEBUG))
 //                .build()
 //                .install();
