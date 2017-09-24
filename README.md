@@ -24,13 +24,13 @@ so you just need to add the followings to your ***build.gradle*** file:
 
 ```groovy
 dependencies {
-  debugCompile 'com.ms-square:debugoverlay:1.1.2'
-  releaseCompile 'com.ms-square:debugoverlay-no-op:1.1.2'
-  testCompile 'com.ms-square:debugoverlay-no-op:1.1.2'
+  debugCompile 'com.ms-square:debugoverlay:1.1.3'
+  releaseCompile 'com.ms-square:debugoverlay-no-op:1.1.3'
+  testCompile 'com.ms-square:debugoverlay-no-op:1.1.3'
 }
 ```
 
-Please note that `com.ms-square:debugoverlay:1.1.2`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app.
+Please note that `com.ms-square:debugoverlay:1.1.3`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app.
 Threfore, you should avoid to use that dependency for your release build.
 
 FYI, the following table describes the total number of method/field references in this library's release aar.
@@ -38,11 +38,11 @@ This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepS
 
 | library  | methods  | fields |
 |:------------- |:-------------|:-------------|
-|com.ms-square:debugoverlay:1.1.2|566|252|
-|com.ms-square:debugoverlay-no-op:1.1.2|141|37|
+|com.ms-square:debugoverlay:1.1.3|566|252|
+|com.ms-square:debugoverlay-no-op:1.1.3|141|37|
 
 Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
-If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.1.2'` in the dependencies section of build.gradle.
+If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.1.3'` in the dependencies section of build.gradle.
 
 Usage
 ------

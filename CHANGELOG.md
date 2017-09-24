@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 1.1.3 *(2017-09-24)*
+
+* Add a NetStatsModule as an extension module
+* Support Library 26.0.1 -> 26.1.0
+
 ## Version 1.1.2 *(2017-09-09)*
 
 * Add a TimberModule as an extension module
