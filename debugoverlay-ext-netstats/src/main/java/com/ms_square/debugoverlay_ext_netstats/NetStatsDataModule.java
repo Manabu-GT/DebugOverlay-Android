@@ -9,7 +9,7 @@ import com.ms_square.debugoverlay.modules.BaseDataModule;
 
 import java.util.Locale;
 
-public class NetStatsDataModule extends BaseDataModule<String> {
+class NetStatsDataModule extends BaseDataModule<String> {
 
     private static final String TAG = "NetStatsDataModule";
 
