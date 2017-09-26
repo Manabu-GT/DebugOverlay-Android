@@ -165,6 +165,13 @@ For details, please check out [debugoverlay-ext-timber](https://github.com/Manab
 
 For details, please check out [debugoverlay-ext-netstats](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-netstats).
 
+#### TransientInfoModule
+`optional`
+> An extension module which allows custom information to be added and removed
+depending on the state of the application.
+
+For details, please check out [debugoverlay-ext-transient-info](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-transient-info).
+
 Customization
 ------
 
