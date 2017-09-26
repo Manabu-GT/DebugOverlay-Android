@@ -9,13 +9,44 @@ import com.ms_square.debugoverlay.modules.BaseDataModule;
 
 import java.util.Locale;
 
-public class NetStatsDataModule extends BaseDataModule<String> {
+class NetStatsDataModule extends BaseDataModule<String> {
 
-    private static final String TAG = NetStatsDataModule.class.getSimpleName();
+    private static final String TAG = "NetStatsDataModule";
+
+    private static final double BYTES_PER_GIGABYTE = 1000000000f;
+
+    private static final double BYTES_PER_MEGABYTE = 1000000f;
+
+    private static final double BYTES_PER_KILOBYTE = 1000f;
 
     private static final String HEADER = "Received: %8s/s\nSent: %12s/s";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private final Runnable networkStatisticsQueryRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+
+            double totalBytesReceived = TrafficStats.getUidRxBytes(uid);
+            double totalBytesSent = TrafficStats.getUidTxBytes(uid);
+
+            if (totalBytesReceived == TrafficStats.UNSUPPORTED || totalBytesSent == TrafficStats.UNSUPPORTED) {
+                Log.w(TAG, "The use of TrafficStats is not supported on this device.");
+                return;
+            }
+
+            if (previousReceived >= 0 && previousSent >= 0) {
+                received = (totalBytesReceived - previousReceived) / intervalSeconds;
+                sent = (totalBytesSent - previousSent) / intervalSeconds;
+                notifyObservers();
+            }
+            previousReceived = totalBytesReceived;
+            previousSent = totalBytesSent;
+
+            handler.postDelayed(this, intervalMilliseconds);
+        }
+    };
 
     private final int intervalMilliseconds;
     private final int uid;
@@ -50,47 +81,14 @@ public class NetStatsDataModule extends BaseDataModule<String> {
         handler.removeCallbacks(networkStatisticsQueryRunnable);
     }
 
-    private final Runnable networkStatisticsQueryRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-
-            double totalBytesReceived = TrafficStats.getUidRxBytes(uid);
-            double totalBytesSent = TrafficStats.getUidTxBytes(uid);
-
-            if (totalBytesReceived == TrafficStats.UNSUPPORTED || totalBytesSent == TrafficStats.UNSUPPORTED) {
-                Log.w(TAG, "The use of TrafficStats is not supported on this device.");
-                return;
-            }
-
-            if (previousReceived >= 0 && previousSent >= 0) {
-                received = (totalBytesReceived - previousReceived) / intervalSeconds;
-                sent = (totalBytesSent - previousSent) / intervalSeconds;
-                notifyObservers();
-            }
-            previousReceived = totalBytesReceived;
-            previousSent = totalBytesSent;
-
-            handler.postDelayed(this, intervalMilliseconds);
-        }
-    };
-
-    private static final double BYTES_PER_GIGABYTE = 1000000000f;
-    private static final double BYTES_PER_MEGABYTE = 1000000f;
-    private static final double BYTES_PER_KILOBYTE = 1000f;
-
-    private String bytesToPrettyString(double bytes)
-    {
+    private String bytesToPrettyString(double bytes) {
         if (bytes >= BYTES_PER_GIGABYTE) {
             return String.format(Locale.US, "%.1f GB", bytes / BYTES_PER_GIGABYTE);
-        }
-        else if (bytes >= BYTES_PER_MEGABYTE) {
+        } else if (bytes >= BYTES_PER_MEGABYTE) {
             return String.format(Locale.US, "%.1f MB", bytes / BYTES_PER_MEGABYTE);
-        }
-        else if (bytes >= BYTES_PER_KILOBYTE) {
+        } else if (bytes >= BYTES_PER_KILOBYTE) {
             return String.format(Locale.US, "%.1f kB", bytes / BYTES_PER_KILOBYTE);
-        }
-        else {
+        } else {
             return String.format(Locale.US, "%.1f  B", bytes);
         }
     }

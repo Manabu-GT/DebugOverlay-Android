@@ -34,7 +34,7 @@ ext {
     minSdkVersion = 16
     targetSdkVersion = 26
 
-    supportLibraryVersion = "26.0.1"
+    supportLibraryVersion = "26.1.0"
 
     // http://tools.android.com/tech-docs/new-build-system/tips
     // this is for faster build on CI servers since it does not perform preDex

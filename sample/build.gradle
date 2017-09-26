@@ -71,6 +71,10 @@ dependencies {
         exclude module: 'debugoverlay'
     }
 
+    compile(project(':debugoverlay-ext-netstats')) {
+        exclude module: 'debugoverlay'
+    }
+
     compile "com.android.support:appcompat-v7:${supportLibraryVersion}"
     compile "com.android.support:design:${supportLibraryVersion}"
 
