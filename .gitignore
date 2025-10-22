@@ -9,6 +9,7 @@ build/
 
 # Android Studio
 *.iml
+.idea
 !.idea/runConfigurations/*
 .idea/*.xml
 .idea/.name
