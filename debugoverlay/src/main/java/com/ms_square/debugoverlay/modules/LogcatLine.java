@@ -1,7 +1,8 @@
 package com.ms_square.debugoverlay.modules;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;

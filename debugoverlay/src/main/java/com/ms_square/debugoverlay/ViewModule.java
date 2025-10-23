@@ -1,9 +1,10 @@
 package com.ms_square.debugoverlay;
 
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 public interface ViewModule<T> extends DataObserver<T> {
 

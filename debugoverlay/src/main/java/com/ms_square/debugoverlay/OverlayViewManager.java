@@ -1,5 +1,10 @@
 package com.ms_square.debugoverlay;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW;
+import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
+import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
@@ -8,11 +13,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.net.Uri;
-import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.content.PermissionChecker;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,15 +22,10 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import java.util.Collections;
 import java.util.List;
-
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW;
-import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
-import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-import static android.view.WindowManager.LayoutParams.TYPE_TOAST;
 
 class OverlayViewManager {
 
@@ -38,18 +35,18 @@ class OverlayViewManager {
     private final DebugOverlay.Config config;
     private final WindowManager windowManager;
 
-    private List<OverlayModule> overlayModules = Collections.emptyList();
+    private List<OverlayModule<?>> overlayModules = Collections.emptyList();
     private ViewGroup rootView;
 
     private boolean overlayPermissionRequested;
 
-    public OverlayViewManager(@NonNull Context context, DebugOverlay.Config config) {
+    public OverlayViewManager(@NonNull Context context, @NonNull DebugOverlay.Config config) {
         this.context = context;
         this.config = config;
         this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     }
 
-    public void setOverlayModules(@NonNull List<OverlayModule> overlayModules) {
+    public void setOverlayModules(@NonNull List<OverlayModule<?>> overlayModules) {
         this.overlayModules = overlayModules;
     }
 
@@ -184,35 +181,18 @@ class OverlayViewManager {
         if (!hasSystemAlertPermissionInManifest(context)) {
             throw new UnsupportedOperationException("'SYSTEM_ALERT_WINDOW' must be explicitly added in the manifest.");
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // request permission
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + context.getPackageName()));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            context.startActivity(intent);
-        }
+        // request permission
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + context.getPackageName()));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        context.startActivity(intent);
     }
 
     public static boolean canDrawOnSystemLayer(@NonNull Context context, int systemWindowType) {
         if (isSystemLayer(systemWindowType)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-                return Settings.canDrawOverlays(context);
-            } else if (systemWindowType == TYPE_TOAST) {
-                // since 7.1.1, TYPE_TOAST is not usable since it auto-disappears
-                // otherwise, just use it since it does not require any special permission
-                return true;
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return Settings.canDrawOverlays(context);
-            } else {
-                return hasSystemAlertPermission(context);
-            }
+            return Settings.canDrawOverlays(context);
         }
         return true;
-    }
-
-    public static boolean hasSystemAlertPermission(@NonNull Context context) {
-        return PermissionChecker.checkSelfPermission(context, Manifest.permission.SYSTEM_ALERT_WINDOW)
-                == PermissionChecker.PERMISSION_GRANTED;
     }
 
     public static boolean hasSystemAlertPermissionInManifest(@NonNull Context context) {
@@ -238,13 +218,7 @@ class OverlayViewManager {
 
     public static int getWindowTypeForOverlay(boolean allowSystemLayer) {
         if (allowSystemLayer) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                return TYPE_APPLICATION_OVERLAY;
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-                return TYPE_SYSTEM_ALERT;
-            } else {
-                return TYPE_TOAST;
-            }
+            return TYPE_APPLICATION_OVERLAY;
         } else {
             // make layout of the window happens as that of a top-level window, not as a child of its container
             return TYPE_APPLICATION_ATTACHED_DIALOG;

@@ -1,11 +1,12 @@
 package com.ms_square.debugoverlay.modules;
 
-import android.support.annotation.ColorInt;
-import android.support.annotation.LayoutRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.LayoutRes;
 
 import com.ms_square.debugoverlay.R;
 

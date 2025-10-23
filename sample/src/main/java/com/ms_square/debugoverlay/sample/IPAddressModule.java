@@ -1,7 +1,8 @@
 package com.ms_square.debugoverlay.sample;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.ms_square.debugoverlay.OverlayModule;
 import com.ms_square.debugoverlay.modules.SimpleViewModule;

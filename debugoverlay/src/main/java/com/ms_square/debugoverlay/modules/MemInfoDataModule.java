@@ -6,7 +6,8 @@ import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 class MemInfoDataModule extends BaseDataModule<MemInfo> {
 

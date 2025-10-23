@@ -1,6 +1,6 @@
 package com.ms_square.debugoverlay;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public interface DataModule<T> {
 

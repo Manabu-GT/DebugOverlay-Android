@@ -28,16 +28,17 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "com.android.support:support-compat:${supportLibraryVersion}"
-    implementation "com.android.support:support-core-utils:${supportLibraryVersion}"
-    implementation "com.android.support:support-annotations:${supportLibraryVersion}"
+
+    implementation deps.androidx.core
+    implementation deps.androidx.annotation
+    implementation deps.androidx.localbroadcastmanager
 }
 
 // for maven central deployment

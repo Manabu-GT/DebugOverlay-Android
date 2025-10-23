@@ -11,7 +11,9 @@
         <item name="android:textSize">12sp</item>
         <item name="android:paddingTop">2dp</item>
         <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingStart">2dp</item>
         <item name="android:paddingRight">2dp</item>
+        <item name="android:paddingEnd">2dp</item>
         <item name="android:shadowColor">#7F000000</item>
         <item name="android:shadowDx">1</item>
         <item name="android:shadowDy">1</item>

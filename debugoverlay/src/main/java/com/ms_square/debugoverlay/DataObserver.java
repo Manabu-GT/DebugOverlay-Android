@@ -1,6 +1,6 @@
 package com.ms_square.debugoverlay;
 
-import android.support.annotation.UiThread;
+import androidx.annotation.UiThread;
 
 public interface DataObserver<T> {
     @UiThread

@@ -3,7 +3,6 @@ package com.ms_square.debugoverlay.sample;
 import android.app.Application;
 
 import com.ms_square.debugoverlay.DebugOverlay;
-import com.squareup.leakcanary.LeakCanary;
 
 public class DebugOverlaySampleApplication extends Application {
 
@@ -12,14 +11,6 @@ public class DebugOverlaySampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            // This process is dedicated to LeakCanary for heap analysis.
-            // You should not init your app in this process.
-            return;
-        }
-        LeakCanary.install(this);
-
         // Simplest way to use
         DebugOverlay.with(this).install();
 

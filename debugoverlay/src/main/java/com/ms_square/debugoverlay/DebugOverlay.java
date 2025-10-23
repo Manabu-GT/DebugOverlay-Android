@@ -14,13 +14,14 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.ColorInt;
-import android.support.annotation.FloatRange;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ms_square.debugoverlay.modules.CpuFreqModule;
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
@@ -51,7 +52,7 @@ public class DebugOverlay {
 
     private final Application application;
 
-    private final List<OverlayModule> overlayModules;
+    private final List<OverlayModule<?>> overlayModules;
 
     private final Config config;
 
@@ -65,7 +66,7 @@ public class DebugOverlay {
 
     private boolean unBindRequestReceived;
 
-    private DebugOverlay(Application application, List<OverlayModule> overlayModules, Config config) {
+    private DebugOverlay(Application application, List<OverlayModule<?>> overlayModules, Config config) {
         this.application = application;
         this.overlayModules = overlayModules;
         this.config = config;
@@ -199,7 +200,7 @@ public class DebugOverlay {
 
         private final Application application;
 
-        private List<OverlayModule> overlayModules;
+        private List<OverlayModule<?>> overlayModules;
 
         private Position position;
 
@@ -233,7 +234,7 @@ public class DebugOverlay {
             this.overlayModules = new ArrayList<>();
         }
 
-        public Builder modules(@NonNull List<OverlayModule> overlayModules) {
+        public Builder modules(@NonNull List<OverlayModule<?>> overlayModules) {
             if (overlayModules.size() <= 0) {
                 throw new IllegalArgumentException("Module list cat not be empty");
             }
@@ -241,10 +242,10 @@ public class DebugOverlay {
             return this;
         }
 
-        public Builder modules(@NonNull OverlayModule overlayModule, OverlayModule... other) {
+        public Builder modules(@NonNull OverlayModule<?> overlayModule, OverlayModule<?>... other) {
             this.overlayModules.clear();
             this.overlayModules.add(overlayModule);
-            for (OverlayModule otherModule : other) {
+            for (OverlayModule<?> otherModule : other) {
                 if (otherModule != null) {
                     this.overlayModules.add(otherModule);
                 }
@@ -300,22 +301,14 @@ public class DebugOverlay {
                     showNotification = false;
                 }
             }
-            if (overlayModules.size() == 0) {
+            if (overlayModules.isEmpty()) {
                 overlayModules.add(new CpuUsageModule());
                 overlayModules.add(new MemInfoModule(application));
                 overlayModules.add(new FpsModule());
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // Removes any CpuUsageModule/CpuFreqModule if a device is running Android O and above
-                Iterator<OverlayModule> iterator = overlayModules.iterator();
-                while (iterator.hasNext()) {
-                    OverlayModule overlayModule = iterator.next();
-                    if (overlayModule instanceof CpuUsageModule || overlayModule instanceof CpuFreqModule) {
-                        iterator.remove();
-                    }
-                }
-            }
+            // Removes any CpuUsageModule/CpuFreqModule if a device is running Android O and above
+            overlayModules.removeIf(overlayModule -> overlayModule instanceof CpuUsageModule || overlayModule instanceof CpuFreqModule);
 
             return new DebugOverlay(application, overlayModules,
                     new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,

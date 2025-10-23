@@ -61,8 +61,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
@@ -81,16 +81,18 @@ dependencies {
         exclude module: 'debugoverlay'
     }
 
-    implementation "com.android.support:appcompat-v7:${supportLibraryVersion}"
-    implementation "com.android.support:design:${supportLibraryVersion}"
+    implementation deps.androidx.core
+    implementation deps.support.material
+    implementation deps.androidx.annotation
 
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation deps.androidx.constraintlayout
 
-    implementation 'com.jakewharton.timber:timber:4.5.1'
+    implementation deps.external.timber
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
-    testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+    // LeakCanary
+    debugImplementation deps.external.leakcanary
+    releaseImplementation deps.external.leakcanaryNoop
+    testImplementation deps.external.leakcanaryNoop
 
     // Set this dependency to build and run Espresso tests
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -100,5 +102,5 @@ dependencies {
     // ScreenShot taker for instrumentation tests
     androidTestImplementation(name:'cloudtestingscreenshotter_lib', ext:'aar')
 
-    testImplementation deps.junit
+    testImplementation deps.test.junit
 }

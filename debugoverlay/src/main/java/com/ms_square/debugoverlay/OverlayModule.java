@@ -1,9 +1,10 @@
 package com.ms_square.debugoverlay;
 
-import android.support.annotation.ColorInt;
-import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.NonNull;
 
 public abstract class OverlayModule<T> implements DataModule<T>, ViewModule<T> {
 
@@ -11,7 +12,7 @@ public abstract class OverlayModule<T> implements DataModule<T>, ViewModule<T> {
 
     private final ViewModule<T> viewModule;
 
-    public OverlayModule(DataModule<T> dataModule, ViewModule<T> viewModule) {
+    public OverlayModule(@NonNull DataModule<T> dataModule, @NonNull ViewModule<T> viewModule) {
         this.dataModule = dataModule;
         this.viewModule = viewModule;
     }
