@@ -1,14 +1,15 @@
-apply plugin: 'com.android.library'
-// make sure this line comes *after* you apply the Android plugin
-apply plugin: 'com.getkeepsafe.dexcount'
+plugins {
+    id 'com.android.library'
+    id 'com.getkeepsafe.dexcount'
+}
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    namespace 'com.ms_square.debugoverlay'
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
     }
 
     // force usage of prefix to avoid naming conflicts,
@@ -25,12 +26,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    testCompile deps.junit
-    testCompile deps.mockitocore
+    testImplementation deps.junit
+    testImplementation deps.mockitocore
 }
 
 // for maven central deployment
-apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+//apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'

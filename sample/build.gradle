@@ -1,26 +1,31 @@
+plugins {
+    id 'com.android.application'
+    id 'com.getkeepsafe.dexcount'
+}
+
 repositories {
-    jcenter()
+    google()
+    mavenCentral()
     flatDir {
         dirs 'libs'
     }
 }
 
-apply plugin: 'com.android.application'
-// make sure this line comes *after* you apply the Android plugin
-apply plugin: 'com.getkeepsafe.dexcount'
-
-def gitHash() {
+static def gitHash() {
     return 'git rev-parse --short HEAD'.execute().text.trim()
 }
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    namespace 'com.ms_square.debugoverlay.sample'
+    compileSdk rootProject.ext.compileSdkVersion
+
+    // to allow buildConfigField usage within defaultConfig
+    buildFeatures.buildConfig = true
 
     defaultConfig {
         applicationId "com.ms_square.debugoverlay.sample"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
 
         versionCode 1
         versionName "1.0.0"
@@ -55,42 +60,45 @@ android {
         }
     }
 
-    dexOptions {
-        javaMaxHeapSize "2g"
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    debugCompile project(':debugoverlay')
-    releaseCompile project(':debugoverlay-no-op')
-    testCompile project(':debugoverlay-no-op')
+    debugImplementation project(':debugoverlay')
+    releaseImplementation project(':debugoverlay-no-op')
+    testImplementation project(':debugoverlay-no-op')
 
-    compile(project(':debugoverlay-ext-timber')) {
+    implementation(project(':debugoverlay-ext-timber')) {
         exclude module: 'debugoverlay'
     }
 
-    compile(project(':debugoverlay-ext-netstats')) {
+    implementation(project(':debugoverlay-ext-netstats')) {
         exclude module: 'debugoverlay'
     }
 
-    compile "com.android.support:appcompat-v7:${supportLibraryVersion}"
-    compile "com.android.support:design:${supportLibraryVersion}"
+    implementation "com.android.support:appcompat-v7:${supportLibraryVersion}"
+    implementation "com.android.support:design:${supportLibraryVersion}"
 
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
-    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5'
-    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
-    testCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+    implementation 'com.jakewharton.timber:timber:4.5.1'
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
+    testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5'
 
     // Set this dependency to build and run Espresso tests
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
     // ScreenShot taker for instrumentation tests
-    androidTestCompile(name:'cloudtestingscreenshotter_lib', ext:'aar')
+    androidTestImplementation(name:'cloudtestingscreenshotter_lib', ext:'aar')
 
-    testCompile deps.junit
+    testImplementation deps.junit
 }
