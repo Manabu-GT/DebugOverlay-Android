@@ -1,7 +1,6 @@
 def external = [
         timber: 'com.jakewharton.timber:timber:5.0.1',
         leakcanary: 'com.squareup.leakcanary:leakcanary-android:2.14',
-        leakcanaryNoop: 'com.squareup.leakcanary:leakcanary-android-no-op:2.1.4'
 ]
 
 def support = [
