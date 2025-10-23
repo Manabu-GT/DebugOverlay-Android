@@ -1,12 +1,10 @@
-buildscript {
-    apply from: rootProject.file('tooling/gradle/dependencies.gradle')
-}
-
 plugins {
     id 'com.android.application' version '8.13.0' apply false
     id 'com.android.library' version '8.13.0' apply false
     id 'com.getkeepsafe.dexcount' version '4.0.0' apply false
 }
+
+apply from: rootProject.file('tooling/gradle/dependencies.gradle')
 
 allprojects {
     repositories {
