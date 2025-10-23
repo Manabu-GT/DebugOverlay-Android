@@ -1,6 +1,6 @@
 package com.ms_square.debugoverlay.modules;
 
-import android.support.annotation.LayoutRes;
+import androidx.annotation.LayoutRes;
 
 import com.ms_square.debugoverlay.ViewModule;
 

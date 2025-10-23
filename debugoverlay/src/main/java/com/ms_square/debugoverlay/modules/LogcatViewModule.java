@@ -1,10 +1,6 @@
 package com.ms_square.debugoverlay.modules;
 
 import android.content.Context;
-import android.support.annotation.ColorInt;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Size;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +13,11 @@ import com.ms_square.debugoverlay.DebugOverlay;
 import com.ms_square.debugoverlay.R;
 
 import static com.ms_square.debugoverlay.modules.LogcatLineFilter.DEFAULT_LINE_FILTER;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Size;
 
 public class LogcatViewModule extends BaseViewModule<LogcatLine> {
 
@@ -51,7 +52,7 @@ public class LogcatViewModule extends BaseViewModule<LogcatLine> {
     }
 
     public LogcatViewModule(@LayoutRes int layoutResId, @Size(min=1,max=100) int maxLines,
-                             LogcatLineFilter lineFilter, LogcatLineColorScheme colorScheme) {
+                            LogcatLineFilter lineFilter, LogcatLineColorScheme colorScheme) {
         super(layoutResId);
         this.maxLines = maxLines;
         this.lineFilter = lineFilter;

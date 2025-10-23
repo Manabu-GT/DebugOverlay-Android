@@ -16,11 +16,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import android.content.pm.ServiceInfo;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +41,7 @@ public class DebugOverlayService extends Service {
 
     private DebugOverlay.Config config;
 
-    private List<OverlayModule> overlayModules = Collections.EMPTY_LIST;
+    private List<OverlayModule<?>> overlayModules = Collections.emptyList();
 
     private OverlayViewManager overlayViewManager;
 
@@ -63,9 +65,6 @@ public class DebugOverlayService extends Service {
 
     @Override
     public void onCreate() {
-        if (DebugOverlay.DEBUG) {
-            Log.i(TAG, "onCreate() called");
-        }
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         createNotificationChannel();
@@ -77,14 +76,15 @@ public class DebugOverlayService extends Service {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(actionShow);
         intentFilter.addAction(actionHide);
-        registerReceiver(receiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, intentFilter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(receiver, intentFilter);
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DebugOverlay.DEBUG) {
-            Log.i(TAG, "onStartCommand() called");
-        }
         config = intent.getParcelableExtra(DebugOverlay.KEY_CONFIG);
         // no need to restart this service
         return Service.START_NOT_STICKY;
@@ -92,9 +92,6 @@ public class DebugOverlayService extends Service {
 
     @Override
     public void onDestroy() {
-        if (DebugOverlay.DEBUG) {
-            Log.i(TAG, "onDestroy() called");
-        }
         unregisterReceiver(receiver);
         cancelNotification();
         stopModules();
@@ -104,26 +101,20 @@ public class DebugOverlayService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        if (DebugOverlay.DEBUG) {
-            Log.i(TAG, "onBind() called");
-        }
         return binder;
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        if (DebugOverlay.DEBUG) {
-            Log.i(TAG, "onTaskRemoved() called");
-        }
         stopSelf();
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(new Intent(DebugOverlay.ACTION_UNBIND));
     }
 
-    public void setOverlayModules(@NonNull List<OverlayModule> overlayModules) {
+    public void setOverlayModules(@NonNull List<OverlayModule<?>> overlayModules) {
         this.overlayModules = overlayModules;
     }
 
-    public void setOverlayViewManager(@NonNull OverlayViewManager overlayViewManager) {
+    void setOverlayViewManager(@NonNull OverlayViewManager overlayViewManager) {
         this.overlayViewManager = overlayViewManager;
         if (config.isAllowSystemLayer()) {
             overlayViewManager.showDebugSystemOverlay();
@@ -135,25 +126,19 @@ public class DebugOverlayService extends Service {
 
     public void startModules() {
         if (!modulesStarted) {
-            for (OverlayModule overlayModule : overlayModules) {
+            for (OverlayModule<?> overlayModule : overlayModules) {
                 overlayModule.start();
             }
             modulesStarted = true;
-            if (DebugOverlay.DEBUG) {
-                Log.i(TAG, "Started overlay modules");
-            }
         }
     }
 
     public void stopModules() {
         if (modulesStarted) {
-            for (OverlayModule overlayModule : overlayModules) {
+            for (OverlayModule<?> overlayModule : overlayModules) {
                 overlayModule.stop();
             }
             modulesStarted = false;
-            if (DebugOverlay.DEBUG) {
-                Log.i(TAG, "Stopped overlay modules");
-            }
         }
     }
 
@@ -162,12 +147,10 @@ public class DebugOverlayService extends Service {
     }
 
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
-                NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
-                        getString(R.string.debugoverlay_notification_channel_name), NotificationManager.IMPORTANCE_LOW);
-                notificationManager.createNotificationChannel(channel);
-            }
+        if (notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
+            NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
+                    getString(R.string.debugoverlay_notification_channel_name), NotificationManager.IMPORTANCE_LOW);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 
@@ -179,39 +162,43 @@ public class DebugOverlayService extends Service {
                 .setOngoing(true)
                 .setContentTitle(getString(R.string.debugoverlay_notification_title, getAppName(this), getAppVersion(this)))
                 .setContentText(getString(R.string.debugoverlay_notification_small_text))
-                .setContentIntent(getNotificationIntent(null));
+                .setContentIntent(getLaunchIntent());
         if (overlayViewManager.isSystemOverlayShown()) {
             builder.addAction(R.drawable.debugoverlay_ic_action_pause, getString(R.string.debugoverlay_notification_action_hide),
-                    getNotificationIntent(actionHide));
+                    getBroadcastIntent(actionHide));
         } else {
             builder.addAction(R.drawable.debugoverlay_ic_action_play, getString(R.string.debugoverlay_notification_action_show),
-                    getNotificationIntent(actionShow));
+                    getBroadcastIntent(actionShow));
         }
 
         // show the notification
-        startForeground(NOTIFICATION_ID, builder.build());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(NOTIFICATION_ID, builder.build());
+        }
     }
 
     private void cancelNotification() {
         notificationManager.cancel(NOTIFICATION_ID);
     }
 
-    private PendingIntent getNotificationIntent(String action) {
-        if (action == null) {
-            PendingIntent pendingIntent = null;
-            if (config.getActivityName() != null) {
-                try {
-                    Intent intent = new Intent(this, Class.forName(config.getActivityName()));
-                    pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-                } catch (ClassNotFoundException ne) {
-                    Log.w(TAG, config.getActivityName() + " was not found - " + ne.getMessage());
-                }
+    private PendingIntent getBroadcastIntent(String action) {
+        Intent intent = new Intent(action);
+        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+    }
+
+    private PendingIntent getLaunchIntent() {
+        PendingIntent pendingIntent = null;
+        if (config.getActivityName() != null) {
+            try {
+                Intent intent = new Intent(this, Class.forName(config.getActivityName()));
+                pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            } catch (ClassNotFoundException ne) {
+                Log.w(TAG, config.getActivityName() + " was not found - " + ne.getMessage());
             }
-            return pendingIntent;
-        } else {
-            Intent intent = new Intent(action);
-            return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         }
+        return pendingIntent;
     }
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {

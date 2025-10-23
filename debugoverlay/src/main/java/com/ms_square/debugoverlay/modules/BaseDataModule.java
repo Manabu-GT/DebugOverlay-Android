@@ -1,6 +1,6 @@
 package com.ms_square.debugoverlay.modules;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.ms_square.debugoverlay.DataModule;
 import com.ms_square.debugoverlay.DataObserver;

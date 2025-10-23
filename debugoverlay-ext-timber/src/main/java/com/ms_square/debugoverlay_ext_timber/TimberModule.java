@@ -1,7 +1,8 @@
 package com.ms_square.debugoverlay_ext_timber;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Size;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Size;
 
 import com.ms_square.debugoverlay.OverlayModule;
 import com.ms_square.debugoverlay.ViewModule;

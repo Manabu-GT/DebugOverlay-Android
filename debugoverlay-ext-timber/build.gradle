@@ -1,20 +1,30 @@
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    namespace 'com.ms_square.debugoverlay_ext_timber'
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
     }
 }
 
 dependencies {
-    compile project(':debugoverlay')
-    compile 'com.jakewharton.timber:timber:4.5.1'
-    testCompile deps.junit
+    implementation project(':debugoverlay')
+    implementation deps.androidx.annotation
+
+    implementation deps.external.timber
+    testImplementation deps.test.junit
 }
 
 // for maven central deployment
-apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+//apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'

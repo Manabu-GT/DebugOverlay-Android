@@ -2,8 +2,6 @@ package com.ms_square.debugoverlay.modules;
 
 import android.app.ActivityManager;
 import android.os.Debug;
-import android.support.annotation.ColorInt;
-import android.support.annotation.LayoutRes;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.TextAppearanceSpan;
@@ -12,6 +10,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.LayoutRes;
 
 import com.ms_square.debugoverlay.DebugOverlay;
 import com.ms_square.debugoverlay.R;
