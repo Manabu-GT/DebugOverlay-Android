@@ -19,10 +19,10 @@ allprojects {
 
 // http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html
 ext {
-    compileSdkVersion = 35
+    compileSdkVersion = 36
 
     minSdkVersion = 26
-    targetSdkVersion = 35
+    targetSdkVersion = 36
 
     // http://tools.android.com/tech-docs/new-build-system/tips
     // this is for faster build on CI servers since it does not perform preDex

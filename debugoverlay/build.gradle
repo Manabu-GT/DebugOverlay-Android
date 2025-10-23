@@ -10,8 +10,8 @@ java {
 }
 
 android {
-    namespace 'com.ms_square.debugoverlay'
-    compileSdk rootProject.ext.compileSdkVersion
+    namespace = 'com.ms_square.debugoverlay'
+    compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion
