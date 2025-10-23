@@ -12,9 +12,6 @@ java {
 repositories {
     google()
     mavenCentral()
-    flatDir {
-        dirs 'libs'
-    }
 }
 
 static def gitHash() {
@@ -22,8 +19,8 @@ static def gitHash() {
 }
 
 android {
-    namespace 'com.ms_square.debugoverlay.sample'
-    compileSdk rootProject.ext.compileSdkVersion
+    namespace = 'com.ms_square.debugoverlay.sample'
+    compileSdk = rootProject.ext.compileSdkVersion
 
     // to allow buildConfigField usage within defaultConfig
     buildFeatures.buildConfig = true
@@ -68,8 +65,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     debugImplementation project(':debugoverlay')
     releaseImplementation project(':debugoverlay-no-op')
     testImplementation project(':debugoverlay-no-op')
@@ -99,7 +94,7 @@ dependencies {
     })
 
     // ScreenShot taker for instrumentation tests
-    androidTestImplementation(name:'cloudtestingscreenshotter_lib', ext:'aar')
+    androidTestImplementation files('libs/cloudtestingscreenshotter_lib.aar')
 
     testImplementation deps.test.junit
 }
