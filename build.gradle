@@ -1,10 +1,8 @@
 plugins {
-    id 'com.android.application' version '8.13.0' apply false
-    id 'com.android.library' version '8.13.0' apply false
-    id 'com.getkeepsafe.dexcount' version '4.0.0' apply false
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.dexcount) apply false
 }
-
-apply from: rootProject.file('tooling/gradle/dependencies.gradle')
 
 allprojects {
     repositories {

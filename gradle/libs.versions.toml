@@ -1,0 +1,28 @@
+[versions]
+timber = "5.0.1"
+leakcanary = "2.14"
+material = "1.11.0"
+androidx-core = "1.12.0"
+androidx-annotation = "1.7.1"
+androidx-constraintlayout = "2.1.4"
+androidx-localbroadcast = "1.1.0"
+junit4 = "4.12"
+mockito-core = "5.5.0"
+agp = "8.13.0"
+dexcount = "4.0.0"
+
+[libraries]
+androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintlayout" }
+androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "androidx-localbroadcast" }
+google-material = { module = "com.google.android.material:material", version.ref = "material" }
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+dexcount = { id = "com.getkeepsafe.dexcount", version.ref = "dexcount" }

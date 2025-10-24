@@ -1,6 +1,6 @@
 plugins {
-    id 'com.android.library'
-    id 'com.getkeepsafe.dexcount'
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.dexcount)
 }
 
 java {
@@ -37,9 +37,9 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation deps.androidx.core
-    implementation deps.androidx.annotation
-    implementation deps.androidx.localbroadcastmanager
+    implementation libs.androidx.core
+    implementation libs.androidx.annotation
+    implementation libs.androidx.localbroadcastmanager
 }
 
 // for maven central deployment
