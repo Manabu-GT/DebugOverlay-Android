@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.library'
+    alias(libs.plugins.androidLibrary)
 }
 
 java {
@@ -20,10 +20,10 @@ android {
 
 dependencies {
     implementation project(':debugoverlay')
-    implementation deps.androidx.annotation
+    implementation libs.androidx.annotation
 
-    implementation deps.external.timber
-    testImplementation deps.test.junit
+    implementation libs.timber
+    testImplementation libs.junit4
 }
 
 // for maven central deployment

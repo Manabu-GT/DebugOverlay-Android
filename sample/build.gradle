@@ -1,6 +1,6 @@
 plugins {
-    id 'com.android.application'
-    id 'com.getkeepsafe.dexcount'
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.dexcount)
 }
 
 java {
@@ -77,16 +77,16 @@ dependencies {
         exclude module: 'debugoverlay'
     }
 
-    implementation deps.androidx.core
-    implementation deps.support.material
-    implementation deps.androidx.annotation
+    implementation libs.androidx.core
+    implementation libs.google.material
+    implementation libs.androidx.annotation
 
-    implementation deps.androidx.constraintlayout
+    implementation libs.androidx.constraintlayout
 
-    implementation deps.external.timber
+    implementation libs.timber
 
     // LeakCanary
-    debugImplementation deps.external.leakcanary
+    debugImplementation libs.leakcanary.android
 
     // Set this dependency to build and run Espresso tests
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -96,5 +96,5 @@ dependencies {
     // ScreenShot taker for instrumentation tests
     androidTestImplementation files('libs/cloudtestingscreenshotter_lib.aar')
 
-    testImplementation deps.test.junit
+    testImplementation libs.junit4
 }
