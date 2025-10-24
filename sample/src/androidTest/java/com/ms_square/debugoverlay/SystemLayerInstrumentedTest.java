@@ -23,13 +23,10 @@ public class SystemLayerInstrumentedTest extends DebugOverlayInstrumentedTest {
     public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class);
 
     @Test
-    public void installSimple() throws Exception {
-        getInstrumentation().runOnMainSync(new Runnable() {
-            @Override
-            public void run() {
-                debugOverlay = DebugOverlay.with(getApplication());
-                debugOverlay.install();
-            }
+    public void installSimple() {
+        getInstrumentation().runOnMainSync(() -> {
+            debugOverlay = DebugOverlay.with(getApplication());
+            debugOverlay.install();
         });
 
         waitForOverlay();

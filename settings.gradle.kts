@@ -7,13 +7,15 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
     }
 }
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "DebugOverlay-Android"
 
-include ':sample', ':debugoverlay', ':debugoverlay-no-op', ':debugoverlay-ext-timber', ':debugoverlay-ext-netstats'
+include(":sample", ":debugoverlay", ":debugoverlay-no-op", ":debugoverlay-ext-timber", ":debugoverlay-ext-netstats")

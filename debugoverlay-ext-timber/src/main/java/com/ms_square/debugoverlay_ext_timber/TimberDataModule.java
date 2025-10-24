@@ -39,13 +39,8 @@ class TimberDataModule extends BaseDataModule<LogcatLine> {
                 handler.obtainMessage(LINE_UPDATED, new LogcatLine(getCurrentDate(), getCurrentTime(),
                         0, 0, getLogcatLinePriority(priority), tag, message)).sendToTarget();
             } else {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        handler.obtainMessage(LINE_UPDATED, new LogcatLine(getCurrentDate(), getCurrentTime(),
-                                0, 0, getLogcatLinePriority(priority), tag, message)).sendToTarget();
-                    }
-                });
+                handler.post(() -> handler.obtainMessage(LINE_UPDATED, new LogcatLine(getCurrentDate(), getCurrentTime(),
+                        0, 0, getLogcatLinePriority(priority), tag, message)).sendToTarget());
             }
         }
     };
