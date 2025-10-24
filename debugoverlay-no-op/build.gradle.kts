@@ -24,11 +24,6 @@ android {
     // force usage of prefix to avoid naming conflicts,
     resourcePrefix = "debugoverlay_"
 
-    sourceSets {
-        // limit the exposed library resources
-        getByName("main").res.srcDirs("src/main/res-public")
-    }
-
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
