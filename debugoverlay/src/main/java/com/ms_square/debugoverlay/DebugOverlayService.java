@@ -22,6 +22,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.Collections;
@@ -76,11 +77,7 @@ public class DebugOverlayService extends Service {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(actionShow);
         intentFilter.addAction(actionHide);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, intentFilter, Context.RECEIVER_EXPORTED);
-        } else {
-            registerReceiver(receiver, intentFilter);
-        }
+        ContextCompat.registerReceiver(this, receiver, intentFilter, ContextCompat.RECEIVER_EXPORTED);
     }
 
     @Override

@@ -16,9 +16,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * Simply check calling public APIs do not result in error and they do absolutely nothing.
@@ -46,7 +47,7 @@ public class DebugOverlayNoOpTest {
         new CpuUsageModule(mockViewModule);
         new CpuUsageModule(0, mockViewModule);
 
-        Mockito.verifyZeroInteractions(mockViewModule);
+        verifyNoInteractions(mockViewModule);
     }
 
     @Test
@@ -57,7 +58,7 @@ public class DebugOverlayNoOpTest {
         new CpuFreqModule(mockViewModule);
         new CpuFreqModule(0, mockViewModule);
 
-        Mockito.verifyZeroInteractions(mockViewModule);
+        verifyNoInteractions(mockViewModule);
     }
 
     @Test
@@ -68,7 +69,7 @@ public class DebugOverlayNoOpTest {
         new FpsModule(mockViewModule);
         new FpsModule(0, mockViewModule);
 
-        Mockito.verifyZeroInteractions(mockViewModule);
+        verifyNoInteractions(mockViewModule);
     }
 
     @Test
@@ -81,7 +82,7 @@ public class DebugOverlayNoOpTest {
         new LogcatModule(0, mockedColorScheme);
         new LogcatModule(0, mockedFilter, mockedColorScheme);
 
-        Mockito.verifyZeroInteractions(mockViewModule, mockedFilter, mockedColorScheme);
+        verifyNoInteractions(mockViewModule, mockedFilter, mockedColorScheme);
     }
 
     @Test
@@ -92,32 +93,32 @@ public class DebugOverlayNoOpTest {
         new MemInfoModule(mockApplication, mockViewModule);
         new MemInfoModule(mockApplication, 0, mockViewModule);
 
-        Mockito.verifyZeroInteractions(mockApplication, mockViewModule);
+        verifyNoInteractions(mockApplication, mockViewModule);
     }
 
     @Test
-    public void installSimple() throws Exception {
+    public void installSimple() {
         DebugOverlay.with(mockApplication).install();
-        Mockito.verifyZeroInteractions(mockApplication);
+        verifyNoInteractions(mockApplication);
     }
 
     @Test
-    public void installModule() throws Exception {
+    public void installModule() {
         new DebugOverlay.Builder(mockApplication)
                 .modules(mockOverlayModule)
                 .build()
                 .install();
-        Mockito.verifyZeroInteractions(mockApplication, mockOverlayModule);
+        verifyNoInteractions(mockApplication, mockOverlayModule);
     }
 
     @Test
-    public void installCustomModule() throws Exception {
+    public void installCustomModule() {
         new DebugOverlay.Builder(mockApplication)
                 .modules(new OverlayModule(mockDataModule, mockViewModule){})
                 .build()
                 .install();
 
-        Mockito.verifyZeroInteractions(mockApplication, mockDataModule, mockViewModule);
+        verifyNoInteractions(mockApplication, mockDataModule, mockViewModule);
     }
 
     @Test
@@ -128,7 +129,7 @@ public class DebugOverlayNoOpTest {
                 .build()
                 .install();
 
-        Mockito.verifyZeroInteractions(mockApplication, mockOverlayModule);
+        verifyNoInteractions(mockApplication, mockOverlayModule);
     }
 
     @Test
@@ -143,7 +144,7 @@ public class DebugOverlayNoOpTest {
                 .build()
                 .install();
 
-        Mockito.verifyZeroInteractions(mockApplication, mockOverlayModule);
+        verifyNoInteractions(mockApplication, mockOverlayModule);
     }
 
     @Test
@@ -163,21 +164,16 @@ public class DebugOverlayNoOpTest {
                 .build()
                 .install();
 
-        Mockito.verifyZeroInteractions(mockApplication);
+        verifyNoInteractions(mockApplication);
     }
 
     @Test
     public void installLogcatModuleWCustomColor() {
         new DebugOverlay.Builder(mockApplication)
-                .modules(new LogcatModule(10, new LogcatLineColorScheme() {
-                    @Override
-                    public int getTextColor(LogcatLine.Priority priority, String tag) {
-                        return Color.CYAN;
-                    }
-                }))
+                .modules(new LogcatModule(10, (LogcatLineColorScheme) (priority, tag) -> Color.CYAN))
                 .build();
 
-        Mockito.verifyZeroInteractions(mockApplication);
+        verifyNoInteractions(mockApplication);
     }
 
     @Test
@@ -188,16 +184,11 @@ public class DebugOverlayNoOpTest {
                 .install();
 
         new DebugOverlay.Builder(mockApplication)
-                .modules(new LogcatModule(10, new LogcatLineFilter() {
-                    @Override
-                    public boolean shouldFilterOut(LogcatLine.Priority priority, String tag) {
-                        return false;
-                    }
-                }))
+                .modules(new LogcatModule(10, (LogcatLineFilter) (priority, tag) -> false))
                 .build()
                 .install();
 
-        Mockito.verifyZeroInteractions(mockApplication);
+        verifyNoInteractions(mockApplication);
     }
 
     @Test
@@ -215,15 +206,15 @@ public class DebugOverlayNoOpTest {
                 .build()
                 .install();
 
-        Mockito.verifyZeroInteractions(mockApplication, mockOverlayModule);
+        verifyNoInteractions(mockApplication, mockOverlayModule);
     }
 
     @Test
     public void logging() {
         DebugOverlay.with(mockApplication).install();
         DebugOverlay.enableDebugLogging(false);
-        Mockito.verifyZeroInteractions(mockApplication);
+        verifyNoInteractions(mockApplication);
         DebugOverlay.enableDebugLogging(true);
-        Mockito.verifyZeroInteractions(mockApplication);
+        verifyNoInteractions(mockApplication);
     }
 }

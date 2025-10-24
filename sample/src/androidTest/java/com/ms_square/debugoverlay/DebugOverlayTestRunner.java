@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.support.test.runner.AndroidJUnitRunner;
 
+// This is specified in the build.gradle file as the test runner.
 public class DebugOverlayTestRunner extends AndroidJUnitRunner {
 
     @Override

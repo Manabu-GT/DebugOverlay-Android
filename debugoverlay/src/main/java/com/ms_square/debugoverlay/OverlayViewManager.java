@@ -6,6 +6,7 @@ import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -65,7 +66,7 @@ class OverlayViewManager {
 
             int layoutParamsWidth = WindowManager.LayoutParams.WRAP_CONTENT;
 
-            for (OverlayModule overlayModule : overlayModules) {
+            for (OverlayModule<?> overlayModule : overlayModules) {
                 View view = overlayModule.createView(rootView, config.getTextColor(), config.getTextSize(), config.getTextAlpha());
                 if (view.getParent() == null) {
                     if (view.getLayoutParams() != null && view.getLayoutParams().width == MATCH_PARENT) {
@@ -99,6 +100,8 @@ class OverlayViewManager {
         return new OverlayViewAttachStateChangeListener();
     }
 
+    // for layoutParams.gravity assignment
+    @SuppressLint("WrongConstant")
     private WindowManager.LayoutParams createLayoutParams(boolean allowSystemLayer, int width, IBinder windowToken) {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
         layoutParams.width = width;
@@ -106,7 +109,6 @@ class OverlayViewManager {
         if (windowToken != null) {
             layoutParams.token = windowToken;
         }
-        //noinspection WrongConstant
         layoutParams.type = getWindowTypeForOverlay(allowSystemLayer);
         layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         layoutParams.format = PixelFormat.TRANSLUCENT;
@@ -133,27 +135,27 @@ class OverlayViewManager {
                     Log.i(TAG, "overlay views recreated on Activity's onResume");
                 }
                 _rootView.removeAllViews();
-                for (OverlayModule overlayModule : overlayModules) {
+                for (OverlayModule<?> overlayModule : overlayModules) {
                     View view = overlayModule.createView(_rootView, config.getTextColor(), config.getTextSize(), config.getTextAlpha());
                     if (view.getParent() == null) {
                         _rootView.addView(view);
                     }
                 }
                 // force-update recreated views with the latest data
-                for (OverlayModule overlayModule : overlayModules) {
+                for (OverlayModule<?> overlayModule : overlayModules) {
                     overlayModule.notifyObservers();
                 }
             }
         }
 
         @Override
-        public void onViewAttachedToWindow(View v) {
+        public void onViewAttachedToWindow(@NonNull View v) {
             if (DebugOverlay.DEBUG) {
                 Log.i(TAG, "onViewAttachedToWindow");
             }
             _rootView = createRoot();
             int layoutParamsWidth = WindowManager.LayoutParams.WRAP_CONTENT;
-            for (OverlayModule overlayModule : overlayModules) {
+            for (OverlayModule<?> overlayModule : overlayModules) {
                 View view = overlayModule.createView(_rootView, config.getTextColor(), config.getTextSize(), config.getTextAlpha());
                 if (view.getParent() == null) {
                     if (view.getLayoutParams() != null && view.getLayoutParams().width == MATCH_PARENT) {
@@ -168,7 +170,7 @@ class OverlayViewManager {
         }
 
         @Override
-        public void onViewDetachedFromWindow(View v) {
+        public void onViewDetachedFromWindow(@NonNull View v) {
             if (DebugOverlay.DEBUG) {
                 Log.i(TAG, "onViewDetachedFromWindow");
             }
