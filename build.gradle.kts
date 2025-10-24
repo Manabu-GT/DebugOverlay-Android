@@ -21,8 +21,4 @@ extra.apply {
     set("compileSdkVersion", 36)
     set("minSdkVersion", 26)
     set("targetSdkVersion", 36)
-
-    // http://tools.android.com/tech-docs/new-build-system/tips
-    // this is for faster build on CI servers since it does not perform preDex
-    set("preDexLibs", !project.hasProperty("disablePreDex"))
 }
