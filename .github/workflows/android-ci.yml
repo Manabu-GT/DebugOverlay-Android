@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Android CI
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
   pull_request:
 
 jobs:
-  test:
-    name: Run Unit Tests
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         # Caches Gradle + wrapper automatically
+
+      - name: Build Project
+        run: ./gradlew clean assembleDebug --stacktrace
+
+      - name: Android Lint
+        run: ./gradlew lintDebug
 
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
