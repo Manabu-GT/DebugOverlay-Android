@@ -2,6 +2,8 @@ package com.ms_square.debugoverlay;
 
 import android.view.Gravity;
 
+import androidx.annotation.GravityInt;
+
 public enum Position {
 
     TOP_START(Gravity.TOP | Gravity.START),
@@ -22,6 +24,7 @@ public enum Position {
         this.gravity = gravity;
     }
 
+    @GravityInt
     public int getGravity() {
         return gravity;
     }
