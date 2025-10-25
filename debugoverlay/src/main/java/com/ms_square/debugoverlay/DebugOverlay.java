@@ -193,7 +193,12 @@ public class DebugOverlay {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             return mainProcessName.equals(Application.getProcessName());
         }
-        return mainProcessName.equals(getProcessName(application));
+        String currentProcessName = getProcessName(application);
+        if (currentProcessName == null) {
+            // treat the process as main when the name cannot be determined.
+            return true;
+        }
+        return mainProcessName.equals(currentProcessName);
     }
 
     // a fallback way to get the current process name on older android OSs, should get a
@@ -202,10 +207,13 @@ public class DebugOverlay {
     private static String getProcessName(Application application) {
         int myPid = android.os.Process.myPid();
         ActivityManager am = (ActivityManager) application.getSystemService(Context.ACTIVITY_SERVICE);
+        @Nullable
         List<ActivityManager.RunningAppProcessInfo> infos = am.getRunningAppProcesses();
-        for(ActivityManager.RunningAppProcessInfo info : infos) {
-            if (info.pid == myPid) {
-                return info.processName;
+        if (infos != null) {
+            for(ActivityManager.RunningAppProcessInfo info : infos) {
+                if (info.pid == myPid) {
+                    return info.processName;
+                }
             }
         }
         // may never return null
