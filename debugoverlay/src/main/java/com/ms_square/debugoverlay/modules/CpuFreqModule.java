@@ -8,11 +8,6 @@ import com.ms_square.debugoverlay.ViewModule;
 
 import java.util.List;
 
-/**
- * @deprecated will not work on Android O and above.
- * @see <a href="https://issuetracker.google.com/issues/37140047">this issue</a> for its background.
- */
-@Deprecated
 public class CpuFreqModule extends OverlayModule<List<CpuFreq>> {
 
     public static final int DEFAULT_INTERVAL = 2000; // 2000ms

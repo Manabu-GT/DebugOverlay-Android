@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -306,10 +305,6 @@ public class DebugOverlay {
                 overlayModules.add(new MemInfoModule(application));
                 overlayModules.add(new FpsModule());
             }
-
-            // Removes any CpuUsageModule/CpuFreqModule if a device is running Android O and above
-            overlayModules.removeIf(overlayModule -> overlayModule instanceof CpuUsageModule || overlayModule instanceof CpuFreqModule);
-
             return new DebugOverlay(application, overlayModules,
                     new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
                             showNotification, activityName));
