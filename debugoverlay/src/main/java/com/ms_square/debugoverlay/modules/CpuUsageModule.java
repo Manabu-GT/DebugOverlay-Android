@@ -7,11 +7,6 @@ import androidx.annotation.NonNull;
 import com.ms_square.debugoverlay.OverlayModule;
 import com.ms_square.debugoverlay.ViewModule;
 
-/**
- * @deprecated will not work on Android O and above.
- * For details, @see <a href="https://issuetracker.google.com/issues/37140047">this issue</a>
- */
-@Deprecated
 public class CpuUsageModule extends OverlayModule<CpuUsage> {
 
     public static final int DEFAULT_INTERVAL = 1000; // 1000ms

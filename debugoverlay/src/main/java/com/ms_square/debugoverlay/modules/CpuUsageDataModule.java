@@ -1,9 +1,10 @@
 package com.ms_square.debugoverlay.modules;
 
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Process;
+import android.os.SystemClock;
+import android.system.Os;
+import android.system.OsConstants;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -20,6 +21,15 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
     private final AtomicReference<CpuUsage> cpuUsage = new AtomicReference<>();
 
+    private final long numCpuCores = Os.sysconf(OsConstants._SC_NPROCESSORS_CONF);
+
+    /**
+     * A way for user-space applications to find out the granularity of the system's software clock,
+     * which is maintained by the kernel and measures time in units called "jiffies."
+     * It basically returns # of ticks per second.
+     */
+    private final long ticksPerSecond = Os.sysconf(OsConstants._SC_CLK_TCK);
+
     private ReaderThread cpuReaderThread;
 
     private final int interval;
@@ -30,10 +40,6 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
     @Override
     public void start() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.w(TAG, "CpuUsageModule is not supported on Android O and above and will be no-op.");
-            return;
-        }
         if (cpuReaderThread == null) {
             cpuReaderThread = new ReaderThread();
             cpuReaderThread.start();
@@ -52,12 +58,7 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
         }
     }
 
-    private final Runnable notifyObserversRunnable = new Runnable() {
-        @Override
-        public void run() {
-            notifyObservers();
-        }
-    };
+    private final Runnable notifyObserversRunnable = this::notifyObservers;
 
     @Override
     protected CpuUsage getLatestData() {
@@ -66,29 +67,24 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
 
     private class ReaderThread extends Thread {
 
-        private BufferedReader totalCpuReader;
+        private BufferedReader myProcessCpuReader;
 
-        private BufferedReader myPidCpuReader;
+        // time since the application started in seconds.
+        private double processStartTimeSec;
 
-        /* Jiffy is a unit of CPU time. */
-        private long totalJiffies;
+        private double processTime1Sec;
+        private double processTime2Sec;
 
-        private long totalJiffiesBefore;
+        private double myCpuTime1Sec;
 
-        private long jiffies;
-
-        private long jiffiesBefore;
-
-        private long jiffiesMyPid;
-
-        private long jiffiesMyPidBefore;
+        private double myCpuTime2Sec;
 
         @Override
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
-                openCpuReaders();
+                openCpuReader();
                 read();
-                closeCpuReaders();
+                closeCpuReader();
                 try {
                     Thread.currentThread().sleep(interval);
                 } catch (InterruptedException e) {
@@ -101,75 +97,61 @@ class CpuUsageDataModule extends BaseDataModule<CpuUsage> {
             interrupt();
         }
 
-        private void openCpuReaders() {
-            if (totalCpuReader == null) {
+        private void openCpuReader() {
+            if (myProcessCpuReader == null) {
                 try {
-                    totalCpuReader = new BufferedReader(new FileReader("/proc/stat"));
+                    myProcessCpuReader = new BufferedReader(new FileReader("/proc/self/stat"));
                 } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not open '/proc/stat' - " + e.getMessage());
-                }
-            }
-            if (myPidCpuReader == null) {
-                try {
-                    myPidCpuReader = new BufferedReader(new FileReader("/proc/" + Process.myPid() + "/stat"));
-                } catch (FileNotFoundException e) {
-                    Log.w(TAG, "Could not open '/proc/" + Process.myPid() + "/stat' - " + e.getMessage());
+                    Log.w(TAG, "Could not open '/proc/self/stat' - " + e.getMessage());
                 }
             }
         }
 
         // Ref... Section 1.8 in https://www.kernel.org/doc/Documentation/filesystems/proc.txt and manpage of proc
         private void read() {
-            if (totalCpuReader != null) {
+            if (myProcessCpuReader != null) {
                 try {
-                    String[] cpuData = totalCpuReader.readLine().split("[ ]+", 9);
-                    //Log.d(TAG, "CPU total:" + Arrays.toString(cpuData));
-                    // add user, nice, and system
-                    jiffies = Long.parseLong(cpuData[1]) + Long.parseLong(cpuData[2]) + Long.parseLong(cpuData[3]);
-                    // ignore 'iowait' value since it is not reliable
-                    totalJiffies = jiffies + Long.parseLong(cpuData[4]) + Long.parseLong(cpuData[6]) + Long.parseLong(cpuData[7]);
-                } catch (IOException ie) {
-                    Log.w(TAG, "Failed reading total cpu data - " + ie.getMessage());
-                }
-            }
-
-            if (myPidCpuReader != null) {
-                try {
-                    String[] cpuData = myPidCpuReader.readLine().split("[ ]+", 18);
-                    //Log.d(TAG, "CPU for mypid:" + Arrays.toString(cpuData));
+                    String[] cpuData = myProcessCpuReader.readLine().split(" +", 23);
                     // add utime, stime, cutime, and cstime
-                    jiffiesMyPid = Long.parseLong(cpuData[13]) + Long.parseLong(cpuData[14])
-                            + Long.parseLong(cpuData[15]) + Long.parseLong(cpuData[16]);
+                    double cpuTimeTicks = Double.parseDouble(cpuData[13]) + Double.parseDouble(cpuData[14])
+                            + Double.parseDouble(cpuData[15]) + Double.parseDouble(cpuData[16]);
+                    myCpuTime2Sec = cpuTimeTicks / ticksPerSecond;
+                    // only set once since it won't change over time.
+                    if (processStartTimeSec == 0) {
+                        // starttime — the time the process started after system boot, measured in clock ticks.
+                        processStartTimeSec = Double.parseDouble(cpuData[21]) / ticksPerSecond;
+                    }
+                    processTime2Sec = SystemClock.elapsedRealtime() / 1000.0;
                 } catch (IOException ie) {
                     Log.w(TAG, "Failed reading my pid cpu data - " + ie.getMessage());
                 }
             }
 
-            if (totalJiffiesBefore > 0) {
-                long totalDiff = totalJiffies - totalJiffiesBefore;
-                long jiffiesDiff = jiffies - jiffiesBefore;
-                long jiffiesMyPidDiff = jiffiesMyPid - jiffiesMyPidBefore;
+            if (processStartTimeSec > 0 && myCpuTime1Sec > 0 && processTime1Sec > 0) {
+                double upTimeSec = SystemClock.elapsedRealtime() / 1000.0;
+                double processTimeSec = upTimeSec - processStartTimeSec;
+                // total avg usage percent for this application
+                double totalAvgUsagePercent = (100 * (myCpuTime2Sec / processTimeSec)) / numCpuCores;
 
-                cpuUsage.set(new CpuUsage(getPercentInRange(100f * jiffiesDiff / totalDiff),
-                        getPercentInRange(100f * jiffiesMyPidDiff / totalDiff)));
+                double myCpuTimeDiffSec = myCpuTime2Sec - myCpuTime1Sec;
+                double processTimeDiffSec = processTime2Sec - processTime1Sec;
+                // relative avg usage percent for this application during the interval.
+                double relAvgUsagePercent = (100 * (myCpuTimeDiffSec / processTimeDiffSec)) / numCpuCores;
+
+                cpuUsage.set(new CpuUsage(getPercentInRange(totalAvgUsagePercent),
+                        getPercentInRange(relAvgUsagePercent)));
 
                 handler.post(notifyObserversRunnable);
             }
-
-            totalJiffiesBefore = totalJiffies;
-            jiffiesBefore = jiffies;
-            jiffiesMyPidBefore = jiffiesMyPid;
+            myCpuTime1Sec = myCpuTime2Sec;
+            processTime1Sec = processTime2Sec;
         }
 
-        private void closeCpuReaders() {
+        private void closeCpuReader() {
             try {
-                if (totalCpuReader != null) {
-                    totalCpuReader.close();
-                    totalCpuReader = null;
-                }
-                if (myPidCpuReader != null) {
-                    myPidCpuReader.close();
-                    myPidCpuReader = null;
+                if (myProcessCpuReader != null) {
+                    myProcessCpuReader.close();
+                    myProcessCpuReader = null;
                 }
             } catch (IOException ignore) {}
         }

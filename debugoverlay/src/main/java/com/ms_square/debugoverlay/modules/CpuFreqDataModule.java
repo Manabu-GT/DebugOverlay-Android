@@ -1,6 +1,7 @@
 package com.ms_square.debugoverlay.modules;
 
-import android.os.Build;
+import static java.lang.Double.parseDouble;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -23,8 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-import static java.lang.Double.parseDouble;
-
 class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
     private static final String TAG = "CpuFreqDataModule";
@@ -33,12 +32,7 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
     private final AtomicReference<List<CpuFreq>> cpuFreqList = new AtomicReference<>();
 
-    private final Runnable notifyObserversRunnable = new Runnable() {
-        @Override
-        public void run() {
-            notifyObservers();
-        }
-    };
+    private final Runnable notifyObserversRunnable = this::notifyObservers;
 
     /**
      * The cpufreq values are given in kHz.
@@ -130,10 +124,6 @@ class CpuFreqDataModule extends BaseDataModule<List<CpuFreq>> {
 
     @Override
     public void start() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.w(TAG, "CpuFreqDataModule is not supported on Android O and above and will be no-op.");
-            return;
-        }
         if (executorService == null) {
             executorService = Executors.newSingleThreadScheduledExecutor();
             executorService.scheduleWithFixedDelay(cpuFreqReadRunnable, 0, interval, TimeUnit.MILLISECONDS);
