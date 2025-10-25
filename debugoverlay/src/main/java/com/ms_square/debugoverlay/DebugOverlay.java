@@ -1,6 +1,7 @@
 package com.ms_square.debugoverlay;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -9,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcel;
@@ -22,13 +24,11 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.ms_square.debugoverlay.modules.CpuFreqModule;
 import com.ms_square.debugoverlay.modules.CpuUsageModule;
 import com.ms_square.debugoverlay.modules.FpsModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -117,6 +117,10 @@ public class DebugOverlay {
         if (installed) {
             throw new IllegalStateException("install() can be called only once!");
         }
+        if (!isMainProcess(application)) {
+            // just return early without any work if it's not running in the main app process.
+            return;
+        }
 
         overlayViewManager = new OverlayViewManager(application, config);
         overlayViewManager.setOverlayModules(overlayModules);
@@ -181,6 +185,40 @@ public class DebugOverlay {
         @Override
         public void onServiceDisconnected(ComponentName name) {}
     };
+
+    // returns true if the current process is the main process (matches the initial application pid),
+    // ; otherwise false.
+    private static boolean isMainProcess(Application application) {
+        String mainProcessName = application.getPackageName();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return mainProcessName.equals(Application.getProcessName());
+        }
+        String currentProcessName = getProcessName(application);
+        if (currentProcessName == null) {
+            // treat the process as main when the name cannot be determined.
+            return true;
+        }
+        return mainProcessName.equals(currentProcessName);
+    }
+
+    // a fallback way to get the current process name on older android OSs, should get a
+    // name like "com.package.name"(main process name) or "com.package.name:remote"
+    @Nullable
+    private static String getProcessName(Application application) {
+        int myPid = android.os.Process.myPid();
+        ActivityManager am = (ActivityManager) application.getSystemService(Context.ACTIVITY_SERVICE);
+        @Nullable
+        List<ActivityManager.RunningAppProcessInfo> infos = am.getRunningAppProcesses();
+        if (infos != null) {
+            for(ActivityManager.RunningAppProcessInfo info : infos) {
+                if (info.pid == myPid) {
+                    return info.processName;
+                }
+            }
+        }
+        // may never return null
+        return null;
+    }
 
     final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
