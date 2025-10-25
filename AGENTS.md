@@ -18,8 +18,8 @@ Welcome! This guide defines how automation and human agents should collaborate i
 ## 2. Code & Build Standards
 
 - **Gradle & AGP**
-    - Project uses Gradle 8.13 and AGP 8.13.0. Any wrapper or plugin changes must remain compatible (JDK 17+).
-    - When upgrading dependencies, confirm repository definitions live in `settings.gradle`. Avoid reintroducing deprecated repositories (e.g., JCenter).
+    - Project tracks tool versions via `gradle/wrapper/gradle-wrapper.properties` (Gradle) and `gradle/libs.versions.toml` (AGP, plugins, dependencies). Keep those files as the single sources of truth; any wrapper or plugin change must remain compatible with JDK 17+.
+    - When upgrading dependencies or plugins, update the catalog (`gradle/libs.versions.toml`) and keep repository definitions centralised in `settings.gradle.kts`. Avoid reintroducing deprecated repositories (e.g., JCenter).
 
 - **Module Conventions**
     - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
@@ -46,13 +46,13 @@ Welcome! This guide defines how automation and human agents should collaborate i
 
 | Change Type | Mandatory Checks |
 |-------------|------------------|
-| Gradle/build logic | `./gradlew help` or a representative assemble task |
+| Gradle/build logic | `./gradlew help`; run the smallest assemble task that exercises your change when artifact wiring is affected |
 | Library runtime code | `./gradlew :debugoverlay:check` (or targeted tests) |
 | Extension modules | `./gradlew :debugoverlay-ext-timber:check` or `./gradlew :debugoverlay-ext-netstats:check` |
 | Sample app UX/UI | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
 | Documentation only | No build, but ensure links and code snippets compile conceptually |
 
-Document all executed commands in the hand-off message. If a test is skipped, state why and note the risk.
+Document all executed commands in the hand-off message. If a test is skipped, state why and note the risk. For script/config changes (Gradle `.kts`, `libs.versions.toml`, wrapper updates), run a lightweight task such as `./gradlew help` to ensure the configuration still loads.
 
 ---
 
