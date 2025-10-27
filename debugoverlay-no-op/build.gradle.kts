@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.dexcount)
+    alias(libs.plugins.mavenPublish)
 }
 
 java {
@@ -36,6 +37,3 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.mockito.core)
 }
-
-// for maven central deployment
-//apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'

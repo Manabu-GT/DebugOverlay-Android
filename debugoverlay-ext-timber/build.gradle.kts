@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.mavenPublish)
 }
 
 java {
@@ -35,6 +36,3 @@ dependencies {
     implementation(libs.timber)
     testImplementation(libs.junit4)
 }
-
-// for maven central deployment
-//apply from: 'https://raw.githubusercontent.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
