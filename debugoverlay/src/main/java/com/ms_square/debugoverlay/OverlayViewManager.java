@@ -5,12 +5,9 @@ import static android.view.WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.net.Uri;
@@ -180,10 +177,6 @@ class OverlayViewManager {
     }
 
     public static void requestDrawOnSystemLayerPermission(@NonNull Context context) {
-        if (!hasSystemAlertPermissionInManifest(context)) {
-            throw new UnsupportedOperationException("'SYSTEM_ALERT_WINDOW' must be explicitly added in the manifest.");
-        }
-        // request permission
         Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:" + context.getPackageName()));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -195,23 +188,6 @@ class OverlayViewManager {
             return Settings.canDrawOverlays(context);
         }
         return true;
-    }
-
-    public static boolean hasSystemAlertPermissionInManifest(@NonNull Context context) {
-        PackageInfo info = null;
-        try {
-            info = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.w(TAG, "Package not found - " + context.getPackageName());
-        }
-        if (info != null && info.requestedPermissions != null) {
-            for (String permission : info.requestedPermissions) {
-                if (Manifest.permission.SYSTEM_ALERT_WINDOW.equals(permission)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public static boolean isSystemLayer(int windowType) {
