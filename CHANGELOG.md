@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.1.4 *(2025-10-27)*
+
+* **Build & toolchain** – Migrated the entire project to Gradle Kotlin DSL with a shared `libs.versions.toml`, upgraded the wrapper/AGP stack (Gradle 8.13, AGP 8.13.0).
+* **Android platform updates** – Raised `minSdk` to 26 / `targetSdk` to 36, migrated dependencies to AndroidX, and cleaned up manifest/service initialization (DebugOverlay now installs only in the app’s main process and drops stale permission checks).
+* **CPU/FPS modules** – Fixed CPU usage/frequency collectors to operate correctly on API 26+ and tidied related overlays/resources.
+
 ## Version 1.1.3 *(2017-09-24)*
 
 * Add a NetStatsModule as an extension module
