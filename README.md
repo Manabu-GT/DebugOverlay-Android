@@ -1,8 +1,7 @@
 DebugOverlay-Android
 ===========
-[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-DebugOverlay--Android-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/5516)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay)
-[![API 16+](https://img.shields.io/badge/API-16%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=16)
+[![API 26+](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#8.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 **DebugOverlay** is an Android library that allows developers to easily add custom overlay window/view for debugging purpose.
@@ -15,7 +14,7 @@ This library is fully customizable in terms of what you can show on the overlay.
 
 Requirements
 -------------
-API Level 16 (Android 4.1) and above.
+API Level 26 (Android 8.0) and above.
 
 Setup
 ------
@@ -24,25 +23,25 @@ so you just need to add the followings to your ***build.gradle*** file:
 
 ```groovy
 dependencies {
-  debugCompile 'com.ms-square:debugoverlay:1.1.3'
-  releaseCompile 'com.ms-square:debugoverlay-no-op:1.1.3'
-  testCompile 'com.ms-square:debugoverlay-no-op:1.1.3'
+  debugImplementation 'com.ms-square:debugoverlay:1.1.4'
+  releaseImplementation 'com.ms-square:debugoverlay-no-op:1.1.4'
+  testImplementation 'com.ms-square:debugoverlay-no-op:1.1.4'
 }
 ```
 
-Please note that `com.ms-square:debugoverlay:1.1.3`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app.
-Threfore, you should avoid to use that dependency for your release build.
+Please note that `com.ms-square:debugoverlay:1.1.4`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app.
+Therefore, you should avoid to use that dependency for your release build if your app itself doesn't require it.
 
 FYI, the following table describes the total number of method/field references in this library's release aar.
 This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepSafe/dexcount-gradle-plugin).
 
-| library  | methods  | fields |
-|:------------- |:-------------|:-------------|
-|com.ms-square:debugoverlay:1.1.3|566|252|
-|com.ms-square:debugoverlay-no-op:1.1.3|141|37|
+| library                                | methods | fields |
+|:---------------------------------------|:--------|:-------|
+| com.ms-square:debugoverlay:1.1.4       | 572     | 248    |
+| com.ms-square:debugoverlay-no-op:1.1.4 | 142     | 31     |
 
 Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
-If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugCompile 'com.ms-square:debugoverlay:1.1.3'` in the dependencies section of build.gradle.
+If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugImplementation 'com.ms-square:debugoverlay:1.1.4'` in the dependencies section of build.gradle.
 
 Usage
 ------
@@ -61,7 +60,7 @@ public class ExampleApplication extends Application {
   }
 }
 ```
-It will show a debug overlay on system layer with the follwing three default modules just like the gif animation image displayed on this README.
+It will show a debug overlay on system layer with the following three default modules just like the gif animation image displayed on this README.
 
 - [CpuUsageModule](#cpuusagemodule) - will not be shown on Android O and above
 - [MemInfoModule](#meminfomodule)
@@ -107,7 +106,7 @@ new DebugOverlay.Builder(this)
 >Alpha value used for text on the overlay.  Default is `1f`(fully opaque).
 
 * allowSystemLayer - [boolean]
->If true, it adds the overlay window on Android's system window layer; in Android 7.1.1 and after, it will ask you for the overlay permission by taking you to the Android's settings screen when you first set up. If set to false, it  will automatically add the overlay on each application window. In most cases, you want to set this to `true`.
+>If true, it adds the overlay window on Android's system window layer and it will ask you for the overlay permission by taking you to the Android's settings screen when you first set up. If set to false, it  will automatically add the overlay on each application window. In most cases, you want to set this to `true`.
 Default is `true`.
 
 * notification - [boolean, string(optional)]
@@ -124,9 +123,7 @@ Provided Modules
 #### CpuUsageModule
 
 `default`
-> Collects total and app cpu usage % by reading `/proc/stat` and `/proc/[myPid]/stat` respectively.
-
-Note: CpuUsageModule will be no-op on Android O and above. Please see this [issue](https://github.com/Manabu-GT/DebugOverlay-Android/issues/11) for why.
+> Collects app-total and app-relative CPU usage percentages based on the configured interval (default 1000 ms) by reading `/proc/self/stat`.
 
 #### MemInfoModule
 
@@ -148,8 +145,6 @@ If low memory situation is detected by reading [lowMemory](https://developer.and
 #### CpuFreqModule
 `optional`
 > Collects each cpu core's current and max frequency by reading `/sys/devices/system/cpu/cpu[num]/cpufreq/scaling_cur_freq` and `/sys/devices/system/cpu/cpu[num]/cpufreq/cpuinfo_max_freq` respectively.
-
-Note: CpuFreqModule will be no-op on Android O and above. Please see this [issue](https://github.com/Manabu-GT/DebugOverlay-Android/issues/11) for why.
 
 Extension Modules (available separately)
 ------
@@ -295,7 +290,7 @@ Thanks for reading!
 License
 ----------
 
-    Copyright 2017 Manabu Shimobe
+    Copyright 2017–2025 Manabu-GT
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -309,11 +304,11 @@ License
     See the License for the specific language governing permissions and
     limitations under the License.
 
-[1]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/master/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/LogcatLineFilter.java
-[2]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/master/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/LogcatLineColorScheme.java
-[3]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/master/debugoverlay/src/main/java/com/ms_square/debugoverlay/OverlayModule.java
-[4]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/master/debugoverlay/src/main/java/com/ms_square/debugoverlay/DataModule.java
-[5]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/master/debugoverlay/src/main/java/com/ms_square/debugoverlay/ViewModule.java
-[6]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/master/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/SimpleViewModule.java
-[7]: https://github.com/Manabu-GT/DebugOverlay-Android/tree/master/sample
-[8]: https://github.com/Manabu-GT/DebugOverlay-Android/tree/master/sample/src/main/java/com/ms_square/debugoverlay/sample/IPAddressDataModule.java
+[1]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/LogcatLineFilter.java
+[2]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/LogcatLineColorScheme.java
+[3]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/OverlayModule.java
+[4]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/DataModule.java
+[5]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/ViewModule.java
+[6]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/SimpleViewModule.java
+[7]: https://github.com/Manabu-GT/DebugOverlay-Android/tree/main/sample
+[8]: https://github.com/Manabu-GT/DebugOverlay-Android/tree/main/sample/src/main/java/com/ms_square/debugoverlay/sample/IPAddressDataModule.java
