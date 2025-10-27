@@ -10,6 +10,7 @@ junit4 = "4.12"
 mockito-core = "5.5.0"
 agp = "8.13.0"
 dexcount = "4.0.0"
+maven-publish = "0.34.0"
 
 [libraries]
 androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
@@ -26,3 +27,4 @@ leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", ve
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 dexcount = { id = "com.getkeepsafe.dexcount", version.ref = "dexcount" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }

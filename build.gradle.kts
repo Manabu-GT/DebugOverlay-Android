@@ -8,12 +8,7 @@ plugins {
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
     alias(libs.plugins.dexcount) apply false
-}
-
-allprojects {
-    // This ensures a group and version are defined for all modules.
-    group = project.property("GROUP") as String
-    version = project.property("VERSION_NAME") as String
+    alias(libs.plugins.mavenPublish) apply false
 }
 
 // http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html
