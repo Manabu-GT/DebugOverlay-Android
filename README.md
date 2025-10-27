@@ -117,6 +117,12 @@ Default is `true`.
 You can optionally supply string which must be your *activity's class name*.
 It will be used to create PendingIntent to start the activity when the notification is tapped.
 
+### Showing/Hiding an Overlay
+
+<img src="art/overlay_control_notification.png" width="50%" alt="DebugOverlay Control Notification">
+
+You can show/hide a debug overlay by tapping `Show/Hide` button on the notification shown.
+
 Provided Modules
 ------
 
@@ -290,7 +296,7 @@ Thanks for reading!
 License
 ----------
 
-    Copyright 2017–2025 Manabu-GT
+    Copyright 2025 Manabu-GT
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
