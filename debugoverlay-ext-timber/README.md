@@ -12,11 +12,11 @@ Gradle:
 
 ```groovy
 dependencies {
-  debugCompile 'com.ms-square:debugoverlay:1.1.3'
-  releaseCompile 'com.ms-square:debugoverlay-no-op:1.1.3'
-  testCompile 'com.ms-square:debugoverlay-no-op:1.1.3'
+  debugImplementation 'com.ms-square:debugoverlay:1.1.4'
+  releaseImplementation 'com.ms-square:debugoverlay-no-op:1.1.4'
+  testImplementation 'com.ms-square:debugoverlay-no-op:1.1.4'
   
-  compile ('com.ms-square:debugoverlay-ext-timber:1.1.3') {
+  implementation ('com.ms-square:debugoverlay-ext-timber:1.1.4') {
     exclude module: 'debugoverlay'
   }
 }
@@ -27,7 +27,7 @@ or
 ```groovy
 dependencies {
   // this will use a full debugoverlay lib even in the test/release build
-  compile 'com.ms-square:debugoverlay-ext-timber:1.1.3'
+  implementation 'com.ms-square:debugoverlay-ext-timber:1.1.4'
 }
 ```
 
