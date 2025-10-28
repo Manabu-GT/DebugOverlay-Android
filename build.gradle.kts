@@ -21,4 +21,4 @@ extra.apply {
     set("targetSdkVersion", 36)
 }
 
-apply("$rootDir/gradle/scripts/code-formatting.gradle")
+apply(from = "$rootDir/gradle/scripts/code-formatting.gradle")
