@@ -16,7 +16,7 @@ This repository already contains `AGENTS.md`. Claude should use that document as
 
 1. `git status -sb` to understand the current branch and pending work.
 2. Review `AGENTS.md` for baseline policies (testing expectations, coding standards, communication style).
-3. Form a short plan (2–5 steps) for any non-trivial task. Update or restate the plan after completing each major step.
+3. For non-trivial work, draft `tools/ai/plans/PLAN_<TASK_NAME>.md` with the proposed steps, wait for maintainer approval before executing, and update the plan after each approved step.
 4. Execute changes incrementally. After each significant edit, re-run `git status` to confirm only intended files changed.
 5. Keep notes about commands run, decisions taken, and any blockers—these will feed into the final hand-off.
 
@@ -34,7 +34,7 @@ Use tools deliberately:
   - Reference them via `libs.*` or `libs.plugins.*` in module build scripts.
 - Java/Kotlin toolchains default to Java 17; keep `java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }` unless the user requests a change.
 - Preserve resource prefixes (`resourcePrefix 'debugoverlay_'`) and do not remove default resource directories when adding extra paths (use `res.srcDir(...)` instead of overwriting `srcDirs`).
-- Honour the module list in `AGENTS.md` and avoid creating new modules without approval.
+- Honour the module list in `AGENTS.md`, avoid creating new modules without approval, and keep all modules on AndroidX APIs (no legacy `android.support`).
 
 ---
 

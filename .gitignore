@@ -3,6 +3,9 @@ local.properties
 
 keystore.properties
 
+# AI agent planning files
+tools/ai/plans
+
 # Gradle files
 .gradle
 build/
