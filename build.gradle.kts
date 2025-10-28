@@ -7,8 +7,11 @@ plugins {
      */
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.dexcount) apply false
     alias(libs.plugins.mavenPublish) apply false
+    alias(libs.plugins.spotless)
 }
 
 // http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html
@@ -17,3 +20,5 @@ extra.apply {
     set("minSdkVersion", 26)
     set("targetSdkVersion", 36)
 }
+
+apply("$rootDir/gradle/scripts/code-formatting.gradle")

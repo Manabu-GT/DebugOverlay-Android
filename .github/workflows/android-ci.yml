@@ -27,6 +27,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         # Caches Gradle + wrapper automatically
 
+      - name: Run spotlessCheck
+        run: ./gradlew spotlessCheck
+
       - name: Build Project
         run: ./gradlew clean assembleDebug --stacktrace
 
