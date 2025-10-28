@@ -27,11 +27,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         # Caches Gradle + wrapper automatically
 
-      - name: Build Project
-        run: ./gradlew clean assembleDebug --stacktrace
+      - name: Run spotlessCheck
+        run: ./gradlew spotlessCheck
 
       - name: Android Lint
         run: ./gradlew lintDebug
+
+      - name: Build Project
+        run: ./gradlew clean assembleDebug --stacktrace
 
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace

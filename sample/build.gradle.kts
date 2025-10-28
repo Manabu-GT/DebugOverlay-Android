@@ -2,7 +2,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.dexcount)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 java {
@@ -59,6 +60,18 @@ android {
             }
         }
     }
+
+    buildFeatures {
+        compose = true
+    }
+}
+
+// Enables outputting the results of its stability inference for inspection.
+// Run ./gradlew :sample:assembleRelease -PcomposeCompilerReports=true --rerun-tasks
+// to force running compose compiler reports.
+composeCompiler {
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
+    metricsDestination = layout.buildDirectory.dir("compose_compiler")
 }
 
 dependencies {

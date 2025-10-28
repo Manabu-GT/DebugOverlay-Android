@@ -6,7 +6,7 @@ This project uses the Vanniktech Maven Publish plugin to deploy artifacts to Mav
 
 ## Prerequisites
 
-1. **Credentials & signing**  
+1. **Credentials & signing**
    Provide the following properties either in `~/.gradle/gradle.properties` (local) or as CI environment variables (`ORG_GRADLE_PROJECT_*`):
 
    ```properties
@@ -17,7 +17,7 @@ This project uses the Vanniktech Maven Publish plugin to deploy artifacts to Mav
    signing.secretKeyRingFile=YOUR_PRIVATE_KEY_FILE
    ```
 
-2. **Version metadata**  
+2. **Version metadata**
    Update `gradle.properties` with the new `VERSION_NAME`, refresh `CHANGELOG.md`, README badges, etc., and commit those changes.
 
 ---
@@ -48,7 +48,7 @@ This project uses the Vanniktech Maven Publish plugin to deploy artifacts to Mav
 
 4. **Close & release the staging repository**
    - Log in to https://central.sonatype.com/publishing.
-   - Locate the new staging repository, review the artifacts, then click **Publish**.  
+   - Locate the new staging repository, review the artifacts, then click **Publish**.
      (If something is wrong, drop the staging repository and fix the build before retrying.)
 
 5. **Tag the release and push**
