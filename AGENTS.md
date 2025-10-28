@@ -8,7 +8,7 @@ Welcome! This guide defines how automation and human agents should collaborate i
 
 1. Understand the issue or request. If the ticket is vague, pause and ask for clarification.
 2. Inspect the current state: run `git status -sb`, scan recent changes, and note branch naming.
-3. Make a lightweight plan (≤5 steps) for non-trivial work; update the plan after each completed step.
+3. For non-trivial work, draft `tools/ai/plans/PLAN_<TASK_NAME>.md` with the proposed steps and wait for maintainer approval before executing the plan (update the document after each approved step).
 4. Execute the plan while keeping the tree clean—no reverting user edits and no destructive commands (`git reset --hard`, etc.).
 5. Validate locally (build, lint, or targeted tests) whenever changes touch executable code. Capture command, outcome, and failures.
 6. Summarise the result: describe the change, list validations, and call out risks or follow-ups.
@@ -23,7 +23,7 @@ Welcome! This guide defines how automation and human agents should collaborate i
 
 - **Module Conventions**
     - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
-    - Prefer AndroidX APIs; migrations from legacy `android.support` should include package updates and dependency replacements.
+    - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
 
 - **Project Modules**
     - `debugoverlay` - Main library module with core overlay functionality
@@ -32,6 +32,9 @@ Welcome! This guide defines how automation and human agents should collaborate i
     - `debugoverlay-ext-netstats` - Network statistics extension module
     - `sample` - Demo application showcasing library features
 
+- **Coding Language**
+    - All new code should be written in Kotlin.
+   
 - **Formatting & Static Analysis**
     - Respect existing style (4-space Java/Kotlin, XML indentation).
     - Run relevant formatters (`ktlint`, `spotless`, IDE auto-format) if part of the workflow, but do not introduce sweeping style-only diffs.
@@ -72,6 +75,12 @@ Use the following structured analysis process when performing code reviews:
 - Carefully review the changes and understand their purpose
 - Identify the scope and impact of modifications
 - Note any breaking changes or API modifications
+- External source discovery: when you need deeper context for framework/library behaviour, consult:
+    - **Android Framework** – https://cs.android.com/android
+    - **AndroidX Libraries** – https://cs.android.com/androidx (or GitHub mirrors)
+    - **Third-party Libraries** – the project’s GitHub repository or official docs
+    - **Kotlin Standard Library** – https://github.com/JetBrains/kotlin
+
 
 **Step 2: Comprehensive Analysis**
 - **Functionality:** Does the code work as intended? Are there edge cases, regressions, or unexpected behavior?
@@ -79,7 +88,9 @@ Use the following structured analysis process when performing code reviews:
 - **Reliability:** Could the change crash, ANR, or degrade performance? Memory leaks or resource issues?
 - **Maintainability:** Is the code readable, idiomatic, and consistent with project patterns?
 - **Testing:** Does the patch include sufficient tests? Are edge cases covered? Manual testing steps documented?
-- **Consistency:** Are there inconsistencies with existing code or design patterns?
+- **Consistency:** Are there inconsistencies with existing code or design patterns? For Jetpack compose APIs, consult:
+- https://android.googlesource.com/platform/frameworks/support/+/androidx-main/compose/docs/compose-api-guidelines.md
+- https://android.googlesource.com/platform/frameworks/support/+/androidx-main/compose/docs/compose-component-api-guidelines.md
 
 **Step 3: Prioritize Findings**
 - **Critical issues:** Security vulnerabilities, crashes, data loss, breaking changes
