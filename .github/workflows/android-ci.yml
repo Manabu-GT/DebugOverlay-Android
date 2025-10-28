@@ -30,11 +30,11 @@ jobs:
       - name: Run spotlessCheck
         run: ./gradlew spotlessCheck
 
-      - name: Build Project
-        run: ./gradlew clean assembleDebug --stacktrace
-
       - name: Android Lint
         run: ./gradlew lintDebug
+
+      - name: Build Project
+        run: ./gradlew clean assembleDebug --stacktrace
 
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
