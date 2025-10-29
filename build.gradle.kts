@@ -40,9 +40,12 @@ subprojects {
       // Limit to real sources for speed
       source.setFrom(
         files(
-          "src/main/java", "src/main/kotlin",
-          "src/test/java", "src/test/kotlin",
-          "src/androidTest/java", "src/androidTest/kotlin"
+          "src/main/java",
+          "src/main/kotlin",
+          "src/test/java",
+          "src/test/kotlin",
+          "src/androidTest/java",
+          "src/androidTest/kotlin"
         )
       )
     }
