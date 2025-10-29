@@ -50,6 +50,22 @@ subprojects {
       )
     }
   }
+
+  fun hookCheckWhen(pluginId: String, taskName: String) {
+    pluginManager.withPlugin(pluginId) {
+      tasks.named("check").configure { dependsOn(taskName) }
+    }
+  }
+
+  // let check also run spotlessCheck + detekt if those plugins exist
+  plugins.withId("com.android.library") {
+    hookCheckWhen("io.gitlab.arturbosch.detekt", "detekt")
+    hookCheckWhen("com.diffplug.spotless", "spotlessCheck")
+  }
+  plugins.withId("com.android.application") {
+    hookCheckWhen("io.gitlab.arturbosch.detekt", "detekt")
+    hookCheckWhen("com.diffplug.spotless", "spotlessCheck")
+  }
 }
 
 apply(from = "$rootDir/gradle/scripts/code-formatting.gradle")
