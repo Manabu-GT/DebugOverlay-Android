@@ -37,8 +37,9 @@ jobs:
       - name: Detekt
         run: ./gradlew --no-daemon detekt
 
+      # Try to upload even when detekt finds issues if SARIF files exist
       - name: Upload SARIF to GitHub Code Scanning
-        if: always() # upload even when detekt finds issues
+        if: always() && hashFiles('**/build/reports/detekt/detekt.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: '**/build/reports/detekt/detekt.sarif'
