@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.extensions.DetektExtension
+
 plugins {
   /**
    * Use `apply false` in the top-level build.gradle file to add a Gradle
@@ -11,6 +13,7 @@ plugins {
   alias(libs.plugins.kotlin.compose) apply false
   alias(libs.plugins.dexcount) apply false
   alias(libs.plugins.mavenPublish) apply false
+  alias(libs.plugins.detekt) apply false
   alias(libs.plugins.spotless)
 }
 
@@ -19,6 +22,31 @@ extra.apply {
   set("compileSdkVersion", 36)
   set("minSdkVersion", 26)
   set("targetSdkVersion", 36)
+}
+
+subprojects {
+  // Apply only to modules that actually use Kotlin
+  plugins.withId("org.jetbrains.kotlin.jvm") { apply(plugin = "io.gitlab.arturbosch.detekt") }
+  plugins.withId("org.jetbrains.kotlin.android") { apply(plugin = "io.gitlab.arturbosch.detekt") }
+
+  // Configure Detekt when present
+  plugins.withId("io.gitlab.arturbosch.detekt") {
+    extensions.configure<DetektExtension> {
+      // Good defaults + your overrides
+      buildUponDefaultConfig = true
+      allRules = false
+      config.from(rootProject.files("config/detekt/detekt.yml"))
+
+      // Limit to real sources for speed
+      source.setFrom(
+        files(
+          "src/main/java", "src/main/kotlin",
+          "src/test/java", "src/test/kotlin",
+          "src/androidTest/java", "src/androidTest/kotlin"
+        )
+      )
+    }
+  }
 }
 
 apply(from = "$rootDir/gradle/scripts/code-formatting.gradle")

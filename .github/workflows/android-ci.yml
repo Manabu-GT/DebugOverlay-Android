@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   build-and-test:
@@ -32,6 +33,15 @@ jobs:
 
       - name: Android Lint
         run: ./gradlew lintDebug
+
+      - name: Detekt
+        run: ./gradlew --no-daemon detekt
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always() # upload even when detekt finds issues
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: '**/build/reports/detekt/detekt.sarif'
 
       - name: Build Project
         run: ./gradlew clean assembleDebug --stacktrace

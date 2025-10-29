@@ -1,0 +1,54 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+
+processors:
+  active: true
+
+# Keep reports predictable in CI
+reports:
+  txt:
+    active: false
+  xml:
+    active: true
+    path: build/reports/detekt/detekt.xml
+  html:
+    active: true
+    path: build/reports/detekt/detekt.html
+  sarif:
+    active: true
+    path: build/reports/detekt/detekt.sarif
+
+# Tweak common Android/Kotlin rules
+style:
+  MagicNumber:
+    active: true
+    ignorePropertyDeclaration: true
+    ignoreAnnotation: true
+  WildcardImport:
+    active: true
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  ReturnCount:
+    active: false
+
+complexity:
+  LongMethod:
+    threshold: 60
+  LongParameterList:
+    functionThreshold: 8
+
+naming:
+  MatchingDeclarationName:
+    active: true
+  TopLevelPropertyNaming:
+    active: true
+
+# Ignore generated code and build artifacts
+excludes:
+  - '**/build/**'
+  - '**/.gradle/**'
+  - '**/generated/**'
