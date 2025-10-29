@@ -2,19 +2,43 @@ apply plugin: 'com.diffplug.spotless'
 
 spotless {
 
-    format 'misc', {
-        // define the files to apply `misc` to
-        target '**/*.gradle.kts', '**/*.md', '**/.gitignore'
-
-        // define the steps to apply to those files
-        indentWithSpaces()
-        trimTrailingWhitespace()
+    kotlin {
+        target("**/*.kt")
+        targetExclude("**/build/**", "**/.gradle/**", "**/generated/**", "**/buildSrc/build/**")
+        ktlint("1.7.1")
+        // Optional license header:
+        // licenseHeaderFile("$rootDir/config/spotless/license.kt", "(package|import|class|object)\\b")
     }
 
-    kotlin {
-        target '**/*.kt'
-        ktlint()
+    kotlinGradle {
+        target("**/*.gradle.kts")
+        targetExclude("**/build/**", "**/.gradle/**")
+        ktlint("1.7.1")
+    }
+
+    format("xml") {
+        target("**/*.xml")
+        targetExclude("**/build/**", "**/.gradle/**", "**/.idea/**")
         trimTrailingWhitespace()
-        indentWithSpaces()
+        endWithNewline()
+        leadingTabsToSpaces(2)
+    }
+
+    format("markdown") {
+        target("**/*.md")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    format("configFiles") {
+        target("**/*.yml", "**/*.yaml", "**/*.json", ".editorconfig")
+        targetExclude("**/build/**", "**/.gradle/**")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    format("misc") {
+        target("**/.gitignore")
+        trimTrailingWhitespace()
     }
 }

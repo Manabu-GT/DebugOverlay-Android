@@ -1,26 +1,29 @@
 # Local configuration file (sdk path, etc)
 local.properties
 
+# Keystore files
 keystore.properties
 
 # AI agent planning files
 tools/ai/plans
 
 # Gradle files
-.gradle
+.gradle/
 build/
 
-# Android Studio
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+output.json
+
+# IntelliJ
 *.iml
-.idea
-!.idea/runConfigurations/*
-.idea/*.xml
-.idea/.name
-.idea/copyright/
-.idea/libraries/
-.idea/scopes/
-.idea/inspectionProfiles/
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
 
 # Other
 .DS_Store
-captures/

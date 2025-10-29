@@ -26,7 +26,7 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include 
+    <include
         android:id="@+id/content_main"
         layout="@layout/content_main"
         app:layout_constraintTop_toBottomOf="@id/app_bar_layout"

@@ -1,38 +1,38 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.mavenPublish)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.mavenPublish)
 }
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(17))
+  }
 }
 
 android {
-    namespace = "com.ms_square.debugoverlay_ext_timber"
-    compileSdk = rootProject.extra["compileSdkVersion"] as Int
+  namespace = "com.ms_square.debugoverlay_ext_timber"
+  compileSdk = rootProject.extra["compileSdkVersion"] as Int
 
-    defaultConfig {
-        minSdk = rootProject.extra["minSdkVersion"] as Int
-    }
+  defaultConfig {
+    minSdk = rootProject.extra["minSdkVersion"] as Int
+  }
 
-    testOptions {
-        targetSdk = rootProject.extra["targetSdkVersion"] as Int
-    }
+  testOptions {
+    targetSdk = rootProject.extra["targetSdkVersion"] as Int
+  }
 
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+  buildTypes {
+    getByName("release") {
+      isMinifyEnabled = false
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
+  }
 }
 
 dependencies {
-    api(project(":debugoverlay"))
-    implementation(libs.androidx.annotation)
+  api(project(":debugoverlay"))
+  implementation(libs.androidx.annotation)
 
-    implementation(libs.timber)
-    testImplementation(libs.junit4)
+  implementation(libs.timber)
+  testImplementation(libs.junit4)
 }

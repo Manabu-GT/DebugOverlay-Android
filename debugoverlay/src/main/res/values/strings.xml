@@ -9,7 +9,7 @@
     <string name="debugoverlay_notification_action_hide">Hide</string>
 
     <string name="debugoverlay_overlay_permission_prompt">Permission required to show the debug overlay</string>
-    
+
     <!-- Foreground service justification for Android 14+ -->
     <string name="debugoverlay_foreground_service_justification">This service displays debugging information in an overlay window for development and testing purposes. It requires foreground service to maintain the overlay display and provide notification controls.</string>
 </resources>

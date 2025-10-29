@@ -1,39 +1,39 @@
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.dexcount)
-    alias(libs.plugins.mavenPublish)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.dexcount)
+  alias(libs.plugins.mavenPublish)
 }
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(17))
+  }
 }
 
 android {
-    namespace = "com.ms_square.debugoverlay"
-    compileSdk = rootProject.extra["compileSdkVersion"] as Int
+  namespace = "com.ms_square.debugoverlay"
+  compileSdk = rootProject.extra["compileSdkVersion"] as Int
 
-    defaultConfig {
-        minSdk = rootProject.extra["minSdkVersion"] as Int
+  defaultConfig {
+    minSdk = rootProject.extra["minSdkVersion"] as Int
+  }
+
+  testOptions {
+    targetSdk = rootProject.extra["targetSdkVersion"] as Int
+  }
+
+  // force usage of prefix to avoid naming conflicts,
+  resourcePrefix = "debugoverlay_"
+
+  buildTypes {
+    getByName("release") {
+      isMinifyEnabled = false
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
-
-    testOptions {
-        targetSdk = rootProject.extra["targetSdkVersion"] as Int
-    }
-
-    // force usage of prefix to avoid naming conflicts,
-    resourcePrefix = "debugoverlay_"
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
+  }
 }
 
 dependencies {
-    testImplementation(libs.junit4)
-    testImplementation(libs.mockito.core)
+  testImplementation(libs.junit4)
+  testImplementation(libs.mockito.core)
 }
