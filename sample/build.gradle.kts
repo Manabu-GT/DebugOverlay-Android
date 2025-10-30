@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.androidApplication)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
+  alias(libs.plugins.kotlin.serialization)
 }
 
 java {
@@ -21,14 +22,14 @@ fun gitHash(): String = Runtime
   .trim()
 
 android {
-  namespace = "com.ms_square.debugoverlay.sample"
+  namespace = "com.ms.square.debugoverlay.sample"
   compileSdk = rootProject.extra["compileSdkVersion"] as Int
 
   // to allow buildConfigField usage within defaultConfig
   buildFeatures.buildConfig = true
 
   defaultConfig {
-    applicationId = "com.ms_square.debugoverlay.sample"
+    applicationId = "com.ms.square.debugoverlay.sample"
     minSdk = rootProject.extra["minSdkVersion"] as Int
     targetSdk = rootProject.extra["targetSdkVersion"] as Int
 
@@ -37,7 +38,7 @@ android {
 
     buildConfigField("String", "GIT_HASH", "\"${gitHash()}\"")
 
-    testInstrumentationRunner = "com.ms_square.debugoverlay.DebugOverlayTestRunner"
+    testInstrumentationRunner = "com.ms.square.debugoverlay.DebugOverlayTestRunner"
   }
 
   signingConfigs {
@@ -55,8 +56,11 @@ android {
   }
 
   buildTypes {
-    getByName("release") {
-      isMinifyEnabled = false
+    release {
+      // Enables code-related app optimization.
+      isMinifyEnabled = true
+      // Enables resource shrinking.
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       // check if keystore.properties exists in the root
       if (file("../keystore.properties").exists()) {
@@ -92,10 +96,31 @@ dependencies {
   }
 
   implementation(libs.androidx.core)
-  implementation(libs.google.material)
   implementation(libs.androidx.annotation)
 
-  implementation(libs.androidx.constraintlayout)
+  // Compose
+  implementation(platform(libs.androidx.compose.bom))
+  implementation(libs.androidx.ui)
+  implementation(libs.androidx.ui.graphics)
+  implementation(libs.androidx.material3)
+  implementation(libs.androidx.material.icons.extended)
+  implementation(libs.androidx.activity.compose)
+
+  // Navigation 3
+  implementation(libs.androidx.navigation3.runtime)
+  implementation(libs.androidx.navigation3.ui)
+  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+  implementation(libs.kotlinx.serialization.core)
+
+  // Coroutines
+  implementation(libs.kotlinx.coroutines.core)
+  implementation(libs.kotlinx.coroutines.android)
+
+  // HTTP Client
+  implementation(libs.okhttp)
+
+  // Image Loading
+  implementation(libs.coil)
 
   implementation(libs.timber)
 

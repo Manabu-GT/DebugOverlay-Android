@@ -1,10 +1,6 @@
 package com.ms_square.debugoverlay;
 
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import android.app.Activity;
 import android.app.Application;
@@ -23,11 +19,9 @@ import com.ms_square.debugoverlay.modules.LogcatLineColorScheme;
 import com.ms_square.debugoverlay.modules.LogcatLineFilter;
 import com.ms_square.debugoverlay.modules.LogcatModule;
 import com.ms_square.debugoverlay.modules.MemInfoModule;
-import com.ms_square.debugoverlay.sample.IPAddressModule;
-import com.ms_square.debugoverlay.sample.MainActivity;
-import com.ms_square.debugoverlay.sample.ScrollingActivity;
+import com.ms.square.debugoverlay.sample.IPAddressModule;
+import com.ms.square.debugoverlay.sample.MainActivity;
 
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -199,34 +193,6 @@ abstract class DebugOverlayInstrumentedTest {
         });
 
         waitForOverlay();
-    }
-
-
-    @Test
-    public void startSecondActivity() {
-        getInstrumentation().runOnMainSync(() -> {
-            debugOverlay = new DebugOverlay.Builder(getApplication())
-                    .allowSystemLayer(testSystemLayer())
-                    .build();
-            debugOverlay.install();
-        });
-
-        waitForOverlay();
-
-        Instrumentation.ActivityMonitor monitor = new Instrumentation.ActivityMonitor(ScrollingActivity.class.getCanonicalName(),
-                null, false);
-        getInstrumentation().addMonitor(monitor);
-        try {
-            onView(withId(com.ms_square.debugoverlay.sample.R.id.fab)).perform(click());
-            Activity nextActivity = monitor.waitForActivityWithTimeout(5000);
-            assertThat(nextActivity, Matchers.is(Matchers.notNullValue()));
-
-            takeActivityScreenShot(nextActivity);
-
-            nextActivity.finish();
-        } finally {
-            getInstrumentation().removeMonitor(monitor);
-        }
     }
 
     abstract ActivityTestRule getActivityRule();

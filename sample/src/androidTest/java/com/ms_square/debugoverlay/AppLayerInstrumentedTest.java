@@ -4,7 +4,7 @@ import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.ms_square.debugoverlay.sample.MainActivity;
+import com.ms.square.debugoverlay.sample.MainActivity;
 
 import org.junit.Rule;
 import org.junit.runner.RunWith;
