@@ -84,16 +84,6 @@ composeCompiler {
 
 dependencies {
   debugImplementation(project(":debugoverlay"))
-  releaseImplementation(project(":debugoverlay-no-op"))
-  testImplementation(project(":debugoverlay-no-op"))
-
-  implementation(project(":debugoverlay-ext-timber")) {
-    exclude(module = "debugoverlay")
-  }
-
-  implementation(project(":debugoverlay-ext-netstats")) {
-    exclude(module = "debugoverlay")
-  }
 
   implementation(libs.androidx.core)
   implementation(libs.androidx.annotation)
