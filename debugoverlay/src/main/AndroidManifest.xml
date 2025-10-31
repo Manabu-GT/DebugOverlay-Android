@@ -1,21 +1,10 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ms.square.debugoverlay">
-
-    <!-- To overlay view above all the application UIs -->
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Required for foreground services on Android 14+ -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-
-    <application>
-        <service
-            android:name=".DebugOverlayService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="@string/debugoverlay_foreground_service_justification"/>
-        </service>
-    </application>
-
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <provider
+      android:name="com.ms.square.debugoverlay.internal.DebugOverlayInstaller"
+      android:authorities="${applicationId}.debugoverlay-installer"
+      android:enabled="@bool/debug_overlay_auto_install"
+      android:exported="false"/>
+  </application>
 </manifest>

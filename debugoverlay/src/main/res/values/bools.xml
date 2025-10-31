@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Whether to automatically install in the main process on startup via a custom ContentProvider.
+   If false, you need to call DebugOverlay.install() manually.
+   -->
+  <bool name="debug_overlay_auto_install">true</bool>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- This file contains attributes and styles that are part of the public API -->
+    <public name="debugoverlay_overlay_text" type="id" />
+    <public name="debugoverlay_OverlayText" type="style" />
+</resources>
