@@ -49,16 +49,16 @@ subprojects {
         )
       )
     }
-  }
 
-  // Configure SARIF reports for GitHub Code Scanning
-  tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-    reports {
-      xml.required.set(true)
-      html.required.set(true)
-      txt.required.set(false)
-      sarif.required.set(true)
-      md.required.set(false)
+    // Configure SARIF reports for GitHub Code Scanning
+    tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+      reports {
+        xml.required.set(true)
+        html.required.set(true)
+        txt.required.set(false)
+        sarif.required.set(true)
+        md.required.set(false)
+      }
     }
   }
 
