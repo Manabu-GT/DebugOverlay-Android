@@ -37,8 +37,6 @@ android {
     versionName = "1.0.0"
 
     buildConfigField("String", "GIT_HASH", "\"${gitHash()}\"")
-
-    testInstrumentationRunner = "com.ms.square.debugoverlay.DebugOverlayTestRunner"
   }
 
   signingConfigs {
@@ -84,16 +82,6 @@ composeCompiler {
 
 dependencies {
   debugImplementation(project(":debugoverlay"))
-  releaseImplementation(project(":debugoverlay-no-op"))
-  testImplementation(project(":debugoverlay-no-op"))
-
-  implementation(project(":debugoverlay-ext-timber")) {
-    exclude(module = "debugoverlay")
-  }
-
-  implementation(project(":debugoverlay-ext-netstats")) {
-    exclude(module = "debugoverlay")
-  }
 
   implementation(libs.androidx.core)
   implementation(libs.androidx.annotation)
@@ -126,14 +114,6 @@ dependencies {
 
   // LeakCanary
   debugImplementation(libs.leakcanary.android)
-
-  // Set this dependency to build and run Espresso tests
-  androidTestImplementation("com.android.support.test.espresso:espresso-core:2.2.2") {
-    exclude(group = "com.android.support", module = "support-annotations")
-  }
-
-  // ScreenShot taker for instrumentation tests
-  androidTestImplementation(files("libs/cloudtestingscreenshotter_lib.aar"))
 
   testImplementation(libs.junit4)
 }
