@@ -11,10 +11,10 @@ kotlin = "2.2.21"
 kotlinxSerializationCore = "1.9.0"
 
 # Google
-material = "1.13.0"
 androidx-core = "1.17.0"
 androidx-annotation = "1.9.1"
 androidx-localbroadcast = "1.1.0"
+androidx-startup-runtime = "1.2.0"
 # Google - Compose
 activityCompose = "1.11.0"
 composeBom = "2025.10.01"
@@ -31,13 +31,17 @@ kotlinx-coroutines = "1.10.2"
 
 # Testing
 junit4 = "4.13.2"
-mockito-core = "5.20.0"
+coreKtx = "1.17.0"
+junit = "1.3.0"
+espressoCore = "3.7.0"
 
 [libraries]
 # Google
 androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "androidx-localbroadcast" }
+androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup-runtime" }
 # Google - Compose
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -63,7 +67,8 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 
 # Testing
 junit4 = { module = "junit:junit", version.ref = "junit4" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

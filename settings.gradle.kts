@@ -18,4 +18,5 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "DebugOverlay-Android"
 
-include(":sample", ":debugoverlay")
+include(":sample")
+include(":debugoverlay", ":debugoverlay-androidx-startup", ":debugoverlay-core")

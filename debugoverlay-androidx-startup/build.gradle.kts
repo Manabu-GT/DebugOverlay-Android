@@ -35,5 +35,6 @@ android {
 
 dependencies {
   api(project(":debugoverlay-core"))
+  implementation(libs.androidx.startup.runtime)
   testImplementation(libs.junit4)
 }
