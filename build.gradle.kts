@@ -24,6 +24,10 @@ extra.apply {
   set("targetSdkVersion", 36)
 }
 
+val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
+  output.set(rootProject.layout.buildDirectory.file("reports/detekt/merge.sarif"))
+}
+
 subprojects {
   // Apply only to modules that actually use Kotlin
   plugins.withId("org.jetbrains.kotlin.jvm") { apply(plugin = "io.gitlab.arturbosch.detekt") }
@@ -36,6 +40,8 @@ subprojects {
       buildUponDefaultConfig = true
       allRules = false
       config.from(rootProject.files("config/detekt/detekt.yml"))
+
+      basePath = rootProject.projectDir.absolutePath
 
       // Limit to real sources for speed
       source.setFrom(
@@ -58,6 +64,12 @@ subprojects {
         txt.required.set(false)
         sarif.required.set(true)
         md.required.set(false)
+      }
+
+      // Make reportMerge depend on this detekt task
+      reportMerge.configure {
+        input.from(sarifReportFile)
+        mustRunAfter(this@configureEach)
       }
     }
   }
