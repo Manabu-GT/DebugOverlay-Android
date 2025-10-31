@@ -7,20 +7,6 @@ config:
 processors:
   active: true
 
-# Keep reports predictable in CI
-reports:
-  txt:
-    active: false
-  xml:
-    active: true
-    path: build/reports/detekt/detekt.xml
-  html:
-    active: true
-    path: build/reports/detekt/detekt.html
-  sarif:
-    active: true
-    path: build/reports/detekt/detekt.sarif
-
 # Tweak common Android/Kotlin rules
 style:
   MagicNumber:
@@ -42,13 +28,11 @@ complexity:
     functionThreshold: 8
 
 naming:
-  MatchingDeclarationName:
+  FunctionNaming:
     active: true
+    ignoreAnnotated:
+      - 'Composable'
+  MatchingDeclarationName:
+    active: false
   TopLevelPropertyNaming:
     active: true
-
-# Ignore generated code and build artifacts
-excludes:
-  - '**/build/**'
-  - '**/.gradle/**'
-  - '**/generated/**'

@@ -28,17 +28,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # Single entrypoint runs Spotless + Detekt + Android Lint + Unit tests
-      # (Spotless and Detekt are hooked into `check` by AGP)
+      # Run checks (Spotless + Detekt + Lint + Tests), then merge SARIF reports
+      # detekt is hooked into subproject `check` tasks, so it runs automatically
+      # reportMerge must run after to collect all SARIF files
       - name: Run checks
-        run: ./gradlew check --continue --stacktrace
+        run: ./gradlew check reportMerge --continue --stacktrace
 
-      # Try to upload even when detekt finds issues if SARIF files exist
+      # Upload merged SARIF report to GitHub Code Scanning
       - name: Upload SARIF to GitHub Code Scanning
-        if: always() && hashFiles('**/build/reports/detekt/detekt.sarif') != ''
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: '**/build/reports/detekt/detekt.sarif'
+          sarif_file: build/reports/detekt/merge.sarif
 
       - name: Build Project
         run: ./gradlew clean assembleDebug --stacktrace

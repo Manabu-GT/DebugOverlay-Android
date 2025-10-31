@@ -12,11 +12,8 @@ max_line_length = 120
 
 # ----- Kotlin source -----
 [*.kt]
-indent_size = 2
-
 # ktlint core
 ktlint_code_style = android_studio
-ktlint_disabled_rules = no-wildcard-imports
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_imports_layout = *,java.**,javax.**,kotlin.**,^
 
@@ -25,23 +22,9 @@ ktlint_function_naming_ignore_when_annotated_with = Composable,Preview,Test,Para
 
 # ----- Kotlin Gradle scripts -----
 [*.gradle.kts]
-indent_size = 2
 ktlint_code_style = android_studio
 ij_kotlin_allow_trailing_comma = true
-
-# ----- XML (Android resources/manifests) -----
-[*.xml]
-indent_size = 2
 
 # ----- Markdown / YAML / JSON -----
 [*.md]
 max_line_length = off   # don’t hard-wrap prose
-
-[*.yml]
-indent_size = 2
-
-[*.yaml]
-indent_size = 2
-
-[*.json]
-indent_size = 2

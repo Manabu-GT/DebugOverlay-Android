@@ -8,20 +8,26 @@ detekt = "1.23.8"
 
 # Kotlin
 kotlin = "2.2.21"
+kotlinxSerializationCore = "1.9.0"
 
 # Google
 material = "1.13.0"
 androidx-core = "1.17.0"
 androidx-annotation = "1.9.1"
-androidx-constraintlayout = "2.2.1"
 androidx-localbroadcast = "1.1.0"
 # Google - Compose
 activityCompose = "1.11.0"
 composeBom = "2025.10.01"
+nav3Core = "1.0.0-beta01"
+lifecycleViewmodelCompose = "2.9.4"
+lifecycleViewmodelNav3 = "2.10.0-beta01"
 
 # Other
 timber = "5.0.1"
 leakcanary = "2.14"
+okhttp = "5.2.1"
+coil = "3.3.0"
+kotlinx-coroutines = "1.10.2"
 
 # Testing
 junit4 = "4.13.2"
@@ -31,19 +37,29 @@ mockito-core = "5.20.0"
 # Google
 androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
-androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx-constraintlayout" }
 androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "androidx-localbroadcast" }
-google-material = { module = "com.google.android.material:material", version.ref = "material" }
 # Google - Compose
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+# Core Navigation 3 libraries
+androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "nav3Core" }
+androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-ui", version.ref = "nav3Core" }
+# Navigation 3 Optional add-on libraries
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
 
 # Other
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+coil = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 
 # Testing
 junit4 = { module = "junit:junit", version.ref = "junit4" }
@@ -54,6 +70,7 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dexcount = { id = "com.getkeepsafe.dexcount", version.ref = "dexcount" }
