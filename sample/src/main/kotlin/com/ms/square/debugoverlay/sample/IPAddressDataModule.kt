@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import com.ms_square.debugoverlay.modules.BaseDataModule
+import com.ms.square.debugoverlay.modules.BaseDataModule
 import timber.log.Timber
 import java.io.IOException
 import java.net.NetworkInterface

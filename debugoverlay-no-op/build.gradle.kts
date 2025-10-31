@@ -11,7 +11,7 @@ java {
 }
 
 android {
-  namespace = "com.ms_square.debugoverlay"
+  namespace = "com.ms.square.debugoverlay"
   compileSdk = rootProject.extra["compileSdkVersion"] as Int
 
   defaultConfig {

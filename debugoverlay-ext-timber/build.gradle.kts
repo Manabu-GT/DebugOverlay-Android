@@ -10,7 +10,7 @@ java {
 }
 
 android {
-  namespace = "com.ms_square.debugoverlay_ext_timber"
+  namespace = "com.ms.square.debugoverlay_ext_timber"
   compileSdk = rootProject.extra["compileSdkVersion"] as Int
 
   defaultConfig {
