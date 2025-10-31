@@ -10,7 +10,7 @@ java {
 }
 
 android {
-  namespace = "com.ms_square.debugoverlay_ext_netstats"
+  namespace = "com.ms.square.debugoverlay_ext_netstats"
   compileSdk = rootProject.extra["compileSdkVersion"] as Int
 
   defaultConfig {

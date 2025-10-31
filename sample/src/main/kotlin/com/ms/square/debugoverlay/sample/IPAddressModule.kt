@@ -1,8 +1,8 @@
 package com.ms.square.debugoverlay.sample
 
 import android.content.Context
-import com.ms_square.debugoverlay.OverlayModule
-import com.ms_square.debugoverlay.modules.SimpleViewModule
+import com.ms.square.debugoverlay.OverlayModule
+import com.ms.square.debugoverlay.modules.SimpleViewModule
 
 class IPAddressModule(context: Context) :
   OverlayModule<String>(
