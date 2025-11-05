@@ -1,6 +1,6 @@
 DebugOverlay-Android
 ===========
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ms-square/debugoverlay)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ms-square/debugoverlay?color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
 [![API 26+](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#8.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
