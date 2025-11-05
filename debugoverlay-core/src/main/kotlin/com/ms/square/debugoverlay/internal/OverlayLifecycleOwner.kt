@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay
+package com.ms.square.debugoverlay.internal
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner

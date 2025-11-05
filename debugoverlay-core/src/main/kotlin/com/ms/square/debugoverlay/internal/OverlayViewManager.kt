@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay
+package com.ms.square.debugoverlay.internal
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -16,6 +16,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.core.net.toUri
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.ms.square.debugoverlay.DebugOverlay
+import com.ms.square.debugoverlay.R
 import com.ms.square.debugoverlay.internal.ui.DebugOverlayPanel
 
 internal class OverlayViewManager(
@@ -29,7 +31,7 @@ internal class OverlayViewManager(
     private var overlayPermissionRequested = false
 
     fun showDebugSystemOverlay() {
-        if (config.isAllowSystemLayer && rootView == null) {
+        if (config.allowSystemLayer && rootView == null) {
             if (!canDrawOnSystemLayer(context, getWindowTypeForOverlay(true))) {
                 Toast.makeText(
                     context,
@@ -45,13 +47,13 @@ internal class OverlayViewManager(
 
             rootView = createRoot()
 
-            val params = createLayoutParams(config.isAllowSystemLayer, null)
+            val params = createLayoutParams(config.allowSystemLayer, null)
             windowManager.addView(rootView, params)
         }
     }
 
     fun hideDebugSystemOverlay() {
-        if (config.isAllowSystemLayer && rootView != null) {
+        if (config.allowSystemLayer && rootView != null) {
             windowManager.removeView(rootView)
             rootView = null
         }
@@ -139,7 +141,7 @@ internal class OverlayViewManager(
             _rootView = createRoot()
             windowManager.addView(
                 _rootView,
-                createLayoutParams(config.isAllowSystemLayer, v.windowToken)
+                createLayoutParams(config.allowSystemLayer, v.windowToken)
             )
         }
 
