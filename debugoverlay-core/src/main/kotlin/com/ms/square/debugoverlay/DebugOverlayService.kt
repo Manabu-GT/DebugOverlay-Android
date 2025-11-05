@@ -86,9 +86,7 @@ class DebugOverlayService : Service() {
         this.overlayViewManager = overlayViewManager
         if (config.allowSystemLayer) {
             overlayViewManager.showDebugSystemOverlay()
-            if (config.showNotification) {
-                showNotification()
-            }
+            showNotification()
         }
     }
 

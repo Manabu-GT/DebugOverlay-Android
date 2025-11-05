@@ -122,31 +122,10 @@ class DebugOverlay private constructor(
     }
 
     @Parcelize
-    data class Config(
+    internal data class Config(
         val allowSystemLayer: Boolean,
-        val showNotification: Boolean,
         val activityName: String?
     ) : Parcelable
-
-    class Builder(private val application: Application) {
-        private var allowSystemLayer: Boolean = true
-        private var showNotification: Boolean = true
-        private var activityName: String? = null
-
-        fun build(): DebugOverlay {
-            var finalShowNotification = showNotification
-
-            if (!allowSystemLayer && showNotification) {
-                Log.w(TAG, "if systemLayer is not allowed, notification is not supported; thus don't show notification.")
-                finalShowNotification = false
-            }
-
-            return DebugOverlay(
-                application,
-                Config(allowSystemLayer, finalShowNotification, activityName)
-            )
-        }
-    }
 
     inner class ActivityLifecycleHandler : Application.ActivityLifecycleCallbacks {
         private val attachStateChangeListeners: MutableMap<Activity, OverlayViewManager.OverlayViewAttachStateChangeListener>? =
@@ -253,46 +232,27 @@ class DebugOverlay private constructor(
         internal const val KEY_CONFIG = "com.ms_square.debugoverlay.extra.CONFIG"
         internal const val ACTION_UNBIND = "com.ms_square.debugoverlay.ACTION_UNBIND"
 
+      /**
+       * Control whether the DebugOverlay's internal debugging logs are turned on.
+       * If enabled, you will see output in logcat as the components of DebugOverlay operates.
+       */
         @JvmStatic
         var DEBUG = false
-            private set
 
         /**
-         * Convenience method to create the default [DebugOverlay] instance.
-         *
-         * This instance is automatically initialized with the following default settings:
-         * - Overlay is placed at BOTTOM_START (bottom left)
-         * - Overlay's background color is black of opacity 25%
-         * - Overlay's textColor is white
-         * - Overlay's textSize is 12sp
-         * - Overlay's textAlpha is 1 (opaque)
-         * - Overlay is placed on System window layer
-         * - Notification is shown to control(show/hide) the overlay
-         * - Activity to start when the fore-mentioned notification is tapped is null; thus does nothing when tapped
-         *
-         * If these settings do not meet the requirements of your application you can construct your own
-         * with full control over the configuration by using [Builder] to create a [DebugOverlay] instance.
+         * Convenience method to create the [DebugOverlay] instance for its installation.
          */
         @JvmStatic
         fun with(application: Application): DebugOverlay {
-            return Builder(application).build()
+            val allowSystemLayer = application.resources.getBoolean(R.bool.debugoverlay_use_system_layer)
+            return DebugOverlay(application, Config(allowSystemLayer, getLauncherActivityName(application)))
         }
 
-        /**
-         * Control whether the DebugOverlay's internal debugging logs are turned on.
-         * If enabled, you will see output in logcat as the components of DebugOverlay operates.
-         */
-        @JvmStatic
-        fun enableDebugLogging(enabled: Boolean) {
-            DEBUG = enabled
+        private fun getLauncherActivityName(context: Context): String? {
+          val pm = context.packageManager
+          val launchIntent = pm.getLaunchIntentForPackage(context.packageName)
+          return launchIntent?.component?.className
         }
-
-        /**
-         * Tells whether the DebugOverlay's internal debugging logs are turned on.
-         * @return true if the DebugOverlay's internal debugging logs are enabled.
-         */
-        @JvmStatic
-        fun isDebugLoggingEnabled(): Boolean = DEBUG
 
         // Returns true if the current process is the main process (matches the initial application pid)
         private fun isMainProcess(application: Application): Boolean {
