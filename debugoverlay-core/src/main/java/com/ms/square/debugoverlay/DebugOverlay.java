@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -17,15 +16,13 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.FloatRange;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.ms.square.debugoverlay.modules.CpuUsageModule;
-import com.ms.square.debugoverlay.modules.FpsModule;
 import com.ms.square.debugoverlay.modules.MemInfoModule;
 
 import java.util.ArrayList;
@@ -36,12 +33,6 @@ import java.util.WeakHashMap;
 public class DebugOverlay {
 
     private static final String TAG = "DebugOverlay";
-
-    public static final Position DEFAULT_POSITION = Position.BOTTOM_START;
-    public static final int DEFAULT_BG_COLOR = Color.parseColor("#40000000");
-    public static final int DEFAULT_TEXT_COLOR = Color.WHITE;
-    public static final float DEFAULT_TEXT_SIZE = 12f; // 12sp
-    public static final float DEFAULT_TEXT_ALPHA = 1f;
 
     static final String KEY_CONFIG = "com.ms_square.debugoverlay.extra.CONFIG";
 
@@ -113,6 +104,7 @@ public class DebugOverlay {
         return DEBUG;
     }
 
+    @MainThread
     public void install() {
         if (installed) {
             throw new IllegalStateException("install() can be called only once!");
@@ -239,17 +231,6 @@ public class DebugOverlay {
 
         private List<OverlayModule<?>> overlayModules;
 
-        private Position position;
-
-        @ColorInt
-        private int bgColor;
-
-        @ColorInt
-        private int textColor;
-
-        private float textSize;
-
-        private float textAlpha;
 
         private boolean allowSystemLayer;
 
@@ -261,11 +242,6 @@ public class DebugOverlay {
             this.application = application;
 
             // default values
-            this.position = DEFAULT_POSITION;
-            this.bgColor = DEFAULT_BG_COLOR;
-            this.textColor = DEFAULT_TEXT_COLOR;
-            this.textSize = DEFAULT_TEXT_SIZE;
-            this.textAlpha = DEFAULT_TEXT_ALPHA;
             this.allowSystemLayer = true;
             this.showNotification = true;
             this.overlayModules = new ArrayList<>();
@@ -287,31 +263,6 @@ public class DebugOverlay {
                     this.overlayModules.add(otherModule);
                 }
             }
-            return this;
-        }
-
-        public Builder position(Position position) {
-            this.position = position;
-            return this;
-        }
-
-        public Builder bgColor(@ColorInt int color) {
-            this.bgColor = color;
-            return this;
-        }
-
-        public Builder textColor(@ColorInt int color) {
-            this.textColor = color;
-            return this;
-        }
-
-        public Builder textSize(float size) {
-            this.textSize = size;
-            return this;
-        }
-
-        public Builder textAlpha(@FloatRange(from=0.0, to=1.0) float alpha) {
-            this.textAlpha = alpha;
             return this;
         }
 
@@ -341,27 +292,13 @@ public class DebugOverlay {
             if (overlayModules.isEmpty()) {
                 overlayModules.add(new CpuUsageModule());
                 overlayModules.add(new MemInfoModule(application));
-                overlayModules.add(new FpsModule());
             }
             return new DebugOverlay(application, overlayModules,
-                    new Config(position, bgColor, textColor, textSize, textAlpha, allowSystemLayer,
-                            showNotification, activityName));
+                    new Config(allowSystemLayer, showNotification, activityName));
         }
     }
 
     static class Config implements Parcelable {
-
-        private final Position position;
-
-        @ColorInt
-        private final int bgColor;
-
-        @ColorInt
-        private final int textColor;
-
-        private final float textSize;
-
-        private final float textAlpha;
 
         private final boolean allowSystemLayer;
 
@@ -369,36 +306,10 @@ public class DebugOverlay {
 
         private final String activityName;
 
-        public Config(Position position, @ColorInt int bgColor, @ColorInt int textColor, float textSize,
-                      float textAlpha, boolean allowSystemLayer, boolean showNotification, String activityName) {
-            this.position = position;
-            this.bgColor = bgColor;
-            this.textColor = textColor;
-            this.textSize = textSize;
-            this.textAlpha = textAlpha;
+        public Config(boolean allowSystemLayer, boolean showNotification, String activityName) {
             this.allowSystemLayer = allowSystemLayer;
             this.showNotification = showNotification;
             this.activityName = activityName;
-        }
-
-        public Position getPosition() {
-            return position;
-        }
-
-        public int getBgColor() {
-            return bgColor;
-        }
-
-        public int getTextColor() {
-            return textColor;
-        }
-
-        public float getTextSize() {
-            return textSize;
-        }
-
-        public float getTextAlpha() {
-            return textAlpha;
         }
 
         public boolean isAllowSystemLayer() {
@@ -420,38 +331,27 @@ public class DebugOverlay {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeInt(this.position == null ? -1 : this.position.ordinal());
-            dest.writeInt(this.bgColor);
-            dest.writeInt(this.textColor);
-            dest.writeFloat(this.textSize);
-            dest.writeFloat(this.textAlpha);
             dest.writeByte(this.allowSystemLayer ? (byte) 1 : (byte) 0);
             dest.writeByte(this.showNotification ? (byte) 1 : (byte) 0);
             dest.writeString(this.activityName);
         }
 
         protected Config(Parcel in) {
-            int tmpPosition = in.readInt();
-            this.position = tmpPosition == -1 ? null : Position.values()[tmpPosition];
-            this.bgColor = in.readInt();
-            this.textColor = in.readInt();
-            this.textSize = in.readFloat();
-            this.textAlpha = in.readFloat();
             this.allowSystemLayer = in.readByte() != 0;
             this.showNotification = in.readByte() != 0;
             this.activityName = in.readString();
         }
 
-        public static final Parcelable.Creator<Config> CREATOR = new Parcelable.Creator<Config>() {
-            @Override
-            public Config createFromParcel(Parcel source) {
-                return new Config(source);
-            }
+        public static final Parcelable.Creator<Config> CREATOR = new Parcelable.Creator<>() {
+          @Override
+          public Config createFromParcel(Parcel source) {
+            return new Config(source);
+          }
 
-            @Override
-            public Config[] newArray(int size) {
-                return new Config[size];
-            }
+          @Override
+          public Config[] newArray(int size) {
+            return new Config[size];
+          }
         };
     }
 

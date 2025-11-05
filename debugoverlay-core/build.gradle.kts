@@ -1,5 +1,7 @@
 plugins {
   alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlin.android)
+  alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.dexcount)
   alias(libs.plugins.mavenPublish)
 }
@@ -32,6 +34,10 @@ android {
   // force usage of prefix to avoid naming conflicts
   resourcePrefix = "debugoverlay_"
 
+  buildFeatures {
+    compose = true
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -41,9 +47,24 @@ android {
 }
 
 dependencies {
-  implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-
   implementation(libs.androidx.core)
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.annotation)
   implementation(libs.androidx.localbroadcastmanager)
+
+  // Compose
+  implementation(platform(libs.androidx.compose.bom))
+  implementation(libs.androidx.compose.foundation)
+  implementation(libs.androidx.ui)
+  implementation(libs.androidx.material3)
+  implementation(libs.androidx.compose.ui.tooling)
+  implementation(libs.androidx.ui.tooling.preview)
+
+  // Lifecycle for synthetic lifecycle owner
+  implementation(libs.androidx.lifecycle.runtime.ktx)
+  implementation(libs.androidx.lifecycle.viewmodel.ktx)
+  implementation(libs.androidx.savedstate)
+
+  implementation(libs.kotlinx.collections.immutable)
+
 }
