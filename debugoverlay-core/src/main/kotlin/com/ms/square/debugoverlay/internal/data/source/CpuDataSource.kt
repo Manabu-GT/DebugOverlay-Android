@@ -23,6 +23,12 @@ private val REGEX_FOR_STAT = " +".toRegex()
 internal class CpuDataSource {
 
     private val numCpuCores = Os.sysconf(OsConstants._SC_NPROCESSORS_CONF)
+
+  /**
+   * A way for user-space applications to find out the granularity of the system's software clock,
+   * which is maintained by the kernel and measures time in units called "jiffies."
+   * It basically returns # of ticks per second.
+   */
     private val ticksPerSecond = Os.sysconf(OsConstants._SC_CLK_TCK)
 
     fun cpuUsage(interval: Duration = 1L.seconds): Flow<Percentage> {
@@ -30,7 +36,6 @@ internal class CpuDataSource {
             var myProcessCpuReader: BufferedReader? = null
 
             // Tracking variables
-            var processStartTimeSec = 0.0
             var lastCpuTimeSec = 0.0
             var lastProcessTimeSec = 0.0
 
@@ -43,6 +48,7 @@ internal class CpuDataSource {
                         }
 
                         // Read CPU data
+                        // Ref... Section 1.8 in https://www.kernel.org/doc/Documentation/filesystems/proc.txt and manpage of proc
                         val cpuData = myProcessCpuReader.readLine()?.split(REGEX_FOR_STAT, limit = 23)
 
                         if (cpuData != null && cpuData.size >= 22) {
@@ -53,18 +59,11 @@ internal class CpuDataSource {
                                     cpuData[15].toDouble() +
                                     cpuData[16].toDouble()
                             val currentCpuTimeSec = cpuTimeTicks / ticksPerSecond
-
-                            // Set process start time once (won't change)
-                            if (processStartTimeSec == 0.0) {
-                                // starttime(21) - time process started after boot
-                                processStartTimeSec = cpuData[21].toDouble() / ticksPerSecond
-                            }
-
                             val currentProcessTimeSec = SystemClock.elapsedRealtime() / 1000.0
 
                             // Calculate usage percentages (need at least one previous reading)
-                            if (processStartTimeSec > 0 && lastCpuTimeSec > 0 && lastProcessTimeSec > 0) {
-                                // Relative usage during the interval
+                            if (lastCpuTimeSec > 0 && lastProcessTimeSec > 0) {
+                                // Relative usage percent for this application during the interval
                                 val cpuTimeDeltaSec = currentCpuTimeSec - lastCpuTimeSec
                                 val processTimeDeltaSec = currentProcessTimeSec - lastProcessTimeSec
                                 val intervalUsagePercent =

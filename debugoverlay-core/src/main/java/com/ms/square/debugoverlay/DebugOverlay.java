@@ -22,9 +22,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.ms.square.debugoverlay.modules.CpuUsageModule;
-import com.ms.square.debugoverlay.modules.MemInfoModule;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -288,10 +285,6 @@ public class DebugOverlay {
                     Log.w(TAG, "if systemLayer is not allowed, notification is not supported; thus don't show notification.");
                     showNotification = false;
                 }
-            }
-            if (overlayModules.isEmpty()) {
-                overlayModules.add(new CpuUsageModule());
-                overlayModules.add(new MemInfoModule(application));
             }
             return new DebugOverlay(application, overlayModules,
                     new Config(allowSystemLayer, showNotification, activityName));
