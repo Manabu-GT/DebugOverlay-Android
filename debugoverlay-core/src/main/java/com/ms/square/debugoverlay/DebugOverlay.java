@@ -22,7 +22,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -39,8 +38,6 @@ public class DebugOverlay {
 
     private final Application application;
 
-    private final List<OverlayModule<?>> overlayModules;
-
     private final Config config;
 
     private DebugOverlayService overlayService;
@@ -53,9 +50,8 @@ public class DebugOverlay {
 
     private boolean unBindRequestReceived;
 
-    private DebugOverlay(Application application, List<OverlayModule<?>> overlayModules, Config config) {
+    private DebugOverlay(Application application, Config config) {
         this.application = application;
-        this.overlayModules = overlayModules;
         this.config = config;
     }
 
@@ -112,7 +108,6 @@ public class DebugOverlay {
         }
 
         overlayViewManager = new OverlayViewManager(application, config);
-        overlayViewManager.setOverlayModules(overlayModules);
 
         startAndBindDebugOverlayService();
 
@@ -164,7 +159,6 @@ public class DebugOverlay {
             // We've bound to DebugOverlayService, cast the IBinder and get DebugOverlayService instance
             DebugOverlayService.LocalBinder binder = (DebugOverlayService.LocalBinder) service;
             overlayService = binder.getService();
-            overlayService.setOverlayModules(overlayModules);
             overlayService.setOverlayViewManager(overlayViewManager);
             overlayService.startModules();
         }
@@ -226,8 +220,6 @@ public class DebugOverlay {
 
         private final Application application;
 
-        private List<OverlayModule<?>> overlayModules;
-
 
         private boolean allowSystemLayer;
 
@@ -241,26 +233,6 @@ public class DebugOverlay {
             // default values
             this.allowSystemLayer = true;
             this.showNotification = true;
-            this.overlayModules = new ArrayList<>();
-        }
-
-        public Builder modules(@NonNull List<OverlayModule<?>> overlayModules) {
-            if (overlayModules.size() <= 0) {
-                throw new IllegalArgumentException("Module list cat not be empty");
-            }
-            this.overlayModules = overlayModules;
-            return this;
-        }
-
-        public Builder modules(@NonNull OverlayModule<?> overlayModule, OverlayModule<?>... other) {
-            this.overlayModules.clear();
-            this.overlayModules.add(overlayModule);
-            for (OverlayModule<?> otherModule : other) {
-                if (otherModule != null) {
-                    this.overlayModules.add(otherModule);
-                }
-            }
-            return this;
         }
 
         public Builder allowSystemLayer(boolean allowSystemLayer) {
@@ -286,7 +258,7 @@ public class DebugOverlay {
                     showNotification = false;
                 }
             }
-            return new DebugOverlay(application, overlayModules,
+            return new DebugOverlay(application,
                     new Config(allowSystemLayer, showNotification, activityName));
         }
     }

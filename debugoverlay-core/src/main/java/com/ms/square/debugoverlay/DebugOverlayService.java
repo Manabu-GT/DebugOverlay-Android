@@ -10,13 +10,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.content.pm.ServiceInfo;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -24,9 +24,6 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import java.util.Collections;
-import java.util.List;
 
 public class DebugOverlayService extends Service {
 
@@ -41,8 +38,6 @@ public class DebugOverlayService extends Service {
     private final IBinder binder = new LocalBinder();
 
     private DebugOverlay.Config config;
-
-    private List<OverlayModule<?>> overlayModules = Collections.emptyList();
 
     private OverlayViewManager overlayViewManager;
 
@@ -107,10 +102,6 @@ public class DebugOverlayService extends Service {
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcastSync(new Intent(DebugOverlay.ACTION_UNBIND));
     }
 
-    public void setOverlayModules(@NonNull List<OverlayModule<?>> overlayModules) {
-        this.overlayModules = overlayModules;
-    }
-
     void setOverlayViewManager(@NonNull OverlayViewManager overlayViewManager) {
         this.overlayViewManager = overlayViewManager;
         if (config.isAllowSystemLayer()) {
@@ -123,18 +114,14 @@ public class DebugOverlayService extends Service {
 
     public void startModules() {
         if (!modulesStarted) {
-            for (OverlayModule<?> overlayModule : overlayModules) {
-                overlayModule.start();
-            }
+            // used to start all overlay modules here
             modulesStarted = true;
         }
     }
 
     public void stopModules() {
         if (modulesStarted) {
-            for (OverlayModule<?> overlayModule : overlayModules) {
-                overlayModule.stop();
-            }
+            // used to stop all overlay modules here
             modulesStarted = false;
         }
     }

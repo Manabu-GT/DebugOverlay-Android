@@ -12,9 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.net.toUri
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -27,8 +24,6 @@ internal class OverlayViewManager(
 ) {
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-    var overlayModules by mutableStateOf(emptyList<OverlayModule<*>>())
 
     private var rootView: ViewGroup? = null
     private var overlayPermissionRequested = false
@@ -127,14 +122,14 @@ internal class OverlayViewManager(
         private var _rootView: ViewGroup? = null
 
         fun onActivityResumed() {
-            _rootView?.let { root ->
-              if (overlayModules.isNotEmpty()) {
-                // force-update recreated views with the latest data
-                for (overlayModule in overlayModules) {
-                  overlayModule.notifyObservers()
-                }
-              }
-            }
+//            _rootView?.let { root ->
+//              if (overlayModules.isNotEmpty()) {
+//                // force-update recreated views with the latest data
+//                for (overlayModule in overlayModules) {
+//                  overlayModule.notifyObservers()
+//                }
+//              }
+//            }
         }
 
         override fun onViewAttachedToWindow(v: View) {
