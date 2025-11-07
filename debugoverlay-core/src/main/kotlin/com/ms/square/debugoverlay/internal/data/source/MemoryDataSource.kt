@@ -2,17 +2,16 @@ package com.ms.square.debugoverlay.internal.data.source
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Process
-import com.ms.square.debugoverlay.internal.Logger
+import android.os.Debug
 import com.ms.square.debugoverlay.internal.data.Percentage
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+
 private const val KB_TO_MB = 1024f
 
 internal class MemoryDataSource(context: Context) {
@@ -52,22 +51,15 @@ internal class MemoryDataSource(context: Context) {
     }
   }
 
-  @Suppress("TooGenericExceptionCaught")
-  fun pss(interval: Duration = 1L.seconds): Flow<Float> = flow {
-    var lastPss = 0f
+  // 3secs default interval as PSS often doesn't change a lot.
+  fun pss(interval: Duration = 3L.seconds): Flow<Float> = flow {
     while (currentCoroutineContext().isActive) {
-      try {
-        val processMemInfo = am.getProcessMemoryInfo(intArrayOf(Process.myPid()))[0]
-        val pssInMBytes = processMemInfo.totalPss / KB_TO_MB
-        lastPss = pssInMBytes
-        emit(pssInMBytes)
-      } catch (e: CancellationException) {
-        // Rethrow CancellationException to ensure proper cancellation propagation
-        throw e
-      } catch (e: RuntimeException) {
-        Logger.e("error in querying the PSS", e)
-        emit(lastPss)
-      }
+      // activity manager's getProcessMemoryInfo only refreshes every 5 mins (MEMORY_INFO_THROTTLE_TIME); thus
+      // use Debug.getMemoryInfo instead as it's acceptable not to include some protected allocations such as graphics.
+      val processMemInfo = Debug.MemoryInfo()
+      Debug.getMemoryInfo(processMemInfo)
+      val pssInMBytes = processMemInfo.totalPss / KB_TO_MB
+      emit(pssInMBytes)
       delay(interval)
     }
   }
