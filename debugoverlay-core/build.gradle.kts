@@ -58,14 +58,13 @@ dependencies {
   implementation(libs.androidx.compose.foundation)
   implementation(libs.androidx.ui)
   implementation(libs.androidx.material3)
-  implementation(libs.androidx.compose.ui.tooling)
   implementation(libs.androidx.ui.tooling.preview)
+
+  debugImplementation(libs.androidx.compose.ui.tooling)
 
   // Lifecycle for synthetic lifecycle owner
   implementation(libs.androidx.lifecycle.runtime.ktx)
-  implementation(libs.androidx.lifecycle.viewmodel.ktx)
   implementation(libs.androidx.savedstate)
 
   implementation(libs.kotlinx.collections.immutable)
-
 }

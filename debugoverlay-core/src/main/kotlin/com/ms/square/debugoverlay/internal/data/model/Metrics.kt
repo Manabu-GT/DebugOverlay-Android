@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.data.model
 
+import androidx.annotation.AnyThread
 import androidx.annotation.Size
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -9,7 +10,9 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.runningFold
 import java.util.LinkedList
 
-internal data class Metrics(val value: Float, @param:Size(16) val valueHistory: ImmutableList<Float>)
+private const val VALUE_HISTORY_SIZE: Int = 16
+
+internal data class Metrics(val value: Float, @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: ImmutableList<Float>)
 
 internal fun Flow<Float>.toMetrics(): Flow<Metrics> {
   val circularBuffer = CircularBuffer<Float>()
@@ -20,9 +23,11 @@ internal fun Flow<Float>.toMetrics(): Flow<Metrics> {
   }.drop(1)
 }
 
-private class CircularBuffer<T>(private val capacity: Int = 16) {
+@AnyThread
+private class CircularBuffer<T>(private val capacity: Int = VALUE_HISTORY_SIZE) {
   private val buffer = LinkedList<T>()
 
+  @Synchronized
   fun add(item: T) {
     if (buffer.size >= capacity) {
       buffer.removeFirst()
@@ -30,5 +35,6 @@ private class CircularBuffer<T>(private val capacity: Int = 16) {
     buffer.addLast(item)
   }
 
+  @Synchronized
   fun toImmutableList(): ImmutableList<T> = buffer.toImmutableList()
 }

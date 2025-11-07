@@ -31,11 +31,12 @@ internal fun MetricRow(
   Row(
     modifier = Modifier.fillMaxWidth(),
     horizontalArrangement = Arrangement.SpaceBetween,
-    verticalAlignment = Alignment.CenterVertically,
+    verticalAlignment = Alignment.CenterVertically
   ) {
     Row(
       horizontalArrangement = Arrangement.spacedBy(4.dp),
-      verticalAlignment = Alignment.CenterVertically) {
+      verticalAlignment = Alignment.CenterVertically
+    ) {
       Box(
         modifier = Modifier
           .size(6.dp)

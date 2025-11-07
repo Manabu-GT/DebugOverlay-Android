@@ -26,14 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
-import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
-import com.ms.square.debugoverlay.internal.data.source.DisplayDataSource
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
@@ -45,46 +41,41 @@ private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
 
 @Composable
 internal fun DebugOverlayPanel(
+  metrics: DebugOverlayPanelMetrics?,
   modifier: Modifier = Modifier,
   onClick: () -> Unit = {}
 ) {
-  val context = LocalContext.current
-
-  val displayDataSource = remember(context) { DisplayDataSource(context) }
-  val debugOverlayPanelDataSource = remember(displayDataSource) { DebugOverlayPanelDataSourceImpl(context, displayDataSource) }
-  val debugOverlayPanelMetrics = debugOverlayPanelDataSource.debugOverlayPanelMetrics().collectAsStateWithLifecycle(initialValue = null)
-
-  Surface(
-    modifier = modifier
-      .pointerInput(Unit) {
-        detectTapGestures(
-          onTap = {
-            onClick()
-          }
-        )
-      }
-      .padding(all = 8.dp)
-      .border(
-        width = 1.dp,
-        color = Color.White.copy(alpha = 0.2f),
-        shape = RoundedCornerShape(12.dp)
-      ),
-    shape = RoundedCornerShape(12.dp),
-    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-    tonalElevation = 1.dp,
-    shadowElevation = 2.dp
-  ) {
-    Column(
-      modifier = Modifier
+  metrics?.let {
+    Surface(
+      modifier = modifier
+        .pointerInput(Unit) {
+          detectTapGestures(
+            onTap = {
+              onClick()
+            }
+          )
+        }
         .padding(all = 8.dp)
-        .widthIn(max = 120.dp),
-      verticalArrangement = Arrangement.spacedBy(6.dp)
+        .border(
+          width = 1.dp,
+          color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+          shape = RoundedCornerShape(12.dp)
+        ),
+      shape = RoundedCornerShape(12.dp),
+      color = MaterialTheme.colorScheme.surfaceContainerHigh,
+      tonalElevation = 3.dp,
+      shadowElevation = 8.dp
     ) {
-      debugOverlayPanelMetrics.value?.let {
+      Column(
+        modifier = Modifier
+          .padding(all = 8.dp)
+          .widthIn(max = 120.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+      ) {
         CpuRow(it.cpuMetrics)
         HeapRow(it.heapMetrics)
-        PssRow(it.pssMetrics)
-        FpsRow(it.fpsMetrics, displayDataSource.currentRefreshRate, displayDataSource.maxSupportedRefreshRate.value)
+        PssRow(it.pssMetrics, it.maxPss)
+        FpsRow(it.fpsMetrics, it.targetFps, it.maxFps)
       }
     }
   }
@@ -117,7 +108,7 @@ private fun HeapRow(heapMetrics: Metrics) {
 }
 
 @Composable
-private fun PssRow(pssMetrics: Metrics) {
+private fun PssRow(pssMetrics: Metrics, maxPss: Float) {
   MetricRow(
     label = "Pss",
     value = "${pssMetrics.value.roundToInt()}",
@@ -125,7 +116,7 @@ private fun PssRow(pssMetrics: Metrics) {
     lineGraphData = pssMetrics.valueHistory,
     lineGraphColor = Color(0xFF00BCD4),
     lineGraphMinValue = 0f,
-    lineGraphMaxValue = 1024f
+    lineGraphMaxValue = maxPss
   )
 }
 
@@ -133,8 +124,8 @@ private fun PssRow(pssMetrics: Metrics) {
 private fun FpsRow(fpsMetrics: Metrics, targetFps: Float, maxFps: Float) {
   MetricRow(
     label = "Fps",
-    value = "${fpsMetrics.value}",
-    statusColor = fpsMetrics.value.toFpsStatusColor( targetFps),
+    value = "${fpsMetrics.value.roundToInt()}",
+    statusColor = fpsMetrics.value.toFpsStatusColor(targetFps),
     lineGraphData = fpsMetrics.valueHistory,
     lineGraphColor = Color(0xFF10B981),
     lineGraphMinValue = 0f,
@@ -142,40 +133,34 @@ private fun FpsRow(fpsMetrics: Metrics, targetFps: Float, maxFps: Float) {
   )
 }
 
-private fun Float.toCpuStatusColor(): Color {
-  return when {
-    this > 80 -> STATUS_COLOR_CRITICAL
-    this > 50 -> STATUS_COLOR_WARNING
-    else -> STATUS_COLOR_NORMAL
-  }
+private fun Float.toCpuStatusColor(): Color = when {
+  this > 80 -> STATUS_COLOR_CRITICAL
+  this > 50 -> STATUS_COLOR_WARNING
+  else -> STATUS_COLOR_NORMAL
 }
 
 private fun Float.toFpsStatusColor(targetFps: Float): Color {
   val fpsRatio = this / targetFps
   return when {
     fpsRatio < .5f -> STATUS_COLOR_CRITICAL
-    fpsRatio < .8f ->  STATUS_COLOR_WARNING
+    fpsRatio < .8f -> STATUS_COLOR_WARNING
     else -> STATUS_COLOR_NORMAL
   }
 }
 
-private fun Float.toMemHeapStatusColor(): Color {
-  return when {
-    this > 85 -> STATUS_COLOR_CRITICAL
-    this > 70 -> STATUS_COLOR_WARNING
-    else -> STATUS_COLOR_NORMAL
-  }
+private fun Float.toMemHeapStatusColor(): Color = when {
+  this > 85 -> STATUS_COLOR_CRITICAL
+  this > 70 -> STATUS_COLOR_WARNING
+  else -> STATUS_COLOR_NORMAL
 }
 
-private fun Float.toMemPssStatusColor(): Color {
-  return when {
-    this > 750 -> STATUS_COLOR_CRITICAL
-    this > 500 -> STATUS_COLOR_WARNING
-    else -> STATUS_COLOR_NORMAL
-  }
+private fun Float.toMemPssStatusColor(): Color = when {
+  this > 750 -> STATUS_COLOR_CRITICAL
+  this > 500 -> STATUS_COLOR_WARNING
+  else -> STATUS_COLOR_NORMAL
 }
 
-//==========================================================================
+// ==========================================================================
 // Composable Previews with static data (no performance monitoring)
 @Composable
 fun DebugOverlayPanelPreview(
@@ -184,9 +169,8 @@ fun DebugOverlayPanelPreview(
   heapPercent: Float = 72f,
   pss: Float = 256f,
   fps: Float = 60f,
-  onClick: () -> Unit = {}
+  onClick: () -> Unit = {},
 ) {
-
   // Mock data that updates for preview
   var metrics by remember {
     mutableStateOf(
@@ -195,6 +179,9 @@ fun DebugOverlayPanelPreview(
         heapMetrics = Metrics(heapPercent, persistentListOf(65f, 68f, 70f, 72f, 71f, 70f, 72f, heapPercent)),
         pssMetrics = Metrics(pss, persistentListOf(165f, 168f, 170f, 172f, 171f, 170f, 202f, pss)),
         fpsMetrics = Metrics(fps, persistentListOf(60f, 59f, 60f, 60f, 58f, 60f, 59f, fps)),
+        targetFps = 90f,
+        maxFps = 90f,
+        maxPss = 512f  // Typical mid-range device
       )
     )
   }
@@ -209,46 +196,31 @@ fun DebugOverlayPanelPreview(
       val newFps = (40..90).random().toFloat()
 
       metrics = metrics.copy(
-        cpuMetrics = Metrics(newCpu, (metrics.cpuMetrics.valueHistory.toMutableList().drop(1) + newCpu).toImmutableList()),
-        heapMetrics = Metrics(newHeap, (metrics.heapMetrics.valueHistory.toMutableList().drop(1) + newHeap).toImmutableList()),
-        pssMetrics = Metrics(newPss, (metrics.pssMetrics.valueHistory.toMutableList().drop(1) + newPss).toImmutableList()),
-        fpsMetrics = Metrics(newFps, (metrics.fpsMetrics.valueHistory.toMutableList().drop(1) + newFps).toImmutableList())
+        cpuMetrics = Metrics(
+          newCpu,
+          (metrics.cpuMetrics.valueHistory.toMutableList().drop(1) + newCpu).toImmutableList()
+        ),
+        heapMetrics = Metrics(
+          newHeap,
+          (metrics.heapMetrics.valueHistory.toMutableList().drop(1) + newHeap).toImmutableList()
+        ),
+        pssMetrics = Metrics(
+          newPss,
+          (metrics.pssMetrics.valueHistory.toMutableList().drop(1) + newPss).toImmutableList()
+        ),
+        fpsMetrics = Metrics(
+          newFps,
+          (metrics.fpsMetrics.valueHistory.toMutableList().drop(1) + newFps).toImmutableList()
+        )
       )
     }
   }
 
-  Surface(
-    modifier = modifier
-      .pointerInput(Unit) {
-        detectTapGestures(
-          onTap = {
-            onClick()
-          }
-        )
-      }
-      .padding(all = 8.dp)
-      .border(
-        width = 1.dp,
-        color = Color.White.copy(alpha = 0.2f),
-        shape = RoundedCornerShape(12.dp)
-      ),
-    shape = RoundedCornerShape(12.dp),
-    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-    tonalElevation = 1.dp,
-    shadowElevation = 2.dp
-  ) {
-    Column(
-      modifier = Modifier
-        .padding(all = 8.dp)
-        .widthIn(max = 120.dp),
-      verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-      CpuRow(metrics.cpuMetrics)
-      HeapRow(metrics.heapMetrics)
-      PssRow(metrics.pssMetrics)
-      FpsRow(metrics.fpsMetrics, 90f, 90f)
-    }
-  }
+  DebugOverlayPanel(
+    metrics = metrics,
+    modifier = modifier,
+    onClick = onClick
+  )
 }
 
 @Preview(name = "Light Theme", showBackground = true)

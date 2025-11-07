@@ -14,44 +14,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 
-//@Composable
-//internal fun LineGraph(
-//  data: List<Float>,
-//  color: Color,
-//  modifier: Modifier = Modifier
-//) {
-//  Canvas(modifier = modifier) {
-//    if (data.size < 2) return@Canvas
-//
-//    val width = size.width
-//    val height = size.height
-//    val xStep = width / (data.size - 1)
-//
-//    val min = data.min()
-//    val max = data.max()
-//    val range = (max - min).coerceAtLeast(1f)
-//
-//    val path = Path().apply {
-//      data.forEachIndexed { index, value ->
-//        val x = index * xStep
-//        val y = height - ((value - min) / range) * height
-//
-//        if (index == 0) {
-//          moveTo(x, y)
-//        } else {
-//          lineTo(x, y)
-//        }
-//      }
-//    }
-//
-//    drawPath(
-//      path = path,
-//      color = color.copy(alpha = 0.6f),
-//      style = Stroke(width = 2.dp.toPx())
-//    )
-//  }
-//}
-
 @Composable
 internal fun LineGraph(
   data: ImmutableList<Float>,

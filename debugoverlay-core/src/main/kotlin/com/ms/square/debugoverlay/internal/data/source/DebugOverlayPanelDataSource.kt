@@ -13,22 +13,28 @@ internal sealed interface DebugOverlayPanelDataSource {
   fun debugOverlayPanelMetrics(): Flow<DebugOverlayPanelMetrics>
 }
 
-internal class DebugOverlayPanelDataSourceImpl(context: Context, displayDataSource: DisplayDataSource) : DebugOverlayPanelDataSource {
+internal class DebugOverlayPanelDataSourceImpl(
+  context: Context
+) : DebugOverlayPanelDataSource {
 
   private val cpuDataSource = CpuDataSource()
   private val memoryDataSource = MemoryDataSource(context)
-  private val fpsDataSourceImpl = FpsDataSource(displayDataSource)
+  private val fpsDataSource = FpsDataSource(context)
 
-  override fun debugOverlayPanelMetrics(): Flow<DebugOverlayPanelMetrics> {
-    return combine(
-      cpuDataSource.cpuUsage().map { it.value }.toMetrics(),
-      memoryDataSource.heapUsage().map { it.value }.toMetrics(),
-      memoryDataSource.pss().toMetrics(),
-      fpsDataSourceImpl.fps().toMetrics().flowOn(Dispatchers.Main)
-    ) {
-      cpuUsage, heapUsage, pss, fps ->
-      DebugOverlayPanelMetrics(cpuUsage, heapUsage, pss, fps)
-    }.flowOn(Dispatchers.IO)
-  }
+  override fun debugOverlayPanelMetrics(): Flow<DebugOverlayPanelMetrics> = combine(
+    cpuDataSource.cpuUsage().map { it.value }.toMetrics(),
+    memoryDataSource.heapUsage().map { it.value }.toMetrics(),
+    memoryDataSource.pss().toMetrics(),
+    fpsDataSource.fps().toMetrics().flowOn(Dispatchers.Main)
+  ) { cpuUsage, heapUsage, pss, fps ->
+    DebugOverlayPanelMetrics(
+      cpuMetrics = cpuUsage,
+      heapMetrics = heapUsage,
+      pssMetrics = pss,
+      maxPss = memoryDataSource.maxPss,
+      fpsMetrics = fps,
+      targetFps = fpsDataSource.currentTargetFps,
+      maxFps = fpsDataSource.maxSupportedFps
+    )
+  }.flowOn(Dispatchers.IO)
 }
-

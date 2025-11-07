@@ -11,7 +11,9 @@ import androidx.savedstate.SavedStateRegistryOwner
  * Synthetic lifecycle owner for ComposeView when used outside the Activity hierarchy.
  * This is necessary because ComposeView requires a LifecycleOwner to function properly.
  */
-internal class OverlayLifecycleOwner : LifecycleOwner, SavedStateRegistryOwner {
+internal class OverlayLifecycleOwner :
+  LifecycleOwner,
+  SavedStateRegistryOwner {
   private val lifecycleRegistry = LifecycleRegistry(this)
   private val savedStateRegistryController = SavedStateRegistryController.create(this)
 
