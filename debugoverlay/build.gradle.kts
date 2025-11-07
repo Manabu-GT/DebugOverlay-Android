@@ -25,6 +25,9 @@ android {
     targetSdk = rootProject.extra["targetSdkVersion"] as Int
   }
 
+  // force usage of prefix to avoid naming conflicts
+  resourcePrefix = "debugoverlay_"
+
   buildTypes {
     release {
       isMinifyEnabled = false

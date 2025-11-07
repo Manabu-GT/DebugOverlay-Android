@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <public name="debug_overlay_auto_install" type="bool"/>
+  <public name="debugoverlay_auto_install" type="bool"/>
 </resources>
