@@ -23,15 +23,12 @@ fun gitHash(): String = Runtime
 
 android {
   namespace = "com.ms.square.debugoverlay.sample"
-  compileSdk = rootProject.extra["compileSdkVersion"] as Int
-
-  // to allow buildConfigField usage within defaultConfig
-  buildFeatures.buildConfig = true
+  compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
   defaultConfig {
     applicationId = "com.ms.square.debugoverlay.sample"
-    minSdk = rootProject.extra["minSdkVersion"] as Int
-    targetSdk = rootProject.extra["targetSdkVersion"] as Int
+    minSdk = libs.versions.androidMinSdk.get().toInt()
+    targetSdk = libs.versions.androidTargetSdk.get().toInt()
 
     versionCode = 1
     versionName = "1.0.0"
@@ -69,6 +66,8 @@ android {
 
   buildFeatures {
     compose = true
+    // to allow buildConfigField usage within defaultConfig
+    buildConfig = true
   }
 }
 
