@@ -16,18 +16,16 @@ java {
 android {
   namespace = "com.ms.square.debugoverlay"
 
-  compileSdk {
-    version = release(rootProject.extra["compileSdkVersion"] as Int)
-  }
+  compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
   defaultConfig {
-    minSdk = rootProject.extra["minSdkVersion"] as Int
+    minSdk = libs.versions.androidMinSdk.get().toInt()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   testOptions {
-    targetSdk = rootProject.extra["targetSdkVersion"] as Int
+    targetSdk = libs.versions.androidTargetSdk.get().toInt()
     // Enable Android resources in unit tests so Robolectric can access R.*
     unitTests.isIncludeAndroidResources = true
   }

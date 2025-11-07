@@ -6,6 +6,11 @@ maven-publish = "0.34.0"
 spotless = "8.0.0"
 detekt = "1.23.8"
 
+# Android
+androidMinSdk = "26"
+androidCompileSdk = "36"
+androidTargetSdk = "36"
+
 # Kotlin
 kotlin = "2.2.21"
 kotlinxSerializationCore = "1.9.0"

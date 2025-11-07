@@ -13,16 +13,14 @@ java {
 
 android {
   namespace = "com.ms.square.debugoverlay"
-  compileSdk {
-    version = release(rootProject.extra["compileSdkVersion"] as Int)
-  }
+  compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
   defaultConfig {
-    minSdk = rootProject.extra["minSdkVersion"] as Int
+    minSdk = libs.versions.androidMinSdk.get().toInt()
   }
 
   testOptions {
-    targetSdk = rootProject.extra["targetSdkVersion"] as Int
+    targetSdk = libs.versions.androidTargetSdk.get().toInt()
   }
 
   // force usage of prefix to avoid naming conflicts

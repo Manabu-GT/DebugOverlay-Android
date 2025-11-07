@@ -17,13 +17,6 @@ plugins {
   alias(libs.plugins.spotless)
 }
 
-// http://www.gradle.org/docs/current/dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html
-extra.apply {
-  set("compileSdkVersion", 36)
-  set("minSdkVersion", 26)
-  set("targetSdkVersion", 36)
-}
-
 val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
   output.set(rootProject.layout.buildDirectory.file("reports/detekt/merge.sarif"))
 }
