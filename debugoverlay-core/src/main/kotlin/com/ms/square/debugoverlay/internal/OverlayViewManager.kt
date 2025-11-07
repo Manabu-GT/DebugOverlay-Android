@@ -15,6 +15,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
@@ -93,8 +94,11 @@ internal abstract class OverlayViewManager(protected val context: Context) {
       }
       val metrics by debugOverlayPanelMetricsFlow.collectAsStateWithLifecycle(initialValue = null)
 
+      // Observe configuration changes for theme adaptation
+      val isDarkTheme = LocalConfiguration.current.isDarkTheme()
+      
       MaterialTheme(
-        colorScheme = if (context.isDarkTheme()) {
+        colorScheme = if (isDarkTheme) {
           darkColorScheme()
         } else {
           lightColorScheme()
@@ -111,5 +115,5 @@ internal abstract class OverlayViewManager(protected val context: Context) {
   }
 }
 
-private fun Context.isDarkTheme(): Boolean =
-  (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+private fun Configuration.isDarkTheme(): Boolean =
+  (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
