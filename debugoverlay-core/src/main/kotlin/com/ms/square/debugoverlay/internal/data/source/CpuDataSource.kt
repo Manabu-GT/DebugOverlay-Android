@@ -29,6 +29,7 @@ internal class CpuDataSource {
    */
   private val ticksPerSecond = Os.sysconf(OsConstants._SC_CLK_TCK)
 
+  @Suppress("MagicNumber")
   fun cpuUsage(interval: Duration = 1L.seconds): Flow<Percentage> = flow {
     // Tracking variables
     var lastCpuTimeSec = 0.0
@@ -74,8 +75,6 @@ internal class CpuDataSource {
         Logger.w("Failed reading CPU data", e)
       } catch (e: NumberFormatException) {
         Logger.w("Failed parsing CPU data", e)
-      } catch (e: Exception) {
-        Logger.e("Error reading CPU usage", e)
       }
       delay(interval)
     }

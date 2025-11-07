@@ -13,9 +13,7 @@ internal sealed interface DebugOverlayPanelDataSource {
   fun debugOverlayPanelMetrics(): Flow<DebugOverlayPanelMetrics>
 }
 
-internal class DebugOverlayPanelDataSourceImpl(
-  context: Context
-) : DebugOverlayPanelDataSource {
+internal class DebugOverlayPanelDataSourceImpl(context: Context) : DebugOverlayPanelDataSource {
 
   private val cpuDataSource = CpuDataSource()
   private val memoryDataSource = MemoryDataSource(context)

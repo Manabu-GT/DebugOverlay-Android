@@ -14,15 +14,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 
+private const val DEFAULT_MAX_POINTS = 16
+private const val DEFAULT_MIN_VALUE = 0f
+private const val DEFAULT_MAX_VALUE = 100f
+
+/**
+ * minValue/maxValue is Nullable for auto-scaling the graph for unknown/unpredictable values.
+ */
 @Composable
 internal fun LineGraph(
   data: ImmutableList<Float>,
   color: Color,
   modifier: Modifier = Modifier,
-  maxPoints: Int = 16,
+  maxPoints: Int = DEFAULT_MAX_POINTS,
   strokeWidth: Dp = 2.dp,
-  minValue: Float? = null,  // ← Nullable for auto-scaling
-  maxValue: Float? = null   // ← Nullable for auto-scaling
+  minValue: Float? = null,
+  maxValue: Float? = null,
 ) {
   Canvas(
     modifier = modifier
@@ -55,9 +62,12 @@ internal fun LineGraph(
     val visibleData = data.takeLast(maxPoints)
 
     // Auto-calculate min/max if not provided
-    val actualMin = minValue ?: visibleData.minOrNull() ?: 0f
-    val actualMax = maxValue ?: visibleData.maxOrNull() ?: 100f
-    val range = (actualMax - actualMin).coerceAtLeast(0.01f)  // Avoid division by zero
+    val actualMin = minValue ?: visibleData.minOrNull() ?: DEFAULT_MIN_VALUE
+    val actualMax = maxValue ?: visibleData.maxOrNull() ?: DEFAULT_MAX_VALUE
+    val range = (actualMax - actualMin)
+    if (range <= 0) {
+      return@Canvas
+    }
 
     // Build the path from end to start (right to left)
     val path = Path()

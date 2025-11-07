@@ -105,7 +105,7 @@ class DebugOverlay private constructor(private val application: Application, pri
     // This is called when the connection with the service has been
     // unexpectedly disconnected -- that is, its process crashed.
     // So, this is not called when the client unbinds.
-    override fun onServiceDisconnected(name: ComponentName) {}
+    override fun onServiceDisconnected(name: ComponentName) = Unit
   }
 
   private val receiver = object : BroadcastReceiver() {

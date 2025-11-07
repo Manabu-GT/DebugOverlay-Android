@@ -23,6 +23,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 
+@Suppress("TooManyFunctions")
 class DebugOverlayService : Service() {
 
   private val binder = LocalBinder()
@@ -201,7 +202,6 @@ class DebugOverlayService : Service() {
   }
 
   companion object {
-    private const val TAG = "DebugOverlayService"
 
     private const val NOTIFICATION_CHANNEL_ID = "com.ms_square.debugoverlay"
     private const val NOTIFICATION_ID = Int.MAX_VALUE - 100

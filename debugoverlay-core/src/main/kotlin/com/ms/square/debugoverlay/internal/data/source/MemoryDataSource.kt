@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 private const val KB_TO_MB = 1024f
@@ -38,18 +39,20 @@ internal class MemoryDataSource(context: Context) {
     }
 
     // PSS typically 1.5-2x heap size; use 2x for safety margin
-    (memoryClassMB * 2).coerceAtLeast(512f)  // Minimum 512MB for readability
+    (memoryClassMB * 2).coerceAtLeast(512f) // Minimum 512MB for readability
   }
 
   fun heapUsage(interval: Duration = 1L.seconds): Flow<Percentage> = flow {
     while (currentCoroutineContext().isActive) {
       val runtime = Runtime.getRuntime()
       val usedMemory = runtime.totalMemory() - runtime.freeMemory()
+      @Suppress("MagicNumber")
       emit(Percentage.ofClamped(usedMemory.toFloat() / runtime.maxMemory() * 100f))
       delay(interval)
     }
   }
 
+  @Suppress("TooGenericExceptionCaught")
   fun pss(interval: Duration = 1L.seconds): Flow<Float> = flow {
     var lastPss = 0f
     while (currentCoroutineContext().isActive) {
@@ -58,6 +61,9 @@ internal class MemoryDataSource(context: Context) {
         val pssInMBytes = processMemInfo.totalPss / KB_TO_MB
         lastPss = pssInMBytes
         emit(pssInMBytes)
+      } catch (e: CancellationException) {
+        // Rethrow CancellationException to ensure proper cancellation propagation
+        throw e
       } catch (e: RuntimeException) {
         Logger.e("error in querying the PSS", e)
         emit(lastPss)

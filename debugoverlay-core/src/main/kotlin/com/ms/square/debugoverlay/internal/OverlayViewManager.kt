@@ -103,7 +103,7 @@ internal abstract class OverlayViewManager(protected val context: Context) {
         DebugOverlayPanel(
           metrics = metrics,
           onClick = {
-            // TODO: Navigate to detailed performance screen
+            // Navigate to detailed performance screen
           }
         )
       }
@@ -111,6 +111,5 @@ internal abstract class OverlayViewManager(protected val context: Context) {
   }
 }
 
-private fun Context.isDarkTheme(): Boolean {
-  return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-}
+private fun Context.isDarkTheme(): Boolean =
+  (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES

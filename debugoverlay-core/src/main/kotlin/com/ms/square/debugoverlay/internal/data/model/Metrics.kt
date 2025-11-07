@@ -12,7 +12,10 @@ import java.util.LinkedList
 
 private const val VALUE_HISTORY_SIZE: Int = 16
 
-internal data class Metrics(val value: Float, @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: ImmutableList<Float>)
+internal data class Metrics(
+  val value: Float,
+  @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: ImmutableList<Float>,
+)
 
 internal fun Flow<Float>.toMetrics(): Flow<Metrics> {
   val circularBuffer = CircularBuffer<Float>()
