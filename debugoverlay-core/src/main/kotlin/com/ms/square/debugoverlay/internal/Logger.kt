@@ -1,7 +1,7 @@
 package com.ms.square.debugoverlay.internal
 
 import android.util.Log
-import com.ms.square.debugoverlay.DebugOverlay
+import com.ms.square.debugoverlay.BuildConfig
 
 internal object Logger {
 
@@ -16,13 +16,11 @@ internal object Logger {
   }
 
   fun i(message: String) {
-    if (DebugOverlay.debug) {
-      Log.i(TAG, message)
-    }
+    Log.i(TAG, message)
   }
 
   fun d(message: String) {
-    if (DebugOverlay.debug) {
+    if (BuildConfig.DEBUG) {
       Log.d(TAG, message)
     }
   }

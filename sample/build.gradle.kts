@@ -25,9 +25,6 @@ android {
   namespace = "com.ms.square.debugoverlay.sample"
   compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
-  // to allow buildConfigField usage within defaultConfig
-  buildFeatures.buildConfig = true
-
   defaultConfig {
     applicationId = "com.ms.square.debugoverlay.sample"
     minSdk = libs.versions.androidMinSdk.get().toInt()
@@ -69,6 +66,8 @@ android {
 
   buildFeatures {
     compose = true
+    // to allow buildConfigField usage within defaultConfig
+    buildConfig = true
   }
 }
 

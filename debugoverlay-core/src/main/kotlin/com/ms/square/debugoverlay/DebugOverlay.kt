@@ -127,13 +127,6 @@ class DebugOverlay private constructor(private val application: Application, pri
     internal const val ACTION_UNBIND = "com.ms_square.debugoverlay.ACTION_UNBIND"
 
     /**
-     * Control whether the DebugOverlay's internal debugging logs are turned on.
-     * If enabled, you will see output in logcat as the components of DebugOverlay operates.
-     */
-    @JvmStatic
-    var debug = false
-
-    /**
      * Convenience method to create the [DebugOverlay] instance for its installation.
      */
     @JvmStatic
