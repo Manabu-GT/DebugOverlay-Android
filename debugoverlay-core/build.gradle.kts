@@ -63,6 +63,7 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
 
   // Lifecycle for synthetic lifecycle owner
+  implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.savedstate)
 
