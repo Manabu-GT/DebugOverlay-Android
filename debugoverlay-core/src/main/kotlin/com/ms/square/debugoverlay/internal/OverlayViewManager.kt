@@ -96,7 +96,7 @@ internal abstract class OverlayViewManager(protected val context: Context) {
 
       // Observe configuration changes for theme adaptation
       val isDarkTheme = LocalConfiguration.current.isDarkTheme()
-      
+
       MaterialTheme(
         colorScheme = if (isDarkTheme) {
           darkColorScheme()
