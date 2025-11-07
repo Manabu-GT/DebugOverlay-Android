@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-  api(project(":debugoverlay-core"))
+  api(projects.debugoverlayCore)
   implementation(libs.androidx.startup.runtime)
   testImplementation(libs.junit4)
 }
