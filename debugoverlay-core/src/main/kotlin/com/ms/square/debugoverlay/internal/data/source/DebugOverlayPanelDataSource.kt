@@ -28,17 +28,17 @@ internal class DebugOverlayPanelDataSourceImpl(context: Context, overlayScope: C
   private val fpsAccumulator = MetricsAccumulator()
 
   private val sharedMetrics: Flow<DebugOverlayPanelMetrics?> = combine(
-    cpuDataSource.cpuUsage().map { it.value },
-    memoryDataSource.heapUsage().map { it.value },
-    memoryDataSource.pss(),
-    fpsDataSource.fps()
-  ) { cpu, heap, pss, fps ->
+    cpuDataSource.cpuUsage().map { cpuAccumulator.accumulate(it.value) },
+    memoryDataSource.heapUsage().map { heapAccumulator.accumulate(it.value) },
+    memoryDataSource.pss().map { pssAccumulator.accumulate(it) },
+    fpsDataSource.fps().map { fpsAccumulator.accumulate(it) }
+  ) { cpuMetrics, heapMetrics, pssMetrics, fpsMetrics ->
     DebugOverlayPanelMetrics(
-      cpuMetrics = cpuAccumulator.accumulate(cpu),
-      heapMetrics = heapAccumulator.accumulate(heap),
-      pssMetrics = pssAccumulator.accumulate(pss),
+      cpuMetrics = cpuMetrics,
+      heapMetrics = heapMetrics,
+      pssMetrics = pssMetrics,
       maxPss = memoryDataSource.maxPss,
-      fpsMetrics = fpsAccumulator.accumulate(fps),
+      fpsMetrics = fpsMetrics,
       targetFps = fpsDataSource.currentTargetFps,
       maxFps = fpsDataSource.maxSupportedFps
     )
