@@ -4,9 +4,11 @@ import android.content.Context
 import android.hardware.display.DisplayManager
 import android.view.Choreographer
 import android.view.Display
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -50,7 +52,7 @@ internal class FpsDataSource(context: Context) {
     awaitClose {
       Choreographer.getInstance().removeFrameCallback(callback)
     }
-  }
+  }.flowOn(Dispatchers.Main)
 }
 
 private fun Context.defaultDisplay(): Display {

@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,42 +21,25 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
 import com.ms.square.debugoverlay.internal.ui.DebugOverlayPanel
+import kotlinx.coroutines.CoroutineScope
 
-internal abstract class OverlayViewManager(protected val context: Context) {
+internal abstract class OverlayViewManager(protected val context: Context, private val overlayScope: CoroutineScope) {
   protected val windowManager: WindowManager =
     context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-  protected var rootView: ViewGroup? = null
 
-  abstract fun showOverlay(windowToken: IBinder? = null)
+  private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(context, overlayScope) }
 
-  open fun hideOverlay() {
-    rootView?.let {
-      windowManager.removeView(it)
-      rootView = null
-    }
-  }
+  open fun showOverlay() = Unit
 
-  fun isOverlayShown(): Boolean = rootView != null
+  open fun hideOverlay() = Unit
+
+  open fun isOverlayShown(): Boolean = false
 
   open fun isOverlayPermissionRequested(): Boolean = false
 
   abstract fun createActivityLifecycleCallbacks(debugOverlay: DebugOverlay): Application.ActivityLifecycleCallbacks
 
-  open fun setUpLifecycleOwnerOnComposeView(view: View, lifecycleOwner: OverlayLifecycleOwner) {
-    // Move lifecycle to STARTED/RESUMED when the view is attached
-    view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-      override fun onViewAttachedToWindow(v: View) {
-        lifecycleOwner.onStart()
-        lifecycleOwner.onResume()
-      }
-
-      override fun onViewDetachedFromWindow(v: View) {
-        lifecycleOwner.onPause()
-        lifecycleOwner.onStop()
-        lifecycleOwner.onDestroy()
-      }
-    })
-  }
+  open fun setUpLifecycleOwnerOnComposeView(view: View, lifecycleOwner: OverlayLifecycleOwner) = Unit
 
   protected fun createLayoutParams(windowType: Int, windowToken: IBinder? = null): WindowManager.LayoutParams =
     WindowManager.LayoutParams().apply {
@@ -83,17 +65,13 @@ internal abstract class OverlayViewManager(protected val context: Context) {
     setViewTreeLifecycleOwner(lifecycleOwner)
     setViewTreeSavedStateRegistryOwner(lifecycleOwner)
 
-    // Start the lifecycle
+    // Start the lifecycle, call onStart as well for the activity overlay case to work properly.
     lifecycleOwner.onCreate()
     lifecycleOwner.onStart()
     setUpLifecycleOwnerOnComposeView(this, lifecycleOwner)
 
     setContent {
-      val debugOverlayPanelMetricsFlow = remember(context) {
-        DebugOverlayPanelDataSourceImpl(context).debugOverlayPanelMetrics()
-      }
-      val metrics by debugOverlayPanelMetricsFlow.collectAsStateWithLifecycle(initialValue = null)
-
+      val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(initialValue = null)
       // Observe configuration changes for theme adaptation
       val isDarkTheme = LocalConfiguration.current.isDarkTheme()
 

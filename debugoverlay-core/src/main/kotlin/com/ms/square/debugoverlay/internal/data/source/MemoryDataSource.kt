@@ -4,10 +4,12 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Debug
 import com.ms.square.debugoverlay.internal.data.Percentage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -49,7 +51,7 @@ internal class MemoryDataSource(context: Context) {
       emit(Percentage.ofClamped(usedMemory.toFloat() / runtime.maxMemory() * 100f))
       delay(interval)
     }
-  }
+  }.flowOn(Dispatchers.Default)
 
   // 3secs default interval as PSS often doesn't change a lot.
   fun pss(interval: Duration = 3L.seconds): Flow<Float> = flow {
@@ -62,5 +64,5 @@ internal class MemoryDataSource(context: Context) {
       emit(pssInMBytes)
       delay(interval)
     }
-  }
+  }.flowOn(Dispatchers.IO)
 }

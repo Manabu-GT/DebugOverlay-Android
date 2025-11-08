@@ -4,19 +4,23 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.os.IBinder
 import android.provider.Settings
+import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.net.toUri
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.R
+import kotlinx.coroutines.CoroutineScope
 
-internal class SystemOverlayViewManager(context: Context) : OverlayViewManager(context) {
+internal class SystemOverlayViewManager(context: Context, overlayScope: CoroutineScope) :
+  OverlayViewManager(context, overlayScope) {
 
+  private var rootView: ViewGroup? = null
   private var overlayPermissionRequested = false
 
-  override fun showOverlay(windowToken: IBinder?) {
+  override fun showOverlay() {
     hideOverlay()
     if (!Settings.canDrawOverlays(context)) {
       Toast.makeText(
@@ -33,6 +37,31 @@ internal class SystemOverlayViewManager(context: Context) : OverlayViewManager(c
     rootView = createRoot()
     windowManager.addView(rootView, createLayoutParams(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY))
   }
+
+  override fun hideOverlay() {
+    rootView?.let {
+      windowManager.removeView(it)
+      rootView = null
+    }
+  }
+
+  override fun setUpLifecycleOwnerOnComposeView(view: View, lifecycleOwner: OverlayLifecycleOwner) {
+    // Move lifecycle to STARTED/RESUMED when the view is attached
+    view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+      override fun onViewAttachedToWindow(v: View) {
+        lifecycleOwner.onStart()
+        lifecycleOwner.onResume()
+      }
+
+      override fun onViewDetachedFromWindow(v: View) {
+        lifecycleOwner.onPause()
+        lifecycleOwner.onStop()
+        lifecycleOwner.onDestroy()
+      }
+    })
+  }
+
+  override fun isOverlayShown(): Boolean = rootView != null
 
   override fun isOverlayPermissionRequested(): Boolean = overlayPermissionRequested
   override fun createActivityLifecycleCallbacks(debugOverlay: DebugOverlay): Application.ActivityLifecycleCallbacks =
