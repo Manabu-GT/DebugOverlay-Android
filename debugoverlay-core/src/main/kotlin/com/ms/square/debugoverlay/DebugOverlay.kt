@@ -18,6 +18,10 @@ import com.ms.square.debugoverlay.internal.ActivityOverlayViewManager
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.SystemOverlayViewManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.parcelize.Parcelize
 
 class DebugOverlay private constructor(private val application: Application, private val config: Config) {
@@ -25,6 +29,7 @@ class DebugOverlay private constructor(private val application: Application, pri
   internal var overlayService: DebugOverlayService? = null
   internal var unBindRequestReceived = false
 
+  private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
   private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
   private var installed = false
@@ -38,12 +43,14 @@ class DebugOverlay private constructor(private val application: Application, pri
       return
     }
 
+    val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     if (config.allowSystemLayer) {
-      overlayViewManager = SystemOverlayViewManager(application)
+      overlayViewManager = SystemOverlayViewManager(application, overlayScope)
       startAndBindDebugOverlayService()
     } else {
-      overlayViewManager = ActivityOverlayViewManager(application)
+      overlayViewManager = ActivityOverlayViewManager(application, overlayScope)
     }
+    this.overlayScope = overlayScope
 
     activityLifecycleCallbacks = overlayViewManager?.createActivityLifecycleCallbacks(this).also {
       application.registerActivityLifecycleCallbacks(it)
@@ -59,6 +66,10 @@ class DebugOverlay private constructor(private val application: Application, pri
     activityLifecycleCallbacks?.let {
       application.unregisterActivityLifecycleCallbacks(it)
     }
+    activityLifecycleCallbacks = null
+    overlayViewManager = null
+    overlayScope?.cancel()
+    overlayScope = null
     installed = false
   }
 

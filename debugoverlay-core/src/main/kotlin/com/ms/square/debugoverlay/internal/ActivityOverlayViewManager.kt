@@ -6,59 +6,64 @@ import android.content.Context
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.ms.square.debugoverlay.DebugOverlay
+import kotlinx.coroutines.CoroutineScope
 import java.util.WeakHashMap
 
-internal class ActivityOverlayViewManager(context: Context) : OverlayViewManager(context) {
-
-  private var lifecycleOwner: OverlayLifecycleOwner? = null
-
-  override fun showOverlay(windowToken: IBinder?) {
-    hideOverlay()
-    rootView = createRoot()
-    // make layout of the window happens as that of a top-level window, not as a child of its container
-    windowManager.addView(
-      rootView,
-      createLayoutParams(WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, windowToken)
-    )
-  }
-
-  override fun hideOverlay() {
-    super.hideOverlay()
-    lifecycleOwner = null
-  }
+internal class ActivityOverlayViewManager(context: Context, overlayScope: CoroutineScope) : OverlayViewManager(context, overlayScope) {
 
   override fun createActivityLifecycleCallbacks(debugOverlay: DebugOverlay): Application.ActivityLifecycleCallbacks =
     ActivityLifecycleHandler()
 
-  override fun setUpLifecycleOwnerOnComposeView(view: View, lifecycleOwner: OverlayLifecycleOwner) {
-    this.lifecycleOwner = lifecycleOwner
-  }
+  inner class OverlayViewAttachStateChangeListener() : View.OnAttachStateChangeListener {
 
-  inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
+    private var rootView: ViewGroup? = null
+    private var lifecycleOwner: OverlayLifecycleOwner? = null
+
+    fun onActivityStarted() {
+      lifecycleOwner?.onStart()
+    }
 
     fun onActivityResumed() {
-      Logger.d("OverlayViewAttachStateChangeListener-onActivityResumed")
-      lifecycleOwner?.onStart()
       lifecycleOwner?.onResume()
     }
 
-    fun onActivityStopped() {
-      Logger.d("OverlayViewAttachStateChangeListener-onActivityStopped")
+    fun onActivityPaused() {
       lifecycleOwner?.onPause()
+    }
+
+    fun onActivityStopped() {
       lifecycleOwner?.onStop()
     }
 
     override fun onViewAttachedToWindow(v: View) {
-      Logger.d("OverlayViewAttachStateChangeListener-onViewAttachedToWindow")
       showOverlay(v.windowToken)
     }
 
     override fun onViewDetachedFromWindow(v: View) {
-      Logger.d("OverlayViewAttachStateChangeListener-onViewDetachedFromWindow")
       hideOverlay()
-      v.removeOnAttachStateChangeListener(this)
+    }
+
+    private fun showOverlay(windowToken: IBinder) {
+      rootView = createRoot()
+      lifecycleOwner = rootView?.findViewTreeLifecycleOwner() as? OverlayLifecycleOwner
+      // make layout of the window happens as that of a top-level window, not as a child of its container
+      windowManager.addView(
+        rootView,
+        createLayoutParams(WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, windowToken)
+      )
+    }
+
+    private fun hideOverlay() {
+      rootView?.let {
+        lifecycleOwner?.onDestroy()
+        windowManager.removeView(it)
+        rootView = null
+        lifecycleOwner = null
+      }
     }
   }
 
@@ -73,9 +78,19 @@ internal class ActivityOverlayViewManager(context: Context) : OverlayViewManager
       }
     }
 
+    override fun onActivityStarted(activity: Activity) {
+      super.onActivityStarted(activity)
+      attachStateChangeListeners[activity]?.onActivityStarted()
+    }
+
     override fun onActivityResumed(activity: Activity) {
       super.onActivityResumed(activity)
       attachStateChangeListeners[activity]?.onActivityResumed()
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+      super.onActivityPaused(activity)
+      attachStateChangeListeners[activity]?.onActivityPaused()
     }
 
     override fun onActivityStopped(activity: Activity) {
@@ -85,7 +100,9 @@ internal class ActivityOverlayViewManager(context: Context) : OverlayViewManager
 
     override fun onActivityDestroyed(activity: Activity) {
       super.onActivityDestroyed(activity)
-      attachStateChangeListeners.remove(activity)
+      attachStateChangeListeners.remove(activity)?.also {
+        activity.window.decorView.removeOnAttachStateChangeListener(it)
+      }
     }
   }
 }
