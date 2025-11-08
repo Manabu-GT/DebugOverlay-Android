@@ -13,12 +13,13 @@ import com.ms.square.debugoverlay.DebugOverlay
 import kotlinx.coroutines.CoroutineScope
 import java.util.WeakHashMap
 
-internal class ActivityOverlayViewManager(context: Context, overlayScope: CoroutineScope) : OverlayViewManager(context, overlayScope) {
+internal class ActivityOverlayViewManager(context: Context, overlayScope: CoroutineScope) :
+  OverlayViewManager(context, overlayScope) {
 
   override fun createActivityLifecycleCallbacks(debugOverlay: DebugOverlay): Application.ActivityLifecycleCallbacks =
     ActivityLifecycleHandler()
 
-  inner class OverlayViewAttachStateChangeListener() : View.OnAttachStateChangeListener {
+  inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
 
     private var rootView: ViewGroup? = null
     private var lifecycleOwner: OverlayLifecycleOwner? = null
@@ -50,6 +51,9 @@ internal class ActivityOverlayViewManager(context: Context, overlayScope: Corout
     private fun showOverlay(windowToken: IBinder) {
       rootView = createRoot()
       lifecycleOwner = rootView?.findViewTreeLifecycleOwner() as? OverlayLifecycleOwner
+      if (lifecycleOwner == null) {
+        error("Failed to retrieve OverlayLifecycleOwner from view tree")
+      }
       // make layout of the window happens as that of a top-level window, not as a child of its container
       windowManager.addView(
         rootView,

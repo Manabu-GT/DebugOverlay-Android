@@ -14,7 +14,8 @@ import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.R
 import kotlinx.coroutines.CoroutineScope
 
-internal class SystemOverlayViewManager(context: Context, overlayScope: CoroutineScope) : OverlayViewManager(context, overlayScope) {
+internal class SystemOverlayViewManager(context: Context, overlayScope: CoroutineScope) :
+  OverlayViewManager(context, overlayScope) {
 
   private var rootView: ViewGroup? = null
   private var overlayPermissionRequested = false
