@@ -14,7 +14,6 @@ androidTargetSdk = "36"
 # Kotlin
 kotlin = "2.2.21"
 kotlinxSerializationCore = "1.9.0"
-kotlinxCollectionsImmutable = "0.4.0"
 
 # Google
 androidx-core = "1.17.0"
@@ -76,7 +75,6 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 coil = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
-kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 
 # Testing
 junit4 = { module = "junit:junit", version.ref = "junit4" }

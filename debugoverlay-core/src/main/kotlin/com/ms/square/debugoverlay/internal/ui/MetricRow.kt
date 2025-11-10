@@ -16,14 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 internal fun MetricRow(
   label: String,
   value: String,
   statusColor: Color,
-  lineGraphData: ImmutableList<Float>,
+  lineGraphData: List<Float>,
   lineGraphColor: Color,
   lineGraphMinValue: Float? = null,
   lineGraphMaxValue: Float? = null,

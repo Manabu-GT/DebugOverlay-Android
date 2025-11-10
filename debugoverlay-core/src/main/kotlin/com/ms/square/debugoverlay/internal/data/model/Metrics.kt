@@ -1,16 +1,11 @@
 package com.ms.square.debugoverlay.internal.data.model
 
 import androidx.annotation.Size
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import java.util.LinkedList
 
 private const val VALUE_HISTORY_SIZE: Int = 16
 
-internal data class Metrics(
-  val value: Float,
-  @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: ImmutableList<Float>,
-)
+internal data class Metrics(val value: Float, @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: List<Float>)
 
 /**
  * Accumulates metric values into a circular buffer and produces [Metrics] snapshots.
@@ -21,7 +16,7 @@ internal class MetricsAccumulator {
 
   fun accumulate(value: Float): Metrics {
     buffer.add(value)
-    return Metrics(value, buffer.toImmutableList())
+    return Metrics(value, buffer.toList())
   }
 
   private class CircularBuffer<T>(private val capacity: Int = VALUE_HISTORY_SIZE) {
@@ -34,6 +29,6 @@ internal class MetricsAccumulator {
       buffer.addLast(item)
     }
 
-    fun toImmutableList(): ImmutableList<T> = buffer.toImmutableList()
+    fun toList(): List<T> = buffer.toList()
   }
 }

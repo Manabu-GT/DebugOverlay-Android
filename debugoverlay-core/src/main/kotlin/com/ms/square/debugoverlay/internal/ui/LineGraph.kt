@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.collections.immutable.ImmutableList
 
 private const val DEFAULT_MAX_POINTS = 16
 private const val DEFAULT_MIN_VALUE = 0f
@@ -23,7 +22,7 @@ private const val DEFAULT_MAX_VALUE = 100f
  */
 @Composable
 internal fun LineGraph(
-  data: ImmutableList<Float>,
+  data: List<Float>,
   color: Color,
   modifier: Modifier = Modifier,
   maxPoints: Int = DEFAULT_MAX_POINTS,

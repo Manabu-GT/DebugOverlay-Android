@@ -26,8 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 
 // Composable Previews with static data (no performance monitoring)
@@ -44,10 +42,10 @@ private fun DebugOverlayPanelPreview(
   var metrics by remember {
     mutableStateOf(
       DebugOverlayPanelMetrics(
-        cpuMetrics = Metrics(cpuPercent, persistentListOf(12f, 15f, 18f, 15f, 13f, 15f, 17f, cpuPercent)),
-        heapMetrics = Metrics(heapPercent, persistentListOf(65f, 68f, 70f, 72f, 71f, 70f, 72f, heapPercent)),
-        pssMetrics = Metrics(pss, persistentListOf(165f, 168f, 170f, 172f, 171f, 170f, 202f, pss)),
-        fpsMetrics = Metrics(fps, persistentListOf(60f, 59f, 60f, 60f, 58f, 60f, 59f, fps)),
+        cpuMetrics = Metrics(cpuPercent, listOf(12f, 15f, 18f, 15f, 13f, 15f, 17f, cpuPercent)),
+        heapMetrics = Metrics(heapPercent, listOf(65f, 68f, 70f, 72f, 71f, 70f, 72f, heapPercent)),
+        pssMetrics = Metrics(pss, listOf(165f, 168f, 170f, 172f, 171f, 170f, 202f, pss)),
+        fpsMetrics = Metrics(fps, listOf(60f, 59f, 60f, 60f, 58f, 60f, 59f, fps)),
         targetFps = 90f,
         maxFps = 90f,
         maxPss = 512f // Typical mid-range device
@@ -67,19 +65,19 @@ private fun DebugOverlayPanelPreview(
       metrics = metrics.copy(
         cpuMetrics = Metrics(
           newCpu,
-          (metrics.cpuMetrics.valueHistory.toMutableList().drop(1) + newCpu).toImmutableList()
+          (metrics.cpuMetrics.valueHistory.toMutableList().drop(1) + newCpu).toList()
         ),
         heapMetrics = Metrics(
           newHeap,
-          (metrics.heapMetrics.valueHistory.toMutableList().drop(1) + newHeap).toImmutableList()
+          (metrics.heapMetrics.valueHistory.toMutableList().drop(1) + newHeap).toList()
         ),
         pssMetrics = Metrics(
           newPss,
-          (metrics.pssMetrics.valueHistory.toMutableList().drop(1) + newPss).toImmutableList()
+          (metrics.pssMetrics.valueHistory.toMutableList().drop(1) + newPss).toList()
         ),
         fpsMetrics = Metrics(
           newFps,
-          (metrics.fpsMetrics.valueHistory.toMutableList().drop(1) + newFps).toImmutableList()
+          (metrics.fpsMetrics.valueHistory.toMutableList().drop(1) + newFps).toList()
         )
       )
     }
