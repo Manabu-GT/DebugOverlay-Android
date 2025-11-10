@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- This file contains attributes and styles that are part of the public API -->
-  <public name="debugoverlay_use_system_layer" type="bool"/>
+  <!-- This file contains resources that are part of the public API -->
 </resources>
