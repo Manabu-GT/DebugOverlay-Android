@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-  <!-- Whether to install the debug overlay using the system layer or not.
-  If true, you have to allow "Draw over other apps" from Settings, and
-  the overlay can keep showing even if you switch to other apps or backgrounding.
-  Default is false.
-  -->
-  <bool name="debugoverlay_use_system_layer">true</bool>
-</resources>

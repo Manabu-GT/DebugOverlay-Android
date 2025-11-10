@@ -29,14 +29,6 @@ internal abstract class OverlayViewManager(protected val context: Context, priva
 
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(context, overlayScope) }
 
-  open fun showOverlay() = Unit
-
-  open fun hideOverlay() = Unit
-
-  open fun isOverlayShown(): Boolean = false
-
-  open fun isOverlayPermissionRequested(): Boolean = false
-
   abstract fun createActivityLifecycleCallbacks(debugOverlay: DebugOverlay): Application.ActivityLifecycleCallbacks
 
   open fun setUpLifecycleOwnerOnComposeView(view: View, lifecycleOwner: OverlayLifecycleOwner) = Unit
