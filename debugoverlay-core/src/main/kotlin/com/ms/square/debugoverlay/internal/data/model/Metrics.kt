@@ -5,10 +5,7 @@ import java.util.LinkedList
 
 private const val VALUE_HISTORY_SIZE: Int = 16
 
-internal data class Metrics(
-  val value: Float,
-  @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: List<Float>,
-)
+internal data class Metrics(val value: Float, @field:Size(VALUE_HISTORY_SIZE.toLong()) val valueHistory: List<Float>)
 
 /**
  * Accumulates metric values into a circular buffer and produces [Metrics] snapshots.
