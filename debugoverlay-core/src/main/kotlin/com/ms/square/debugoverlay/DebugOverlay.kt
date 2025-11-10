@@ -58,9 +58,7 @@ class DebugOverlay private constructor(private val application: Application) {
      * Convenience method to create the [DebugOverlay] instance for its installation.
      */
     @JvmStatic
-    fun with(application: Application): DebugOverlay {
-      return DebugOverlay(application)
-    }
+    fun with(application: Application): DebugOverlay = DebugOverlay(application)
 
     // Returns true if the current process is the main process (matches the initial application pid)
     private fun isMainProcess(application: Application): Boolean {
