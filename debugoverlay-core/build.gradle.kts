@@ -64,6 +64,4 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.savedstate)
-
-  implementation(libs.kotlinx.collections.immutable)
 }
