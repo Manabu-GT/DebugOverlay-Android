@@ -1,9 +1,11 @@
 package com.ms.square.debugoverlay.internal
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.os.Bundle
 import android.os.IBinder
 import android.view.Gravity
 import android.view.View
@@ -16,42 +18,45 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
 import com.ms.square.debugoverlay.internal.ui.DebugOverlayPanel
 import kotlinx.coroutines.CoroutineScope
+import java.util.WeakHashMap
 
-internal abstract class OverlayViewManager(protected val context: Context, private val overlayScope: CoroutineScope) {
-  protected val windowManager: WindowManager =
-    context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+internal class OverlayViewManager(private val application: Application, private val overlayScope: CoroutineScope) {
+  private val windowManager: WindowManager =
+    application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
-  private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(context, overlayScope) }
+  private val activityLifecycleCallbacks = ActivityLifecycleHandler().also {
+    application.registerActivityLifecycleCallbacks(it)
+  }
 
-  abstract fun createActivityLifecycleCallbacks(debugOverlay: DebugOverlay): Application.ActivityLifecycleCallbacks
+  private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
 
-  open fun setUpLifecycleOwnerOnComposeView(view: View, lifecycleOwner: OverlayLifecycleOwner) = Unit
+  fun cleanUp() {
+    application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+  }
 
-  protected fun createLayoutParams(windowType: Int, windowToken: IBinder? = null): WindowManager.LayoutParams =
+  private fun createLayoutParams(windowToken: IBinder): WindowManager.LayoutParams =
     WindowManager.LayoutParams().apply {
       width = WindowManager.LayoutParams.WRAP_CONTENT
       height = WindowManager.LayoutParams.WRAP_CONTENT
-      if (windowToken != null) {
-        token = windowToken
-      }
-      type = windowType
+      token = windowToken
+      type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
       flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
         WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
       format = PixelFormat.TRANSLUCENT
       gravity = Gravity.BOTTOM or Gravity.START
     }
 
-  protected fun createRoot(): ViewGroup = ComposeView(context).apply {
+  private fun createRoot(): ViewGroup = ComposeView(application).apply {
     // Create and attach a synthetic lifecycle for the overlay
-    // This is needed REGARDLESS of system layer mode because:
+    // This is needed because:
     // 1. ComposeView requires a lifecycle to manage composition
-    // 2. DebugOverlayPanel uses collectAsStateWithLifecycle()
+    // 2. ComposeView uses collectAsStateWithLifecycle()
     // 3. The view is attached via WindowManager, not in activity hierarchy
     val lifecycleOwner = OverlayLifecycleOwner()
     setViewTreeLifecycleOwner(lifecycleOwner)
@@ -60,7 +65,6 @@ internal abstract class OverlayViewManager(protected val context: Context, priva
     // Start the lifecycle, call onStart as well for the activity overlay case to work properly.
     lifecycleOwner.onCreate()
     lifecycleOwner.onStart()
-    setUpLifecycleOwnerOnComposeView(this, lifecycleOwner)
 
     setContent {
       val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(initialValue = null)
@@ -80,6 +84,102 @@ internal abstract class OverlayViewManager(protected val context: Context, priva
             // Navigate to detailed performance screen
           }
         )
+      }
+    }
+  }
+
+  inner class ActivityLifecycleHandler : Application.ActivityLifecycleCallbacks {
+
+    private val attachStateChangeListeners = WeakHashMap<Activity, OverlayViewAttachStateChangeListener>()
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+      Logger.d("onCreate() called for ${activity.javaClass.simpleName}")
+      OverlayViewAttachStateChangeListener().also {
+        activity.window.decorView.addOnAttachStateChangeListener(it)
+        attachStateChangeListeners.put(activity, it)
+      }
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+      Logger.d("onStart() called for ${activity.javaClass.simpleName}")
+      attachStateChangeListeners[activity]?.onActivityStarted()
+    }
+
+    override fun onActivityResumed(activity: Activity) {
+      Logger.d("onResume() called for ${activity.javaClass.simpleName}")
+      attachStateChangeListeners[activity]?.onActivityResumed()
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+      Logger.d("onPause() called for ${activity.javaClass.simpleName}")
+      attachStateChangeListeners[activity]?.onActivityPaused()
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+      Logger.d("onStop() called for ${activity.javaClass.simpleName}")
+      attachStateChangeListeners[activity]?.onActivityStopped()
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+      Logger.d("onSaveInstanceState() called for ${activity.javaClass.simpleName}")
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+      Logger.d("onDestroy() called for ${activity.javaClass.simpleName}")
+      attachStateChangeListeners.remove(activity)?.also {
+        activity.window.decorView.removeOnAttachStateChangeListener(it)
+      }
+    }
+  }
+
+  inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
+
+    private var rootView: ViewGroup? = null
+    private var lifecycleOwner: OverlayLifecycleOwner? = null
+
+    fun onActivityStarted() {
+      lifecycleOwner?.onStart()
+    }
+
+    fun onActivityResumed() {
+      lifecycleOwner?.onResume()
+    }
+
+    fun onActivityPaused() {
+      lifecycleOwner?.onPause()
+    }
+
+    fun onActivityStopped() {
+      lifecycleOwner?.onStop()
+    }
+
+    override fun onViewAttachedToWindow(v: View) {
+      showOverlay(v.windowToken)
+    }
+
+    override fun onViewDetachedFromWindow(v: View) {
+      hideOverlay()
+    }
+
+    private fun showOverlay(windowToken: IBinder) {
+      rootView = createRoot()
+      lifecycleOwner = rootView?.findViewTreeLifecycleOwner() as? OverlayLifecycleOwner
+      if (lifecycleOwner == null) {
+        error("Failed to retrieve OverlayLifecycleOwner from view tree")
+      }
+      // make layout of the window happens as that of a top-level window, not as a child of its container
+      windowManager.addView(
+        rootView,
+        createLayoutParams(windowToken)
+      )
+    }
+
+    private fun hideOverlay() {
+      rootView?.let {
+        lifecycleOwner?.onDestroy()
+        windowManager.removeView(it)
+        rootView = null
+        lifecycleOwner = null
       }
     }
   }

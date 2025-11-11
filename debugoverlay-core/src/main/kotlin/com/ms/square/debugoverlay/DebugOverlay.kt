@@ -5,8 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.os.Build
 import androidx.annotation.MainThread
-import androidx.annotation.VisibleForTesting
-import com.ms.square.debugoverlay.internal.ActivityOverlayViewManager
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +15,6 @@ class DebugOverlay private constructor(private val application: Application) {
 
   private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
-  private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
   private var installed = false
 
   @MainThread
@@ -29,23 +26,15 @@ class DebugOverlay private constructor(private val application: Application) {
       return
     }
 
-    val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    overlayViewManager = ActivityOverlayViewManager(application, overlayScope)
-    this.overlayScope = overlayScope
-
-    activityLifecycleCallbacks = overlayViewManager?.createActivityLifecycleCallbacks(this).also {
-      application.registerActivityLifecycleCallbacks(it)
+    overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
+      overlayViewManager = OverlayViewManager(application, it)
     }
-
     installed = true
   }
 
-  @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-  internal fun uninstall() {
-    activityLifecycleCallbacks?.let {
-      application.unregisterActivityLifecycleCallbacks(it)
-    }
-    activityLifecycleCallbacks = null
+  @MainThread
+  fun uninstall() {
+    overlayViewManager?.cleanUp()
     overlayViewManager = null
     overlayScope?.cancel()
     overlayScope = null
