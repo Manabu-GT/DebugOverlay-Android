@@ -12,7 +12,7 @@ java {
 }
 
 android {
-  namespace = "com.ms.square.debugoverlay"
+  namespace = "com.ms.square.debugoverlay.androidx.startup"
   compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
   defaultConfig {
@@ -22,6 +22,9 @@ android {
   testOptions {
     targetSdk = libs.versions.androidTargetSdk.get().toInt()
   }
+
+  // force usage of prefix to avoid naming conflicts
+  resourcePrefix = "debugoverlay_"
 
   buildTypes {
     release {

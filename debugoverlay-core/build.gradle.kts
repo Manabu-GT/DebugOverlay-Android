@@ -14,7 +14,7 @@ java {
 }
 
 android {
-  namespace = "com.ms.square.debugoverlay"
+  namespace = "com.ms.square.debugoverlay.core"
 
   compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
