@@ -1,7 +1,7 @@
 package com.ms.square.debugoverlay.internal
 
 import android.util.Log
-import com.ms.square.debugoverlay.BuildConfig
+import com.ms.square.debugoverlay.core.BuildConfig
 
 internal object Logger {
 
