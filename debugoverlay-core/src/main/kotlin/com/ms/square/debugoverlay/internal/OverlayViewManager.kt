@@ -134,7 +134,7 @@ internal class OverlayViewManager(private val application: Application, private 
     }
 
     fun cleanUp() {
-      attachStateChangeListeners.values.onEach {
+      attachStateChangeListeners.values.forEach {
         it.hideOverlay()
       }
       attachStateChangeListeners.clear()
