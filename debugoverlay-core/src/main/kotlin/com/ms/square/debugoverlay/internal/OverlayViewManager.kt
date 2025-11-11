@@ -18,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
@@ -53,40 +52,42 @@ internal class OverlayViewManager(private val application: Application, private 
       gravity = Gravity.BOTTOM or Gravity.START
     }
 
-  private fun createRoot(): ViewGroup = ComposeView(application).apply {
-    // Create and attach a synthetic lifecycle for the overlay
-    // This is needed because:
-    // 1. ComposeView requires a lifecycle to manage composition
-    // 2. ComposeView uses collectAsStateWithLifecycle()
-    // 3. The view is attached via WindowManager, not in activity hierarchy
+  private fun createOverlayRoot(): Pair<ViewGroup, OverlayLifecycleOwner> {
     val lifecycleOwner = OverlayLifecycleOwner()
-    setViewTreeLifecycleOwner(lifecycleOwner)
-    setViewTreeSavedStateRegistryOwner(lifecycleOwner)
+    return ComposeView(application).apply {
+      // Create and attach a synthetic lifecycle for the overlay
+      // This is needed because:
+      // 1. ComposeView requires a lifecycle to manage composition
+      // 2. ComposeView uses collectAsStateWithLifecycle()
+      // 3. The view is attached via WindowManager, not in activity hierarchy
+      setViewTreeLifecycleOwner(lifecycleOwner)
+      setViewTreeSavedStateRegistryOwner(lifecycleOwner)
 
-    // Start the lifecycle, call onStart as well for the activity overlay case to work properly.
-    lifecycleOwner.onCreate()
-    lifecycleOwner.onStart()
+      // Start the lifecycle, call onStart as well for the activity overlay case to work properly.
+      lifecycleOwner.onCreate()
+      lifecycleOwner.onStart()
 
-    setContent {
-      val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(initialValue = null)
-      // Observe configuration changes for theme adaptation
-      val isDarkTheme = LocalConfiguration.current.isDarkTheme()
+      setContent {
+        val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(initialValue = null)
+        // Observe configuration changes for theme adaptation
+        val isDarkTheme = LocalConfiguration.current.isDarkTheme()
 
-      MaterialTheme(
-        colorScheme = if (isDarkTheme) {
-          darkColorScheme()
-        } else {
-          lightColorScheme()
-        }
-      ) {
-        DebugOverlayPanel(
-          metrics = metrics,
-          onClick = {
-            // Navigate to detailed performance screen
+        MaterialTheme(
+          colorScheme = if (isDarkTheme) {
+            darkColorScheme()
+          } else {
+            lightColorScheme()
           }
-        )
+        ) {
+          DebugOverlayPanel(
+            metrics = metrics,
+            onClick = {
+              // Navigate to detailed performance screen
+            }
+          )
+        }
       }
-    }
+    } to lifecycleOwner
   }
 
   inner class ActivityLifecycleHandler : Application.ActivityLifecycleCallbacks {
@@ -170,10 +171,9 @@ internal class OverlayViewManager(private val application: Application, private 
     }
 
     private fun showOverlay(windowToken: IBinder) {
-      rootView = createRoot()
-      lifecycleOwner = rootView?.findViewTreeLifecycleOwner() as? OverlayLifecycleOwner
-      if (lifecycleOwner == null) {
-        error("Failed to retrieve OverlayLifecycleOwner from view tree")
+      createOverlayRoot().also {
+        rootView = it.first
+        lifecycleOwner = it.second
       }
       // make layout of the window happens as that of a top-level window, not as a child of its container
       windowManager.addView(
