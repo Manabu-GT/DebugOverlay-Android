@@ -1,21 +1,31 @@
 package com.ms.square.debugoverlay
 
-import android.app.ActivityManager
 import android.app.Application
-import android.content.Context
-import android.os.Build
 import androidx.annotation.MainThread
+import com.ms.square.debugoverlay.DebugOverlay.manualInstall
 import com.ms.square.debugoverlay.internal.OverlayViewManager
+import com.ms.square.debugoverlay.internal.util.checkMainThread
+import com.ms.square.debugoverlay.internal.util.isMainProcess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
-class DebugOverlay private constructor(private val application: Application) {
+/**
+ * The entry point API for using Debug overlay in Android app.
+ * It allows manually installing or uninstalling a debug overlay.
+ */
+object DebugOverlay {
 
   private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
-  private var installed = false
+
+  private var installCause: Exception? = null
+
+  /** @see [manualInstall] */
+  @get:MainThread
+  val isInstalled: Boolean
+    get() = installCause != null
 
   /**
    * Install the debug overlay into the application.
@@ -32,20 +42,24 @@ class DebugOverlay private constructor(private val application: Application) {
    * ```
    * Also, note that the above only works if `debugoverlay` module is used.
    *
+   * @param application The application to install the overlay into.
+   *
    */
   @MainThread
-  fun install() {
-    check(!installed) { "install() can be called only once!" }
-
+  fun manualInstall(application: Application) {
     if (!isMainProcess(application)) {
       // Just return early without any work if it's not running in the main app process
       return
     }
+    checkMainThread()
+    checkNotInstalled()
 
     overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
       overlayViewManager = OverlayViewManager(application, it)
     }
-    installed = true
+
+    // Set the installCause iff after we're fully done with init.
+    installCause = RuntimeException("manualInstall() first called here")
   }
 
   /**
@@ -54,39 +68,17 @@ class DebugOverlay private constructor(private val application: Application) {
    */
   @MainThread
   fun uninstall() {
-    overlayViewManager?.cleanUp()
-    overlayViewManager = null
-    overlayScope?.cancel()
-    overlayScope = null
-    installed = false
+    checkMainThread()
+    if (isInstalled) {
+      overlayViewManager?.cleanUp()
+      overlayViewManager = null
+      overlayScope?.cancel()
+      overlayScope = null
+      installCause = null
+    }
   }
 
-  companion object {
-
-    /**
-     * Convenience method to create the [DebugOverlay] instance for its installation.
-     */
-    @JvmStatic
-    fun with(application: Application): DebugOverlay = DebugOverlay(application)
-
-    // Returns true if the current process is the main process (matches the initial application pid)
-    private fun isMainProcess(application: Application): Boolean {
-      val mainProcessName = application.packageName
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        return mainProcessName == Application.getProcessName()
-      }
-      val currentProcessName = getProcessName(application) ?: return true
-      return mainProcessName == currentProcessName
-    }
-
-    // A fallback way to get the current process name on older android OSs, should get a
-    // name like "com.package.name"(main process name) or "com.package.name:remote"
-    private fun getProcessName(application: Application): String? {
-      val myPid = android.os.Process.myPid()
-      val am = application.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-      val infos = am.runningAppProcesses ?: return null
-
-      return infos.firstOrNull { it.pid == myPid }?.processName
-    }
+  private fun checkNotInstalled() {
+    check(!isInstalled) { "DebugOverlay already installed, see exception cause for prior install call: $installCause" }
   }
 }

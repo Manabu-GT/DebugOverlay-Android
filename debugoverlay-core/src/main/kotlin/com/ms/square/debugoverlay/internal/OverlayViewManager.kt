@@ -36,8 +36,11 @@ internal class OverlayViewManager(private val application: Application, private 
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
 
   fun cleanUp() {
-    activityLifecycleHandler.cleanUp()
-    application.unregisterActivityLifecycleCallbacks(activityLifecycleHandler)
+    try {
+      activityLifecycleHandler.cleanUp()
+    } finally {
+      application.unregisterActivityLifecycleCallbacks(activityLifecycleHandler)
+    }
   }
 
   private fun createLayoutParams(windowToken: IBinder): WindowManager.LayoutParams =
@@ -63,7 +66,7 @@ internal class OverlayViewManager(private val application: Application, private 
       setViewTreeLifecycleOwner(lifecycleOwner)
       setViewTreeSavedStateRegistryOwner(lifecycleOwner)
 
-      // Start the lifecycle, call onStart as well for the activity overlay case to work properly.
+      // Start the lifecycle, call onStart as well for the activity overlay to start collecting data immediately.
       lifecycleOwner.onCreate()
       lifecycleOwner.onStart()
 
@@ -104,7 +107,6 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityStarted(activity: Activity) {
       Logger.d("onStart() called for ${activity.javaClass.simpleName}")
-      attachStateChangeListeners[activity]?.onActivityStarted()
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -145,10 +147,6 @@ internal class OverlayViewManager(private val application: Application, private 
 
     private var rootView: ViewGroup? = null
     private var lifecycleOwner: OverlayLifecycleOwner? = null
-
-    fun onActivityStarted() {
-      lifecycleOwner?.onStart()
-    }
 
     fun onActivityResumed() {
       lifecycleOwner?.onResume()
