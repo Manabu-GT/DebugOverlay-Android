@@ -30,14 +30,15 @@ internal class OverlayViewManager(private val application: Application, private 
   private val windowManager: WindowManager =
     application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
-  private val activityLifecycleCallbacks = ActivityLifecycleHandler().also {
+  private val activityLifecycleHandler = ActivityLifecycleHandler().also {
     application.registerActivityLifecycleCallbacks(it)
   }
 
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
 
   fun cleanUp() {
-    application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+    activityLifecycleHandler.cleanUp()
+    application.unregisterActivityLifecycleCallbacks(activityLifecycleHandler)
   }
 
   private fun createLayoutParams(windowToken: IBinder): WindowManager.LayoutParams =
@@ -130,6 +131,13 @@ internal class OverlayViewManager(private val application: Application, private 
         activity.window.decorView.removeOnAttachStateChangeListener(it)
       }
     }
+
+    fun cleanUp() {
+      attachStateChangeListeners.values.onEach {
+        it.hideOverlay()
+      }
+      attachStateChangeListeners.clear()
+    }
   }
 
   inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
@@ -174,7 +182,7 @@ internal class OverlayViewManager(private val application: Application, private 
       )
     }
 
-    private fun hideOverlay() {
+    fun hideOverlay() {
       rootView?.let {
         lifecycleOwner?.onDestroy()
         windowManager.removeView(it)
