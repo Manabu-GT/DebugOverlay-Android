@@ -5,8 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.os.Build
 import androidx.annotation.MainThread
-import androidx.annotation.VisibleForTesting
-import com.ms.square.debugoverlay.internal.ActivityOverlayViewManager
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +15,24 @@ class DebugOverlay private constructor(private val application: Application) {
 
   private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
-  private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
   private var installed = false
 
+  /**
+   * Install the debug overlay into the application.
+   * In the main process, this method is automatically called on app startup.
+   * You can call this method directly to customize the installation timings, however you must
+   * first disable the automatic call by overriding the `debugoverlay_auto_install` boolean
+   * resource:
+   *
+   `* ``xml
+   * <?xml version="1.0" encoding="utf-8"?>
+   * <resources>
+   *   <bool name="debugoverlay_auto_install">false</bool>
+   * </resources>
+   * ```
+   * Also, note that the above only works if `debugoverlay` module is used.
+   *
+   */
   @MainThread
   fun install() {
     check(!installed) { "install() can be called only once!" }
@@ -29,23 +42,19 @@ class DebugOverlay private constructor(private val application: Application) {
       return
     }
 
-    val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    overlayViewManager = ActivityOverlayViewManager(application, overlayScope)
-    this.overlayScope = overlayScope
-
-    activityLifecycleCallbacks = overlayViewManager?.createActivityLifecycleCallbacks(this).also {
-      application.registerActivityLifecycleCallbacks(it)
+    overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
+      overlayViewManager = OverlayViewManager(application, it)
     }
-
     installed = true
   }
 
-  @VisibleForTesting(otherwise = VisibleForTesting.NONE)
-  internal fun uninstall() {
-    activityLifecycleCallbacks?.let {
-      application.unregisterActivityLifecycleCallbacks(it)
-    }
-    activityLifecycleCallbacks = null
+  /**
+   * Uninstall the debug overlay from the application.
+   * You can call install() again to re-install the overlay after uninstalled.
+   */
+  @MainThread
+  fun uninstall() {
+    overlayViewManager?.cleanUp()
     overlayViewManager = null
     overlayScope?.cancel()
     overlayScope = null
