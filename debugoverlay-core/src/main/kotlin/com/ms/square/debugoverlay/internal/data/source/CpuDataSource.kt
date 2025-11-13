@@ -60,6 +60,8 @@ internal class CpuDataSource {
         BufferedReader(FileReader("/proc/self/stat")).use { reader ->
           // Read CPU data
           // Ref... Section 1.8 in https://www.kernel.org/doc/Documentation/filesystems/proc.txt and manpage of proc
+          // Split with limit=18 ensures we get at least 17 elements (indices 0-16)
+          // We only need indices 13-16 (utime, stime, cutime, cstime)
           val cpuData = reader.readLine()?.split(REGEX_FOR_STAT, limit = REGEX_SPLIT_LIMIT)
           if (cpuData != null && cpuData.size > STAT_CSTIME_INDEX) {
             // Parse CPU time from /proc/self/stat
@@ -81,7 +83,7 @@ internal class CpuDataSource {
               val cpuUsageRatio =
                 (cpuTimeDeltaSec / processTimeDeltaSec) / numCpuCores
 
-              emit(Percentage.ofClamped(cpuUsageRatio))
+              emit(Percentage.ofClamped(cpuUsageRatio.toFloat()))
             }
 
             // Update previous values for next iteration
