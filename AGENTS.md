@@ -26,10 +26,9 @@ Welcome! This guide defines how automation and human agents should collaborate i
     - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
 
 - **Project Modules**
-    - `debugoverlay` - Main library module with core overlay functionality
-    - `debugoverlay-no-op` - No-op variant for release builds
-    - `debugoverlay-ext-timber` - Timber logging extension module
-    - `debugoverlay-ext-netstats` - Network statistics extension module
+    - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
+    - `debugoverlay` - Primary public API artifact that most apps depend on
+    - `debugoverlay-androidx-startup` - Optional AndroidX Startup integration for apps that already rely on Startup initializers
     - `sample` - Demo application showcasing library features
 
 - **Coding Language**
@@ -50,8 +49,9 @@ Welcome! This guide defines how automation and human agents should collaborate i
 | Change Type | Mandatory Checks |
 |-------------|------------------|
 | Gradle/build logic | `./gradlew help`; run the smallest assemble task that exercises your change when artifact wiring is affected |
-| Library runtime code | `./gradlew :debugoverlay:check` (or targeted tests) |
-| Extension modules | `./gradlew :debugoverlay-ext-timber:check` or `./gradlew :debugoverlay-ext-netstats:check` |
+| Core runtime code | `./gradlew :debugoverlay-core:check` (or targeted tests) |
+| Legacy wrapper/API | `./gradlew :debugoverlay:check` |
+| AndroidX Startup adapter | `./gradlew :debugoverlay-androidx-startup:check` |
 | Sample app UX/UI | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
 | Documentation only | No build, but ensure links and code snippets compile conceptually |
 

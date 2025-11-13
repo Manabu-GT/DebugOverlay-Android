@@ -34,7 +34,7 @@ Use tools deliberately:
   - Reference them via `libs.*` or `libs.plugins.*` in module build scripts.
 - Java/Kotlin toolchains default to Java 17; keep `java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }` unless the user requests a change.
 - Preserve resource prefixes (`resourcePrefix 'debugoverlay_'`) and do not remove default resource directories when adding extra paths (use `res.srcDir(...)` instead of overwriting `srcDirs`).
-- Honour the module list in `AGENTS.md`, avoid creating new modules without approval, and keep all modules on AndroidX APIs (no legacy `android.support`).
+- Honour the module list in `AGENTS.md` (`debugoverlay-core`, `debugoverlay`, `debugoverlay-androidx-startup`, `sample`), avoid creating new modules without approval, and keep all modules on AndroidX APIs (no legacy `android.support`). Remember that `debugoverlay` is the primary public API, `debugoverlay-core` is the underlying runtime, and `debugoverlay-androidx-startup` is an optional add-on for existing Startup users.
 
 ---
 
@@ -43,8 +43,9 @@ Use tools deliberately:
 | Scenario | Minimum Verification |
 |----------|----------------------|
 | Gradle/build logic or catalog edits | `./gradlew help`; add the smallest assemble task that exercises the affected wiring if artifacts could be impacted |
-| Library runtime changes | `./gradlew :debugoverlay:check` (or narrower unit/integration tasks if only part of the module is touched) |
-| Extension modules | `./gradlew :debugoverlay-ext-timber:check` / `:debugoverlay-ext-netstats:check` as appropriate |
+| Core runtime changes | `./gradlew :debugoverlay-core:check` (or narrower unit/integration tasks if only part of the module is touched) |
+| Legacy wrapper/API updates | `./gradlew :debugoverlay:check` |
+| AndroidX Startup adapter updates | `./gradlew :debugoverlay-androidx-startup:check` |
 | Sample app UI/UX | `./gradlew :sample:assembleDebug`, plus manual interaction notes if feasible |
 | Documentation-only edits | No build required, but confirm code snippets compile conceptually |
 
