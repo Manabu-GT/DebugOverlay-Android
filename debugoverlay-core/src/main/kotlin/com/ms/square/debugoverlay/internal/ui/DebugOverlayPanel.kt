@@ -42,6 +42,7 @@ private val STATUS_COLOR_NORMAL = Color(0xFF4CAF50)
 private val STATUS_COLOR_WARNING = Color(0xFFFF9800)
 private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
 
+@Suppress("LongMethod")
 @Composable
 internal fun DraggableOverlayPanel(
   metrics: DebugOverlayPanelMetrics?,
@@ -49,7 +50,7 @@ internal fun DraggableOverlayPanel(
   initialOffsetY: Float,
   modifier: Modifier = Modifier,
   onPositionChanged: (x: Int, y: Int) -> Unit,
-  onClick: () -> Unit
+  onClick: () -> Unit,
 ) {
   val windowInfo = LocalWindowInfo.current
   val view = LocalView.current
@@ -73,8 +74,8 @@ internal fun DraggableOverlayPanel(
 
   Box(
     modifier = modifier
-      .alpha(if (isDragging) 0.7f else 1f)  // Transparency while dragging
-      .scale(if (isDragging) 1.05f else 1f)  // Slightly larger while dragging
+      .alpha(if (isDragging) 0.7f else 1f) // Transparency while dragging
+      .scale(if (isDragging) 1.05f else 1f) // Slightly larger while dragging
       .pointerInput(Unit) {
         detectDragGesturesAfterLongPress(
           onDragStart = {
@@ -85,8 +86,8 @@ internal fun DraggableOverlayPanel(
           onDragEnd = {
             // Snap to nearest edge with animation
             val snapX = when {
-              offsetX.value < (screenWidth - size.width) / 2 -> 0f  // Snap left
-              else -> (screenWidth - size.width)  // Snap right
+              offsetX.value < (screenWidth - size.width) / 2 -> 0f // Snap left
+              else -> (screenWidth - size.width) // Snap right
             }
             scope.launch {
               offsetX.animateTo(
@@ -129,10 +130,7 @@ internal fun DraggableOverlayPanel(
 }
 
 @Composable
-internal fun DebugOverlayPanel(
-  metrics: DebugOverlayPanelMetrics?,
-  modifier: Modifier = Modifier
-) {
+internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Modifier = Modifier) {
   metrics?.let {
     Surface(
       modifier = modifier

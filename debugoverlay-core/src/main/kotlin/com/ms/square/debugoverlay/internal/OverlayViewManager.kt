@@ -200,16 +200,15 @@ internal class OverlayViewManager(private val application: Application, private 
     }
 
     private fun updatePosition(x: Int, y: Int) {
-      if (layoutParams?.x != x || layoutParams?.y != y) {
-        savedX = x
-        savedY = y
-        layoutParams?.let { params ->
-          params.x = x
-          params.y = y
-          rootView?.let {
-            windowManager.updateViewLayout(it, params)
-          }
-        }
+      savedX = x
+      savedY = y
+      val params = layoutParams ?: return
+      val view = rootView?.takeIf { it.isAttachedToWindow } ?: return
+
+      if (params.x != x || params.y != y) {
+        params.x = x
+        params.y = y
+        windowManager.updateViewLayout(view, params)
       }
     }
 
