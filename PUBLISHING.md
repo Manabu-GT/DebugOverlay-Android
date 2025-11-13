@@ -26,12 +26,14 @@ This project uses the Vanniktech Maven Publish plugin to deploy artifacts to Mav
 
 1. **Smoke-test the build**
    ```bash
-   ./gradlew clean \
-     :debugoverlay:assembleRelease \
-     :debugoverlay-no-op:assembleRelease \
-     :debugoverlay-ext-timber:assembleRelease \
-     :debugoverlay-ext-netstats:assembleRelease
-   ./gradlew test
+   # Run comprehensive checks before publishing
+   ./gradlew clean check
+    # check includes:
+    # - assembleDebug + assembleRelease
+    # - test (unit tests)
+    # - lint (Android lint)
+    # - detekt (Kotlin static analysis)
+    # - spotlessCheck (code formatting)
    ```
 
 2. **Optional: inspect the artifacts locally**
