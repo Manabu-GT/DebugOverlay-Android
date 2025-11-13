@@ -3,8 +3,10 @@ package com.ms.square.debugoverlay.internal.data.source
 import android.os.SystemClock
 import android.system.Os
 import android.system.OsConstants
+import androidx.annotation.FloatRange
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.Percentage
+import com.ms.square.debugoverlay.internal.util.millisToSeconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -18,7 +20,23 @@ import java.io.FileReader
 import java.io.IOException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+
 private val REGEX_FOR_STAT = " +".toRegex()
+
+// This process (user)
+private const val STAT_UTIME_INDEX = 13
+
+// This process (kernel)
+private const val STAT_STIME_INDEX = 14
+
+// Children (user)
+private const val STAT_CUTIME_INDEX = 15
+
+// Children (kernel)
+private const val STAT_CSTIME_INDEX = 16
+
+// +2: array needs size 17 for index 16, split limit is size+1
+private const val REGEX_SPLIT_LIMIT = STAT_CSTIME_INDEX + 2
 
 internal class CpuDataSource {
 
@@ -31,7 +49,6 @@ internal class CpuDataSource {
    */
   private val ticksPerSecond = Os.sysconf(OsConstants._SC_CLK_TCK)
 
-  @Suppress("MagicNumber")
   fun cpuUsage(interval: Duration = 1L.seconds): Flow<Percentage> = flow {
     // Tracking variables
     var lastCpuTimeSec = 0.0
@@ -43,27 +60,28 @@ internal class CpuDataSource {
         BufferedReader(FileReader("/proc/self/stat")).use { reader ->
           // Read CPU data
           // Ref... Section 1.8 in https://www.kernel.org/doc/Documentation/filesystems/proc.txt and manpage of proc
-          val cpuData = reader.readLine()?.split(REGEX_FOR_STAT, limit = 23)
-
-          if (cpuData != null && cpuData.size >= 22) {
+          val cpuData = reader.readLine()?.split(REGEX_FOR_STAT, limit = REGEX_SPLIT_LIMIT)
+          if (cpuData != null && cpuData.size > STAT_CSTIME_INDEX) {
             // Parse CPU time from /proc/self/stat
             // Fields: utime(13), stime(14), cutime(15), cstime(16)
-            val cpuTimeTicks = cpuData[13].toDouble() +
-              cpuData[14].toDouble() +
-              cpuData[15].toDouble() +
-              cpuData[16].toDouble()
+            val cpuTimeTicks = cpuData[STAT_UTIME_INDEX].toDouble() +
+              cpuData[STAT_STIME_INDEX].toDouble() +
+              cpuData[STAT_CUTIME_INDEX].toDouble() +
+              cpuData[STAT_CSTIME_INDEX].toDouble()
             val currentCpuTimeSec = cpuTimeTicks / ticksPerSecond
-            val currentProcessTimeSec = SystemClock.elapsedRealtime() / 1000.0
+            val currentProcessTimeSec = SystemClock.elapsedRealtime().millisToSeconds()
 
-            // Calculate usage percentages (need at least one previous reading)
+            // Calculate usage ratio (need at least one previous reading)
             if (lastCpuTimeSec > 0 && lastProcessTimeSec > 0) {
-              // Relative usage percent for this application during the interval
+              // Relative usage for this application during the interval
               val cpuTimeDeltaSec = currentCpuTimeSec - lastCpuTimeSec
               val processTimeDeltaSec = currentProcessTimeSec - lastProcessTimeSec
-              val intervalUsagePercent =
-                (100.0 * (cpuTimeDeltaSec / processTimeDeltaSec)) / numCpuCores
 
-              emit(Percentage.ofClamped(intervalUsagePercent))
+              @FloatRange(from = 0.0, to = 1.0)
+              val cpuUsageRatio =
+                (cpuTimeDeltaSec / processTimeDeltaSec) / numCpuCores
+
+              emit(Percentage.ofClamped(cpuUsageRatio))
             }
 
             // Update previous values for next iteration

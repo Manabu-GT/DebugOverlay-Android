@@ -47,8 +47,7 @@ internal class MemoryDataSource(context: Context) {
     while (currentCoroutineContext().isActive) {
       val runtime = Runtime.getRuntime()
       val usedMemory = runtime.totalMemory() - runtime.freeMemory()
-      @Suppress("MagicNumber")
-      emit(Percentage.ofClamped(usedMemory.toFloat() / runtime.maxMemory() * 100f))
+      emit(Percentage.ofClamped(usedMemory.toFloat() / runtime.maxMemory()))
       delay(interval)
     }
   }.flowOn(Dispatchers.Default)
