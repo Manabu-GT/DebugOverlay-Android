@@ -36,7 +36,6 @@ private fun DebugOverlayPanelPreview(
   heapPercent: Float = 72f,
   pss: Float = 256f,
   fps: Float = 60f,
-  onClick: () -> Unit = {},
 ) {
   // Mock data that updates for preview
   var metrics by remember {
@@ -85,8 +84,7 @@ private fun DebugOverlayPanelPreview(
 
   DebugOverlayPanel(
     metrics = metrics,
-    modifier = modifier,
-    onClick = onClick
+    modifier = modifier
   )
 }
 

@@ -2,9 +2,13 @@
 
 package com.ms.square.debugoverlay.internal.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -12,34 +16,124 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private val STATUS_COLOR_NORMAL = Color(0xFF4CAF50)
 private val STATUS_COLOR_WARNING = Color(0xFFFF9800)
 private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
 
+@Suppress("LongMethod")
 @Composable
-internal fun DebugOverlayPanel(
+internal fun DraggableOverlayPanel(
   metrics: DebugOverlayPanelMetrics?,
+  initialOffsetX: Float,
+  initialOffsetY: Float,
   modifier: Modifier = Modifier,
-  onClick: () -> Unit = {},
+  onPositionChanged: (x: Int, y: Int) -> Unit,
+  onClick: () -> Unit,
 ) {
+  val windowInfo = LocalWindowInfo.current
+  val view = LocalView.current
+  val scope = rememberCoroutineScope()
+
+  val screenWidth = windowInfo.containerSize.width.toFloat()
+  val screenHeight = windowInfo.containerSize.height.toFloat()
+
+  val offsetX = remember { Animatable(initialOffsetX) }
+  val offsetY = remember { Animatable(initialOffsetY) }
+  var isDragging by remember { mutableStateOf(false) }
+
+  // Continuously update WindowManager position whenever animated values change
+  LaunchedEffect(Unit) {
+    snapshotFlow { offsetX.value to offsetY.value }
+      .onEach { (x, y) ->
+        onPositionChanged(x.roundToInt(), y.roundToInt())
+      }
+      .launchIn(this)
+  }
+
+  Box(
+    modifier = modifier
+      .alpha(if (isDragging) 0.7f else 1f) // Transparency while dragging
+      .scale(if (isDragging) 1.05f else 1f) // Slightly larger while dragging
+      .pointerInput(Unit) {
+        detectDragGesturesAfterLongPress(
+          onDragStart = {
+            isDragging = true
+            // Trigger haptic feedback
+            view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+          },
+          onDragEnd = {
+            // Snap to nearest edge with animation
+            val snapX = when {
+              offsetX.value < (screenWidth - size.width) / 2 -> 0f // Snap left
+              else -> (screenWidth - size.width) // Snap right
+            }
+            scope.launch {
+              offsetX.animateTo(
+                targetValue = snapX,
+                animationSpec = tween()
+              )
+            }
+            isDragging = false
+          },
+          onDragCancel = {
+            isDragging = false
+          },
+          onDrag = { change, dragAmount ->
+            change.consume()
+
+            scope.launch {
+              // Right is positive
+              offsetX.snapTo((offsetX.value + dragAmount.x).coerceIn(0f, screenWidth - size.width))
+              // UP is positive (flip sign because gravity is BOTTOM)
+              offsetY.snapTo((offsetY.value - dragAmount.y).coerceIn(0f, screenHeight - size.height))
+            }
+          }
+        )
+      }
+      .pointerInput(Unit) {
+        // Tap detection (separate from drag)
+        detectTapGestures(
+          onTap = {
+            if (!isDragging) {
+              onClick()
+            }
+          }
+        )
+      }
+  ) {
+    DebugOverlayPanel(
+      metrics = metrics
+    )
+  }
+}
+
+@Composable
+internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Modifier = Modifier) {
   metrics?.let {
     Surface(
       modifier = modifier
-        .pointerInput(Unit) {
-          detectTapGestures(
-            onTap = {
-              onClick()
-            }
-          )
-        }
         .padding(all = 8.dp)
         .border(
           width = 1.dp,
@@ -48,8 +142,7 @@ internal fun DebugOverlayPanel(
         ),
       shape = RoundedCornerShape(12.dp),
       color = MaterialTheme.colorScheme.surfaceContainerHigh,
-      tonalElevation = 3.dp,
-      shadowElevation = 8.dp
+      tonalElevation = 3.dp
     ) {
       Column(
         modifier = Modifier

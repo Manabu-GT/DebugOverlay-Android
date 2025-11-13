@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.Gravity
@@ -21,7 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
-import com.ms.square.debugoverlay.internal.ui.DebugOverlayPanel
+import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
 import kotlinx.coroutines.CoroutineScope
 import java.util.WeakHashMap
 
@@ -34,6 +35,10 @@ internal class OverlayViewManager(private val application: Application, private 
   }
 
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
+
+  // Shared position state across all activities
+  private var savedX: Int = 0
+  private var savedY: Int = 0
 
   fun cleanUp() {
     try {
@@ -48,14 +53,20 @@ internal class OverlayViewManager(private val application: Application, private 
       width = WindowManager.LayoutParams.WRAP_CONTENT
       height = WindowManager.LayoutParams.WRAP_CONTENT
       token = windowToken
+      // make layout of the window happens as that of a top-level window, not as a child of its container
       type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
-      flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+      flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
       format = PixelFormat.TRANSLUCENT
       gravity = Gravity.BOTTOM or Gravity.START
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        // disable the move window animation as not needed on Android 14+
+        setCanPlayMoveAnimation(false)
+      }
+      x = savedX
+      y = savedY
     }
 
-  private fun createOverlayRoot(): Pair<ViewGroup, OverlayLifecycleOwner> {
+  private fun createOverlayRoot(onPositionChanged: (Int, Int) -> Unit): Pair<ViewGroup, OverlayLifecycleOwner> {
     val lifecycleOwner = OverlayLifecycleOwner()
     return ComposeView(application).apply {
       // Create and attach a synthetic lifecycle for the overlay
@@ -82,10 +93,13 @@ internal class OverlayViewManager(private val application: Application, private 
             lightColorScheme()
           }
         ) {
-          DebugOverlayPanel(
+          DraggableOverlayPanel(
             metrics = metrics,
+            initialOffsetX = savedX.toFloat(),
+            initialOffsetY = savedY.toFloat(),
+            onPositionChanged = onPositionChanged,
             onClick = {
-              // Navigate to detailed performance screen
+              // Navigate to detailed performance screen in the future
             }
           )
         }
@@ -147,9 +161,11 @@ internal class OverlayViewManager(private val application: Application, private 
 
     private var rootView: ViewGroup? = null
     private var lifecycleOwner: OverlayLifecycleOwner? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
 
     fun onActivityResumed() {
       lifecycleOwner?.onResume()
+      updatePosition(savedX, savedY)
     }
 
     fun onActivityPaused() {
@@ -169,15 +185,31 @@ internal class OverlayViewManager(private val application: Application, private 
     }
 
     private fun showOverlay(windowToken: IBinder) {
-      createOverlayRoot().also {
-        rootView = it.first
-        lifecycleOwner = it.second
+      val params = createLayoutParams(windowToken)
+      layoutParams = params
+
+      createOverlayRoot(
+        onPositionChanged = { x, y ->
+          updatePosition(x, y)
+        }
+      ).also { (root, owner) ->
+        rootView = root
+        lifecycleOwner = owner
+        windowManager.addView(root, params)
       }
-      // make layout of the window happens as that of a top-level window, not as a child of its container
-      windowManager.addView(
-        rootView,
-        createLayoutParams(windowToken)
-      )
+    }
+
+    private fun updatePosition(x: Int, y: Int) {
+      savedX = x
+      savedY = y
+      val params = layoutParams ?: return
+      val view = rootView?.takeIf { it.isAttachedToWindow } ?: return
+
+      if (params.x != x || params.y != y) {
+        params.x = x
+        params.y = y
+        windowManager.updateViewLayout(view, params)
+      }
     }
 
     fun hideOverlay() {
@@ -186,6 +218,7 @@ internal class OverlayViewManager(private val application: Application, private 
         windowManager.removeView(it)
         rootView = null
         lifecycleOwner = null
+        layoutParams = null
       }
     }
   }
