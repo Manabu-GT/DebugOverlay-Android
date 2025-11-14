@@ -20,7 +20,7 @@ internal class DebugOverlayInstaller : ContentProvider() {
     // context here should be never null per the doc within onCreate()
     val application =
       context?.applicationContext as? Application ?: error("Can not cast the given context an Application")
-    DebugOverlay.manualInstall(application)
+    DebugOverlay.install(application)
     return true
   }
 

@@ -15,7 +15,7 @@ The overlay is ideal for debug builds, QA drops, or instrumentation test session
 - Pure Kotlin + Jetpack Compose implementation rendered using application-layer windows attached to each Activity (no system permissions)
 - Updated metrics pipeline that continuously samples CPU, heap, process PSS, and frame rate with historical sparklines
 - Drag-to-move UI with edge snapping, dark/light theme awareness, and shared position across activities
-- Automatic install by default through a lightweight ContentProvider (or AndroidX Startup if you prefer); drop down to `DebugOverlay.manualInstall(Application)` only when you need to control the timing yourself
+- Automatic install by default through a lightweight ContentProvider (or AndroidX Startup if you prefer)
 - Minimum SDK 24 / target SDK 36
 
 ### Upcoming features
@@ -60,9 +60,6 @@ dependencies {
 
   // Option B: integrate with AndroidX Startup if you already use it
   // debugImplementation("com.ms-square:debugoverlay-androidx-startup:2.0.0-SNAPSHOT")
-
-  // Option C: wire it up yourself (manual install/uninstall)
-  // debugImplementation("com.ms-square:debugoverlay-core:2.0.0-SNAPSHOT")
 }
 ```
 
@@ -74,41 +71,9 @@ Use the same coordinate for instrumentation tests (e.g., `androidTestImplementat
 
 In debug builds the overlay installs itself on app startup via `DebugOverlayInstaller`, a ContentProvider that runs before your `Application`. The overlay only attaches in the main process and ignores secondary processes.
 
-If you need to turn auto-install off (for example, to control the timing yourself), override the provided resource in your `src/debug` resources:
-
-```xml
-<!-- src/debug/res/values/debugoverlay.xml -->
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-  <bool name="debugoverlay_auto_install">false</bool>
-</resources>
-```
-
-### Manual control
-
-Call `DebugOverlay.manualInstall()` from any place where you have access to the `Application`. Pair it with `DebugOverlay.uninstall()` when you want to disable the overlay.
-
-```kotlin
-import android.app.Application
-import com.ms.square.debugoverlay.DebugOverlay
-
-class ExampleApp : Application() {
-  override fun onCreate() {
-    super.onCreate()
-    if (BuildConfig.DEBUG) {
-      DebugOverlay.manualInstall(this)
-    }
-  }
-
-  fun disableOverlay() {
-    DebugOverlay.uninstall()
-  }
-}
-```
-
 ### AndroidX Startup integration
 
-If your app already depends on `androidx.startup:startup-runtime`, include `debugoverlay-androidx-startup` instead of the default artifact. It registers `DebugOverlayStartupInitializer`, which runs on app start and delegates to `DebugOverlay.manualInstall()`. No additional configuration is required.
+If your app already depends on `androidx.startup:startup-runtime`, include `debugoverlay-androidx-startup` instead of the default artifact. It registers `DebugOverlayStartupInitializer`, which automatically installs the overlay on app start. No additional configuration is required.
 
 ## What the overlay shows
 

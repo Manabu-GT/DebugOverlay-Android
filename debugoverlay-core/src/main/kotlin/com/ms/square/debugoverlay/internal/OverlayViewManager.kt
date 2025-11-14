@@ -30,22 +30,14 @@ internal class OverlayViewManager(private val application: Application, private 
   private val windowManager: WindowManager =
     application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
-  private val activityLifecycleHandler = ActivityLifecycleHandler().also {
-    application.registerActivityLifecycleCallbacks(it)
-  }
-
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
 
   // Shared position state across all activities
   private var savedX: Int = 0
   private var savedY: Int = 0
 
-  fun cleanUp() {
-    try {
-      activityLifecycleHandler.cleanUp()
-    } finally {
-      application.unregisterActivityLifecycleCallbacks(activityLifecycleHandler)
-    }
+  init {
+    application.registerActivityLifecycleCallbacks(ActivityLifecycleHandler())
   }
 
   private fun createLayoutParams(windowToken: IBinder): WindowManager.LayoutParams =

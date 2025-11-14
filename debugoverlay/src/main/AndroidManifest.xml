@@ -4,7 +4,6 @@
     <provider
       android:name="com.ms.square.debugoverlay.internal.DebugOverlayInstaller"
       android:authorities="${applicationId}.debugoverlay-installer"
-      android:enabled="@bool/debugoverlay_auto_install"
       android:exported="false"/>
   </application>
 </manifest>
