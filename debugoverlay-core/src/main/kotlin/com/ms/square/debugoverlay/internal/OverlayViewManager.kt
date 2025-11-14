@@ -115,7 +115,7 @@ internal class OverlayViewManager(private val application: Application, private 
       Logger.d("onCreate() called for ${activity.javaClass.simpleName}")
       OverlayViewAttachStateChangeListener().also {
         activity.window.decorView.addOnAttachStateChangeListener(it)
-        attachStateChangeListeners.put(activity, it)
+        attachStateChangeListeners[activity] = it
       }
     }
 
@@ -144,9 +144,7 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityDestroyed(activity: Activity) {
       Logger.d("onDestroy() called for ${activity.javaClass.simpleName}")
-      attachStateChangeListeners.remove(activity)?.also {
-        activity.window.decorView.removeOnAttachStateChangeListener(it)
-      }
+      attachStateChangeListeners.remove(activity)
     }
 
     fun cleanUp() {
@@ -182,6 +180,7 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onViewDetachedFromWindow(v: View) {
       hideOverlay()
+      v.removeOnAttachStateChangeListener(this)
     }
 
     private fun showOverlay(windowToken: IBinder) {
@@ -215,7 +214,8 @@ internal class OverlayViewManager(private val application: Application, private 
     fun hideOverlay() {
       rootView?.let {
         lifecycleOwner?.onDestroy()
-        windowManager.removeView(it)
+        // remove immediately so that WindowLeaked won't trigger
+        windowManager.removeViewImmediate(it)
         rootView = null
         lifecycleOwner = null
         layoutParams = null
