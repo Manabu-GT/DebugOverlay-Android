@@ -7,7 +7,7 @@ spotless = "8.0.0"
 detekt = "1.23.8"
 
 # Android
-androidMinSdk = "26"
+androidMinSdk = "24"
 androidCompileSdk = "36"
 androidTargetSdk = "36"
 
