@@ -1,6 +1,6 @@
 DebugOverlay-Android
 ====================
-[![Maven Central](https://img.shields.io/maven-central/v/com.ms-square/debugoverlay?color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
+[![Maven Central](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
 [![API 26+](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#8.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -18,6 +18,12 @@ The overlay is ideal for debug builds, QA drops, or instrumentation test session
 - Automatic install by default through a lightweight ContentProvider (or AndroidX Startup if you prefer); drop down to `DebugOverlay.manualInstall(Application)` only when you need to control the timing yourself
 - Minimum SDK 26 / target SDK 36
 
+### Upcoming features
+- Bottom sheet panel (tapping the overlay will reveal):
+  - Logcat messages
+  - Network usage statistics
+  - Additional diagnostic data (TBD)
+
 ## Requirements
 
 - Android 8.0 (API level 26) or higher
@@ -30,7 +36,7 @@ DebugOverlay is intended for debug builds in general; keep it out of release var
 
 ### 1. Repositories
 
-`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release. Add the repository next to `mavenCentral()`:
+`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: early-Dec 2025). Add the repository next to `mavenCentral()`:
 
 ```kotlin
 dependencyResolutionManagement {
@@ -42,6 +48,8 @@ dependencyResolutionManagement {
   }
 }
 ```
+
+> **Note:** Snapshot builds are unstable. For production-critical testing, consider waiting for the stable release on Maven Central.
 
 ### 2. Pick the integration that fits your app
 
