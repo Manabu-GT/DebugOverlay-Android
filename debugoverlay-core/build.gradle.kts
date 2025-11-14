@@ -4,7 +4,6 @@ plugins {
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.dexcount)
   alias(libs.plugins.mavenPublish)
-  id("kotlin-parcelize")
 }
 
 java {

@@ -1,320 +1,136 @@
 DebugOverlay-Android
-===========
-[![Maven Central](https://img.shields.io/maven-central/v/com.ms-square/debugoverlay?color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
+====================
+[![Maven Central](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
 [![API 26+](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#8.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**DebugOverlay** is an Android library that allows developers to easily add custom overlay window/view for debugging purpose.
+**DebugOverlay** is an overlay fully written in Kotlin that runs inside your app process and surfaces real-time CPU, heap, PSS, and FPS metrics in a draggable UI. v2.0.0 rewrites the original 1.x Java implementation and no longer requires the `SYSTEM_ALERT_WINDOW` permission.
 
-You can use it to show some performance related metrics such as cpu, memory, and fps. Or you can show logcat messages within your app for light debugging.
-
-This library is fully customizable in terms of what you can show on the overlay. If you want to show something other than what's being provided, please go ahead and create your own overlay module!
+The overlay is ideal for debug builds, QA drops, or instrumentation test sessions where you want lightweight insight into runtime health without attaching profilers.
 
 <img src="art/readme_simple_demo.gif" width="50%" alt="DebugOverlay Simple Demo">
 
-Requirements
--------------
-API Level 26 (Android 8.0) and above.
+## Highlights in v2.0.0-SNAPSHOT
 
-Setup
-------
-The library is pushed to Maven Central as an AAR,
-so you just need to add the followings to your ***build.gradle*** file:
+- Pure Kotlin + Jetpack Compose implementation rendered using application-layer windows attached to each Activity (no system permissions)
+- Updated metrics pipeline that continuously samples CPU, heap, process PSS, and frame rate with historical sparklines
+- Drag-to-move UI with edge snapping, dark/light theme awareness, and shared position across activities
+- Automatic install by default through a lightweight ContentProvider (or AndroidX Startup if you prefer); drop down to `DebugOverlay.manualInstall(Application)` only when you need to control the timing yourself
+- Minimum SDK 26 / target SDK 36
 
-```groovy
-dependencies {
-  debugImplementation 'com.ms-square:debugoverlay:1.1.4'
-  releaseImplementation 'com.ms-square:debugoverlay-no-op:1.1.4'
-  testImplementation 'com.ms-square:debugoverlay-no-op:1.1.4'
-}
-```
+### Upcoming features
+- Bottom sheet panel (tapping the overlay will reveal):
+  - Logcat messages
+  - Network usage statistics
+  - Additional diagnostic data (TBD)
 
-Please note that `com.ms-square:debugoverlay:1.1.4`  will add `android.permission.SYSTEM_ALERT_WINDOW`  to your app.
-Therefore, you should avoid to use that dependency for your release build if your app itself doesn't require it.
+## Requirements
 
-FYI, the following table describes the total number of method/field references in this library's release aar.
-This data is acquired by using [Dexcount Gradle Plugin](https://github.com/KeepSafe/dexcount-gradle-plugin).
+- Android 8.0 (API level 26) or higher
 
-| library                                | methods | fields |
-|:---------------------------------------|:--------|:-------|
-| com.ms-square:debugoverlay:1.1.4       | 572     | 248    |
-| com.ms-square:debugoverlay-no-op:1.1.4 | 142     | 31     |
+The library itself is implemented with Kotlin + Compose but ships as a regular AAR. You do **not** need to enable the Compose compiler plugin or migrate your app to Kotlin—pure Java/XML apps can consume the dependency via `debugImplementation`.
 
-Due to the extensibility of this library, no-op version unfortunately has more than a few methods.
-If you want to eliminate such method count in your release build, consider having separate `Application` class only for your debug build which uses this library and just specify `debugImplementation 'com.ms-square:debugoverlay:1.1.4'` in the dependencies section of build.gradle.
+DebugOverlay is intended for debug builds in general; keep it out of release variants by using `debugImplementation` (shown below).
 
-Usage
-------
+## Installation
 
-### Simple
+### 1. Repositories
 
-In your `Application` class:
+`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: early-Dec 2025). Add the repository next to `mavenCentral()`:
 
-```java
-public class ExampleApplication extends Application {
-
-  @Override public void onCreate() {
-    super.onCreate();
-    DebugOverlay.with(this).install();
-    // Normal app init code...
+```kotlin
+dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    google()
+    mavenCentral()
+    maven(url = "https://central.sonatype.com/repository/maven-snapshots")
   }
 }
 ```
-It will show a debug overlay on system layer with the following three default modules just like the gif animation image displayed on this README.
 
-- [CpuUsageModule](#cpuusagemodule) - will not be shown on Android O and above
-- [MemInfoModule](#meminfomodule)
-- [FpsModule](#fpsmodule)
+> **Note:** Snapshot builds are unstable. For production-critical testing, consider waiting for the stable release on Maven Central.
 
-### w/ Configurations
+### 2. Pick the integration that fits your app
 
-<img src="art/overlay_with_configurations.png" width="50%" alt="DebugOverlay Screen Capture">
+```kotlin
+dependencies {
+  // Option A: default auto-install via a lightweight ContentProvider
+  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
 
-```java
-new DebugOverlay.Builder(this)
-        .modules(new CpuUsageModule(),
-                new MemInfoModule(this),
-                new FpsModule(),
-                new LogcatModule())
-        .position(Position.BOTTOM_START)
-        .bgColor(Color.parseColor("#60000000"))
-        .textColor(Color.MAGENTA)
-        .textSize(14f)
-        .textAlpha(.8f)
-        .allowSystemLayer(true)
-        .notification(true, MainActivity.class.getName())
-        .build()
-        .install();
-```
+  // Option B: integrate with AndroidX Startup if you already use it
+  // debugImplementation("com.ms-square:debugoverlay-androidx-startup:2.0.0-SNAPSHOT")
 
-* modules - [list or as variable length arguments]
->List of [OverlayModule][3]s to install
-
-* position - [Position]
->Enum which specifies where to show the overlay. Default is `BOTTOM_START`.
-
-* bgColor - [color]
->Color used for the background of the overlay. Default is `25% Black`.
-
-* textColor - [color]
->Color used for text on the overlay. Default is `White`.
-
-* textSize - [float]
->Size in `sp` used for text on the overlay. Default is `12sp`.
-
-* textAlpha - [float]
->Alpha value used for text on the overlay.  Default is `1f`(fully opaque).
-
-* allowSystemLayer - [boolean]
->If true, it adds the overlay window on Android's system window layer and it will ask you for the overlay permission by taking you to the Android's settings screen when you first set up. If set to false, it  will automatically add the overlay on each application window. In most cases, you want to set this to `true`.
-Default is `true`.
-
-* notification - [boolean, string(optional)]
-> *applicable only when allowSystemLayer is set to true*
->
-> When set to true, it will show notification which allows you to show/hide the overlay window.
-Default is `true`.
-You can optionally supply string which must be your *activity's class name*.
-It will be used to create PendingIntent to start the activity when the notification is tapped.
-
-### Showing/Hiding an Overlay
-
-<img src="art/overlay_control_notification.png" width="50%" alt="DebugOverlay Control Notification">
-
-You can show/hide a debug overlay by tapping `Show/Hide` button on the notification shown.
-
-Provided Modules
-------
-
-#### CpuUsageModule
-
-`default`
-> Collects app-total and app-relative CPU usage percentages based on the configured interval (default 1000 ms) by reading `/proc/self/stat`.
-
-#### MemInfoModule
-
-`default`
-> Collects device's current available memory, app's total PSS, and app's total private dirty info. Display unit is in `Megabyte`.
-
-Refer to [Investigating Your RAM Usage](https://developer.android.com/studio/profile/investigate-ram.html#ViewingAllocations) for more info about PSS and private dirty RAM.
-
-If low memory situation is detected by reading [lowMemory](https://developer.android.com/reference/android/app/ActivityManager.MemoryInfo.html#lowMemory), texts will be automatically displayed in `RED`.
-
-#### FpsModule
-`default`
-> Measures FPS using [Choreographer](https://developer.android.com/reference/android/view/Choreographer.html).
-
-#### LogcatModule
-`optional`
-> Collects logcat messages generated by your own app even on non-rooted devices.
-
-#### CpuFreqModule
-`optional`
-> Collects each cpu core's current and max frequency by reading `/sys/devices/system/cpu/cpu[num]/cpufreq/scaling_cur_freq` and `/sys/devices/system/cpu/cpu[num]/cpufreq/cpuinfo_max_freq` respectively.
-
-Extension Modules (available separately)
-------
-#### TimberModule
-`optional`
-> An extension module which shows [Timber](https://github.com/JakeWharton/timber) logs for debugging.
-
-For details, please check out [debugoverlay-ext-timber](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-timber).
-
-#### NetStatsModule
-`optional`
-> An extension module which shows the total network usage of the application. The stats include all network interfaces, and both TCP and UDP usage.
-
-For details, please check out [debugoverlay-ext-netstats](https://github.com/Manabu-GT/DebugOverlay-Android/tree/develop/debugoverlay-ext-netstats).
-
-Customization
-------
-
-### Filtering and coloring scheme of logcat view
-
-
-#### Filtering
-
-* [LogcatLineFilter][1]
-
-implement the follwing IF method
-
-```java
-boolean shouldFilterOut(LogcatLine.Priority priority, @NonNull String tag)
-```
-
-#### Coloring
-
-* [LogcatLineColorScheme][2]
-
-implement the follwing IF method
-
-```java
-@ColorInt
-int getTextColor(LogcatLine.Priority priority, @NonNull String tag)
-```
-
-Example:
-
-```java
-// filtering with LogcatLineFilter.SimpleLogcatLineFilter
-// it filters out VERBOSE logs because DEBUG is minimum priority required
-module = new LogcatModule(LogcatModule.DEFAULT_MAX_LINES,
-                new LogcatLineFilter.SimpleLogcatLineFilter(LogcatLine.Priority.DEBUG));
-
-// filtering with your own line filter
-module = new LogcatModule(LogcatModule.DEFAULT_MAX_LINES, your_line_filter);
-
-// coloring
-module = new LogcatModule(LogcatModule.DEFAULT_MAX_LINES, your_color_scheme);
-
-// both
-module = new LogcatModule(LogcatModule.DEFAULT_MAX_LINES, your_line_filter, your_color_scheme);
-```
-
-### Using custom overlay view for provided modules
-
-For any modules provided, you can pass your own implementation of [ViewModule][5] to use your custom view entirely to display the module data.
-
-Example:
-
-```java
-// here, MyCpuViewModule must implement ViewModule interface
-module = new CpuUsageModule(new MyCpuViewModule());
-```
-
-For **CpuUsage, CpuFreq, MemInfo, and Fps modules**, you can pass your own layout resource id as long as it contains TextView as a direct child with id set to `debugoverlay_overlay_text` which is already defined in this library. This allows you to style the TextView used within those modules very easily without fully implementing new [ViewModule][5] by yourself.
-
-### Adding your own overlay module
-
-As an example, let's add a new overlay module in the [sample project][7] which displays a list of IP addresses on your device. It can be quite useful if you have any server-type service running within your app.
-
-For any type of module you want to add, you need to implement the following three types of components. (In most cases, the real work will be done in [DataModule][4].)
-
-- [OverlayModule][3] - composed of DataModule and ViewModule
- - [DataModule][4] - responsible for getting data and notifying its observers
- - [ViewModule][5] - responsible for creating an overlay view and updating it with the latest data
-
-Since this is a very simple overlay module which is going to display just one line of text using TextView, you can just use the provided [SimpleViewModule][6] as ViewModule.
-
-DataModule is where the hardwork is done to get some meaningful data to show.
-In this case, it will look like the following. For its full implementation, please take a look at [IPAddressDataModule][8].
-
-```java
-public class IPAddressDataModule extends BaseDataModule<String> {
-    ....
-    @Override
-    public void start() {
-        context.registerReceiver(receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        ipAddresses = getV4IPAddressesString();
-        notifyObservers();
-    }
-
-    @Override
-    public void stop() {
-        context.unregisterReceiver(receiver);
-    }
-
-    @Override
-    protected String getLatestData() {
-        return ipAddresses;
-    }
-    ....
+  // Option C: wire it up yourself (manual install/uninstall)
+  // debugImplementation("com.ms-square:debugoverlay-core:2.0.0-SNAPSHOT")
 }
 ```
 
-We're almost done. Now just subclass [OverlayModule][3] and create `IPAddressModule` class  using the `IPAddressDataModule` as its data module.
+Use the same coordinate for instrumentation tests (e.g., `androidTestImplementation`) if you ever want overlays while running Espresso/UI Automator suites.
 
-```java
-public class IPAddressModule extends OverlayModule<String> {
+## Usage
 
-    public IPAddressModule(@NonNull Context context) {
-        super(new IPAddressDataModule(context), new SimpleViewModule(R.layout.view_overlay_ip));
+### Auto-install (default `debugoverlay` artifact)
+
+In debug builds the overlay installs itself on app startup via `DebugOverlayInstaller`, a ContentProvider that runs before your `Application`. The overlay only attaches in the main process and ignores secondary processes.
+
+If you need to turn auto-install off (for example, to control the timing yourself), override the provided resource in your `src/debug` resources:
+
+```xml
+<!-- src/debug/res/values/debugoverlay.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <bool name="debugoverlay_auto_install">false</bool>
+</resources>
+```
+
+### Manual control
+
+Call `DebugOverlay.manualInstall()` from any place where you have access to the `Application`. Pair it with `DebugOverlay.uninstall()` when you want to disable the overlay.
+
+```kotlin
+import android.app.Application
+import com.ms.square.debugoverlay.DebugOverlay
+
+class ExampleApp : Application() {
+  override fun onCreate() {
+    super.onCreate()
+    if (BuildConfig.DEBUG) {
+      DebugOverlay.manualInstall(this)
     }
+  }
+
+  fun disableOverlay() {
+    DebugOverlay.uninstall()
+  }
 }
 ```
 
-Since a new custom module called `IPAddressModule` is created, let's actually show it on the overlay.
+### AndroidX Startup integration
 
-```java
-// inside Application's onCreate()
-new DebugOverlay.Builder(this)
-        .modules(new CpuFreqModule(),
-                 new CpuUsageModule(),
-                 new MemInfoModule(this),
-                 new FpsModule(),
-                 new IPAddressModule(this))
-                .build()
-                .install();
+If your app already depends on `androidx.startup:startup-runtime`, include `debugoverlay-androidx-startup` instead of the default artifact. It registers `DebugOverlayStartupInitializer`, which runs on app start and delegates to `DebugOverlay.manualInstall()`. No additional configuration is required.
+
+## What the overlay shows
+
+- **CPU** – App CPU usage sampled from `/proc/self/stat` every second with a 16-sample historical sparkline
+- **Heap** – JVM heap usage percentage relative to the max heap size, refreshed once per second
+- **PSS** – Process Proportional Set Size in MB with automatic scaling based on observed max, sampled every 3 seconds to smooth out noise
+- **FPS** – Current frame rate vs. the target frame rate, refreshed every second
+
+Each row shows a status dot (green = healthy, yellow = warning, red = critical) that reacts to the current value. All metrics refresh at the cadence described above, and the overlay adapts to dark/light themes automatically. The panel can be long-pressed to drag; it snaps to the nearest horizontal edge when released and remembers its position across activities.
+
+## Sample app
+
+`sample/` is a Jetpack Compose demo that consumes the Android Weekly feed and runs DebugOverlay during development. Build it with:
+
+```shell
+./gradlew :sample:assembleDebug
 ```
 
-Now, the overlay successfully shows the newly added custom module at the bottom.
+Use it as a reference for wiring the dependency and exercising the overlay while navigating multiple screens.
 
-<img src="art/overlay_with_custom_module_and_cpufreq_small.png" width="50%" alt="DebugOverlay Screen Capture">
+<img src="art/readme_sample_app_demo.gif" width="50%" alt="DebugOverlay Sample App Demo">
 
-Thanks for reading!
+## License
 
-License
-----------
-
-    Copyright 2017–2025 Manabu-GT
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-
-[1]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/LogcatLineFilter.java
-[2]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/LogcatLineColorScheme.java
-[3]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/OverlayModule.java
-[4]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/DataModule.java
-[5]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/ViewModule.java
-[6]: https://github.com/Manabu-GT/DebugOverlay-Android/blob/main/debugoverlay/src/main/java/com/ms_square/debugoverlay/modules/SimpleViewModule.java
-[7]: https://github.com/Manabu-GT/DebugOverlay-Android/tree/main/sample
-[8]: https://github.com/Manabu-GT/DebugOverlay-Android/tree/main/sample/src/main/java/com/ms_square/debugoverlay/sample/IPAddressDataModule.java
+DebugOverlay-Android is distributed under the [Apache License 2.0](LICENSE).
