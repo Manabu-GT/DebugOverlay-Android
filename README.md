@@ -1,7 +1,7 @@
 DebugOverlay-Android
 ====================
 [![Maven Central](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
-[![API 26+](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#8.0)
+[![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 **DebugOverlay** is an overlay fully written in Kotlin that runs inside your app process and surfaces real-time CPU, heap, PSS, and FPS metrics in a draggable UI. v2.0.0 rewrites the original 1.x Java implementation and no longer requires the `SYSTEM_ALERT_WINDOW` permission.
@@ -16,7 +16,7 @@ The overlay is ideal for debug builds, QA drops, or instrumentation test session
 - Updated metrics pipeline that continuously samples CPU, heap, process PSS, and frame rate with historical sparklines
 - Drag-to-move UI with edge snapping, dark/light theme awareness, and shared position across activities
 - Automatic install by default through a lightweight ContentProvider (or AndroidX Startup if you prefer); drop down to `DebugOverlay.manualInstall(Application)` only when you need to control the timing yourself
-- Minimum SDK 26 / target SDK 36
+- Minimum SDK 24 / target SDK 36
 
 ### Upcoming features
 - Bottom sheet panel (tapping the overlay will reveal):
@@ -26,7 +26,7 @@ The overlay is ideal for debug builds, QA drops, or instrumentation test session
 
 ## Requirements
 
-- Android 8.0 (API level 26) or higher
+- Android 7.0 (API level 24) or higher
 
 The library itself is implemented with Kotlin + Compose but ships as a regular AAR. You do **not** need to enable the Compose compiler plugin or migrate your app to Kotlin—pure Java/XML apps can consume the dependency via `debugImplementation`.
 
