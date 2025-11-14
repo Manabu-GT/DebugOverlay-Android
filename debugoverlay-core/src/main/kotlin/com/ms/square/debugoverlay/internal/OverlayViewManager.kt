@@ -138,13 +138,6 @@ internal class OverlayViewManager(private val application: Application, private 
       Logger.d("onDestroy() called for ${activity.javaClass.simpleName}")
       attachStateChangeListeners.remove(activity)
     }
-
-    fun cleanUp() {
-      attachStateChangeListeners.values.forEach {
-        it.hideOverlay()
-      }
-      attachStateChangeListeners.clear()
-    }
   }
 
   inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
