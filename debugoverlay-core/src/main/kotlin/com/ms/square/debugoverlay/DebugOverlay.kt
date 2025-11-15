@@ -20,7 +20,7 @@ import kotlinx.coroutines.SupervisorJob
  * the overlay lifecycle in v2.x.
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-object DebugOverlay {
+public object DebugOverlay {
 
   private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
@@ -30,7 +30,7 @@ object DebugOverlay {
     get() = overlayScope != null
 
   @MainThread
-  fun install(application: Application) {
+  public fun install(application: Application) {
     if (!isMainProcess(application)) {
       // Just return early without any work if it's not running in the main app process
       return

@@ -12,6 +12,10 @@ java {
   }
 }
 
+kotlin {
+  explicitApi()
+}
+
 android {
   namespace = "com.ms.square.debugoverlay.core"
 
