@@ -11,6 +11,10 @@ java {
   }
 }
 
+kotlin {
+  explicitApi()
+}
+
 android {
   namespace = "com.ms.square.debugoverlay"
   compileSdk = libs.versions.androidCompileSdk.get().toInt()
