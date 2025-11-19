@@ -1,2 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <activity
+      android:name="com.ms.square.debugoverlay.internal.ui.DebugPanelActivity"
+      android:theme="@style/debugoverlay_Theme.Transparent"
+      android:exported="false"
+      android:excludeFromRecents="true" />
+  </application>
+</manifest>

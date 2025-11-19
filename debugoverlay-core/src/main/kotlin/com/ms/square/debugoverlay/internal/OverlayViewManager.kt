@@ -3,7 +3,7 @@ package com.ms.square.debugoverlay.internal
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.res.Configuration
+import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +22,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
+import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
+import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import java.util.WeakHashMap
 
@@ -49,7 +51,7 @@ internal class OverlayViewManager(private val application: Application, private 
       type = WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG
       flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
       format = PixelFormat.TRANSLUCENT
-      gravity = Gravity.BOTTOM or Gravity.START
+      gravity = Gravity.TOP or Gravity.END
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         // disable the move window animation as not needed on Android 14+
         setCanPlayMoveAnimation(false)
@@ -91,7 +93,10 @@ internal class OverlayViewManager(private val application: Application, private 
             initialOffsetY = savedY.toFloat(),
             onPositionChanged = onPositionChanged,
             onClick = {
-              // Navigate to detailed performance screen in the future
+              val intent = Intent(application, DebugPanelActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+              }
+              application.startActivity(intent)
             }
           )
         }
@@ -105,6 +110,11 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
       Logger.d("onCreate() called for ${activity.javaClass.simpleName}")
+      // Don't create overlay for DebugPanelActivity - no need for it there
+      if (activity is DebugPanelActivity) {
+        Logger.d("Skipping overlay creation for DebugPanelActivity")
+        return
+      }
       OverlayViewAttachStateChangeListener().also {
         activity.window.decorView.addOnAttachStateChangeListener(it)
         attachStateChangeListeners[activity] = it
@@ -208,6 +218,3 @@ internal class OverlayViewManager(private val application: Application, private 
     }
   }
 }
-
-private fun Configuration.isDarkTheme(): Boolean =
-  (uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
