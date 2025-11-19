@@ -37,8 +37,7 @@ internal fun AutoScrollManager(
       try {
         onProgrammaticScrollChanged(true)
         listState.scrollToItem(
-          index = filteredEntries.size - 1,
-          scrollOffset = Int.MAX_VALUE
+          index = filteredEntries.lastIndex
         )
       } finally {
         onProgrammaticScrollChanged(false)

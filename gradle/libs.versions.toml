@@ -21,6 +21,7 @@ androidx-annotation = "1.9.1"
 androidx-startup-runtime = "1.2.0"
 androidx-lifecycle = "2.9.4"
 androidx-savedstate = "1.4.0"
+material = "1.12.0"
 # Google - Compose
 activityCompose = "1.11.0"
 composeBom = "2025.11.00"
@@ -47,6 +48,7 @@ androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup-runtime" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
 # Google - Compose
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

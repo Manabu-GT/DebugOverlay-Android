@@ -53,6 +53,7 @@ dependencies {
   implementation(libs.androidx.core)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.annotation)
+  implementation(libs.material)
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))

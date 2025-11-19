@@ -9,19 +9,20 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.ms.square.debugoverlay.internal.data.source.LogcatDataSource
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 
 public class DebugPanelActivity : ComponentActivity() {
 
-  private val logcatDataSource by lazy { LogcatDataSource() }
+  private val logcatDataSource by lazy { LogcatDataSource(lifecycleScope) }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
     setContent {
       val isDarkTheme = LocalConfiguration.current.isDarkTheme()
-      val logcatEntries by logcatDataSource.logcatStream()
+      val logcatEntries by logcatDataSource.logs
         .collectAsStateWithLifecycle(initialValue = emptyList())
 
       MaterialTheme(
@@ -33,5 +34,10 @@ public class DebugPanelActivity : ComponentActivity() {
         )
       }
     }
+  }
+
+  override fun onDestroy() {
+    logcatDataSource.close()
+    super.onDestroy()
   }
 }
