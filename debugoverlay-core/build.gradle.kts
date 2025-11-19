@@ -53,6 +53,7 @@ dependencies {
   implementation(libs.androidx.core)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.annotation)
+  implementation(libs.material)
 
   // Compose
   implementation(platform(libs.androidx.compose.bom))
@@ -60,6 +61,8 @@ dependencies {
   implementation(libs.androidx.ui)
   implementation(libs.androidx.material3)
   implementation(libs.androidx.ui.tooling.preview)
+  implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.compose.material.icons.extended)
 
   debugImplementation(libs.androidx.compose.ui.tooling)
 

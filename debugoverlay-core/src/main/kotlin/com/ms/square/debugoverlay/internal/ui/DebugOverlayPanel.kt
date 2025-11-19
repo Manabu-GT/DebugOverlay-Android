@@ -86,8 +86,8 @@ internal fun DraggableOverlayPanel(
           onDragEnd = {
             // Snap to nearest edge with animation
             val snapX = when {
-              offsetX.value < (screenWidth - size.width) / 2 -> 0f // Snap left
-              else -> (screenWidth - size.width) // Snap right
+              offsetX.value < (screenWidth - size.width) / 2 -> 0f // Snap to END (right)
+              else -> (screenWidth - size.width) // Snap to START (left)
             }
             scope.launch {
               offsetX.animateTo(
@@ -104,10 +104,10 @@ internal fun DraggableOverlayPanel(
             change.consume()
 
             scope.launch {
-              // Right is positive
-              offsetX.snapTo((offsetX.value + dragAmount.x).coerceIn(0f, screenWidth - size.width))
-              // UP is positive (flip sign because gravity is BOTTOM)
-              offsetY.snapTo((offsetY.value - dragAmount.y).coerceIn(0f, screenHeight - size.height))
+              // LEFT is positive (flip sign because gravity is END, where x=0 is at right edge)
+              offsetX.snapTo((offsetX.value - dragAmount.x).coerceIn(0f, screenWidth - size.width))
+              // DOWN is positive since gravity is TOP
+              offsetY.snapTo((offsetY.value + dragAmount.y).coerceIn(0f, screenHeight - size.height))
             }
           }
         )

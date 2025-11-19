@@ -84,6 +84,12 @@ If your app already depends on `androidx.startup:startup-runtime`, include `debu
 
 Each row shows a status dot (green = healthy, yellow = warning, red = critical) that reacts to the current value. All metrics refresh at the cadence described above, and the overlay adapts to dark/light themes automatically. The panel can be long-pressed to drag; it snaps to the nearest horizontal edge when released and remembers its position across activities.
 
+## Known Limitations
+
+The debug overlay panel may appear below dialogs (AlertDialog, BottomSheetDialog, etc.)
+due to Android window z-ordering. This is a trade-off to avoid requiring the
+SYSTEM_ALERT_WINDOW permission. Will revisit this before the official v2.0.0 release, though.
+
 ## Sample app
 
 `sample/` is a Jetpack Compose demo that consumes the Android Weekly feed and runs DebugOverlay during development. Build it with:
