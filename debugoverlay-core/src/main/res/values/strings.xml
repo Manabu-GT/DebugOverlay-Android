@@ -11,4 +11,7 @@
   <string name="debugoverlay_filter_chip_description">Filter by %1$s level logs</string>
   <string name="debugoverlay_search_logs">Search logs…</string>
   <string name="debugoverlay_clear_search">Clear search</string>
+  <string name="debugoverlay_netstat_downloaded">DOWNLOADED</string>
+  <string name="debugoverlay_netstat_uploaded">UPLOADED</string>
+  <string name="debugoverlay_netstat_unavailable">Network stats not available on this device</string>
 </resources>

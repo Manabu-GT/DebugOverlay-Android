@@ -35,7 +35,7 @@ private const val BOTTOM_SHEET_HEIGHT_FRACTION = 0.8f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DebugPanelBottomSheet(logcatEntries: List<LogcatEntry>, onDismiss: () -> Unit) {
+internal fun DebugPanelBottomSheet(onDismiss: () -> Unit) {
   val sheetState = rememberModalBottomSheetState(
     skipPartiallyExpanded = true
   )
@@ -59,20 +59,15 @@ internal fun DebugPanelBottomSheet(logcatEntries: List<LogcatEntry>, onDismiss: 
     }
   ) {
     DebugBottomSheetContent(
-      logcatEntries = logcatEntries,
       onDismiss = onDismiss
     )
   }
 }
 
 @Composable
-private fun DebugBottomSheetContent(
-  logcatEntries: List<LogcatEntry>,
-  modifier: Modifier = Modifier,
-  onDismiss: () -> Unit = {},
-) {
+private fun DebugBottomSheetContent(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) {
   var selectedTabIndex by remember { mutableIntStateOf(0) }
-  val tabs = remember { listOf("Logcat") }
+  val tabs = remember { listOf("Logcat", "Network") }
 
   Column(
     modifier = modifier
@@ -123,7 +118,8 @@ private fun DebugBottomSheetContent(
     }
     // Tab content
     when (selectedTabIndex) {
-      0 -> LogcatTabContent(logcatEntries = logcatEntries)
+      0 -> LogcatTabContent()
+      1 -> NetworkTabContent()
     }
   }
 }

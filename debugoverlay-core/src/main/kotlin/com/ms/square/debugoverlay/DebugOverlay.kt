@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
 import com.ms.square.debugoverlay.internal.OverlayViewManager
+import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
 import com.ms.square.debugoverlay.internal.util.isMainProcess
 import kotlinx.coroutines.CoroutineScope
@@ -22,12 +23,18 @@ import kotlinx.coroutines.SupervisorJob
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 public object DebugOverlay {
 
+  private var _overlayDataRepository: DebugOverlayDataRepository? = null
+
   private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
 
   @get:MainThread
   private val isInstalled: Boolean
     get() = overlayScope != null
+
+  @get:MainThread
+  internal val overlayDataRepository: DebugOverlayDataRepository
+    get() = _overlayDataRepository ?: error("DebugOverlayDataRepository not initialized")
 
   @MainThread
   public fun install(application: Application) {
@@ -39,6 +46,7 @@ public object DebugOverlay {
     check(!isInstalled) { "DebugOverlay already installed" }
 
     overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
+      _overlayDataRepository = DebugOverlayDataRepository(it)
       overlayViewManager = OverlayViewManager(application, it)
     }
   }
