@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="debugoverlay_my_app_filter">My App</string>
   <string name="debugoverlay_no_log_entries">No log entries</string>
   <string name="debugoverlay_clipboard_label">Logcat Line</string>
   <string name="debugoverlay_copy_to_clipboard">Copy log to clipboard</string>
   <string name="debugoverlay_copied_to_clipboard">Copied to clipboard</string>
   <string name="debugoverlay_scroll_to_bottom">Scroll to bottom</string>
-  <string name="debugoverlay_filter_my_app_description">Filter to show only this app\'s logs</string>
   <string name="debugoverlay_log_entry_description">Log entry: %1$s, %2$s</string>
   <string name="debugoverlay_filter_chip_description">Filter by %1$s level logs</string>
   <string name="debugoverlay_search_logs">Search logs…</string>
