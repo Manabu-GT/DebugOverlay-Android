@@ -14,4 +14,6 @@
   <string name="debugoverlay_netstat_downloaded">DOWNLOADED</string>
   <string name="debugoverlay_netstat_uploaded">UPLOADED</string>
   <string name="debugoverlay_netstat_unavailable">Network stats not available on this device</string>
+  <string name="debugoverlay_tab_logcat">Logcat</string>
+  <string name="debugoverlay_tab_network">Network</string>
 </resources>

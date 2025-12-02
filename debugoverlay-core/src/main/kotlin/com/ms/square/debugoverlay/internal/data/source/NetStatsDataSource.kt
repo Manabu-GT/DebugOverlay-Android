@@ -18,32 +18,40 @@ import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.seconds
 
 internal const val TRAFFIC_STATS_UNSUPPORTED = TrafficStats.UNSUPPORTED.toLong()
+private val TRAFFIC_STATS_UPDATE_INTERVAL = 3.seconds
 
 internal class NetStatsDataSource(scope: CoroutineScope) {
 
   private val myUid = Process.myUid()
 
   private val baselineBytes = scope.async(Dispatchers.IO) {
-    TrafficStats.getUidRxBytes(myUid) to TrafficStats.getUidTxBytes(myUid)
+    val rx = TrafficStats.getUidRxBytes(myUid)
+    val tx = TrafficStats.getUidTxBytes(myUid)
+    if (rx == TRAFFIC_STATS_UNSUPPORTED || tx == TRAFFIC_STATS_UNSUPPORTED) {
+      return@async null
+    }
+    rx to tx
   }
 
   val stats: Flow<NetworkStats> = flow {
     // Wait for the baseline to be ready
-    val (baselineBytesReceived, baselineBytesSent) = baselineBytes.await()
+    val baseline = baselineBytes.await()
+    if (baseline == null) {
+      Logger.i("The use of TrafficStats is not supported on this device.")
+      emit(NetworkStats.UNSUPPORTED)
+      return@flow
+    }
     while (currentCoroutineContext().isActive) {
       val totalBytesReceived = TrafficStats.getUidRxBytes(myUid)
       val totalBytesSent = TrafficStats.getUidTxBytes(myUid)
 
-      @Suppress("ComplexCondition")
-      if (baselineBytesReceived == TRAFFIC_STATS_UNSUPPORTED || baselineBytesSent == TRAFFIC_STATS_UNSUPPORTED ||
-        totalBytesReceived == TRAFFIC_STATS_UNSUPPORTED || totalBytesSent == TRAFFIC_STATS_UNSUPPORTED
-      ) {
+      if (totalBytesReceived == TRAFFIC_STATS_UNSUPPORTED || totalBytesSent == TRAFFIC_STATS_UNSUPPORTED) {
         Logger.i("The use of TrafficStats is not supported on this device.")
         emit(NetworkStats.UNSUPPORTED)
         break
       }
-      emit(NetworkStats(totalBytesReceived - baselineBytesReceived, totalBytesSent - baselineBytesSent))
-      delay(3.seconds)
+      emit(NetworkStats(totalBytesReceived - baseline.first, totalBytesSent - baseline.second))
+      delay(TRAFFIC_STATS_UPDATE_INTERVAL)
     }
   }
     .flowOn(Dispatchers.IO).stateIn(

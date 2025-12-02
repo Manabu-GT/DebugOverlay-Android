@@ -20,6 +20,8 @@ internal class DebugOverlayDataRepository(scope: CoroutineScope) {
         awaitCancellation()
       } finally {
         // Note: netStatsDataSource self-cleans via stateIn + WhileSubscribed
+        // The flow will automatically stop collecting when there are no active subscribers,
+        // and resume when the UI resubscribes. No explicit cleanup needed.
         logcatDataSource.close()
       }
     }
