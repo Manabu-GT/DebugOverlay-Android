@@ -24,13 +24,19 @@ internal class NetStatsDataSource(scope: CoroutineScope) {
 
   private val myUid = Process.myUid()
 
+  @Suppress("TooGenericExceptionCaught")
   private val baselineBytes = scope.async(Dispatchers.IO) {
-    val rx = TrafficStats.getUidRxBytes(myUid)
-    val tx = TrafficStats.getUidTxBytes(myUid)
-    if (rx == TRAFFIC_STATS_UNSUPPORTED || tx == TRAFFIC_STATS_UNSUPPORTED) {
-      return@async null
+    try {
+      val rx = TrafficStats.getUidRxBytes(myUid)
+      val tx = TrafficStats.getUidTxBytes(myUid)
+      if (rx == TRAFFIC_STATS_UNSUPPORTED || tx == TRAFFIC_STATS_UNSUPPORTED) {
+        return@async null
+      }
+      rx to tx
+    } catch (e: RuntimeException) {
+      Logger.e("Error initializing network stats baseline", e)
+      null
     }
-    rx to tx
   }
 
   val stats: Flow<NetworkStats> = flow {

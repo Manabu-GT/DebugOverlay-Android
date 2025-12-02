@@ -141,7 +141,11 @@ private const val BYTES_PER_GB = 1024L * 1024L * 1024L
 private fun formatBytes(bytes: Long): String = when {
   bytes < 0 -> "—"
   bytes < BYTES_PER_KB -> "$bytes B"
-  bytes < BYTES_PER_MB -> "%.1f KB".format(bytes / BYTES_PER_KB.toDouble())
+  bytes < BYTES_PER_MB -> {
+    val kb = bytes / BYTES_PER_KB.toDouble()
+    @Suppress("MagicNumber")
+    if (kb < 10) "%.2f KB".format(kb) else "%.1f KB".format(kb)
+  }
   bytes < BYTES_PER_GB -> "%.1f MB".format(bytes / BYTES_PER_MB.toDouble())
   else -> "%.1f GB".format(bytes / BYTES_PER_GB.toDouble())
 }
