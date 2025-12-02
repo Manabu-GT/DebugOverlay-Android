@@ -1,7 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import android.content.ClipData
-import android.os.Process
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,8 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -77,7 +74,6 @@ private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
  *
  * Features:
  * - Filter by log level (V, D, I, W, E)
- * - Toggle between all logs and current app logs
  * - Auto-scroll to bottom for new entries
  * - Manual scroll pauses auto-scroll
  * - Tap log entry to copy to clipboard
@@ -90,21 +86,17 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
   val logcatEntries by DebugOverlay.overlayDataRepository.logs.collectAsStateWithLifecycle(emptyList())
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
-  var showOnlyMyApp by remember { mutableStateOf(true) }
   var isPaused by remember { mutableStateOf(false) }
   var isProgrammaticScroll by remember { mutableStateOf(false) }
   var searchQuery by remember { mutableStateOf("") }
 
-  val myPid = remember { Process.myPid() }
-
-  val filteredEntries = remember(logcatEntries, selectedLevel, showOnlyMyApp, searchQuery) {
+  val filteredEntries = remember(logcatEntries, selectedLevel, searchQuery) {
     logcatEntries.filter { entry ->
       val levelMatch = entry.level.ordinal >= selectedLevel.ordinal
-      val pidMatch = !showOnlyMyApp || entry.pid == myPid
       val searchMatch = searchQuery.isBlank() ||
         entry.message.contains(searchQuery, ignoreCase = true) ||
         entry.tag.contains(searchQuery, ignoreCase = true)
-      levelMatch && pidMatch && searchMatch
+      levelMatch && searchMatch
     }
   }
 
@@ -128,9 +120,7 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
 
       LogcatFilters(
         selectedLevel = selectedLevel,
-        onLevelSelected = { selectedLevel = it },
-        showOnlyMyApp = showOnlyMyApp,
-        onShowOnlyMyAppChanged = { showOnlyMyApp = it }
+        onLevelSelected = { selectedLevel = it }
       )
 
       LogcatContent(
@@ -153,18 +143,13 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
 private fun LogcatFilters(
   selectedLevel: LogLevel,
   onLevelSelected: (LogLevel) -> Unit,
-  showOnlyMyApp: Boolean,
-  onShowOnlyMyAppChanged: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val switchContentDescription = stringResource(R.string.debugoverlay_filter_my_app_description)
-
   FlowRow(
     modifier = modifier
       .fillMaxWidth()
-      .padding(horizontal = 4.dp, vertical = 4.dp),
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-    verticalArrangement = Arrangement.spacedBy(4.dp)
+      .padding(horizontal = 8.dp, vertical = 4.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp)
   ) {
     LogLevel.entries.forEach { level ->
       FilterChip(
@@ -172,29 +157,6 @@ private fun LogcatFilters(
         color = level.toColor(),
         selected = selectedLevel == level,
         onClick = { onLevelSelected(level) }
-      )
-    }
-
-    Row(
-      horizontalArrangement = Arrangement.spacedBy(4.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier.padding(start = 4.dp)
-    ) {
-      Text(
-        text = stringResource(R.string.debugoverlay_my_app_filter),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurface
-      )
-      Switch(
-        checked = showOnlyMyApp,
-        onCheckedChange = onShowOnlyMyAppChanged,
-        modifier = Modifier.semantics {
-          contentDescription = switchContentDescription
-        },
-        colors = SwitchDefaults.colors(
-          checkedThumbColor = Color.White,
-          checkedTrackColor = MaterialTheme.colorScheme.primary
-        )
       )
     }
   }
