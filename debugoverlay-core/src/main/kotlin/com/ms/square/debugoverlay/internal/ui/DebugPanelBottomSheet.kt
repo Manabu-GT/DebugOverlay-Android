@@ -83,7 +83,7 @@ private fun DebugBottomSheetContent(modifier: Modifier = Modifier, onDismiss: ()
       verticalAlignment = Alignment.CenterVertically
     ) {
       Text(
-        text = "Debug Panel",
+        text = stringResource(R.string.debugoverlay_debug_panel),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.weight(1f)
       )
@@ -92,7 +92,7 @@ private fun DebugBottomSheetContent(modifier: Modifier = Modifier, onDismiss: ()
       ) {
         Icon(
           imageVector = Icons.Default.Close,
-          contentDescription = "Close",
+          contentDescription = stringResource(R.string.debugoverlay_close_description),
           tint = MaterialTheme.colorScheme.onSurface
         )
       }

@@ -39,6 +39,7 @@ internal class NetStatsDataSource(scope: CoroutineScope) {
     }
   }
 
+  @Suppress("TooGenericExceptionCaught")
   val stats: Flow<NetworkStats> = flow {
     // Wait for the baseline to be ready
     val baseline = baselineBytes.await()
@@ -48,15 +49,16 @@ internal class NetStatsDataSource(scope: CoroutineScope) {
       return@flow
     }
     while (currentCoroutineContext().isActive) {
-      val totalBytesReceived = TrafficStats.getUidRxBytes(myUid)
-      val totalBytesSent = TrafficStats.getUidTxBytes(myUid)
-
-      if (totalBytesReceived == TRAFFIC_STATS_UNSUPPORTED || totalBytesSent == TRAFFIC_STATS_UNSUPPORTED) {
-        Logger.i("The use of TrafficStats is not supported on this device.")
+      try {
+        val totalBytesReceived = TrafficStats.getUidRxBytes(myUid)
+        val totalBytesSent = TrafficStats.getUidTxBytes(myUid)
+        // no need to check for TRAFFIC_STATS_UNSUPPORTED here again as its check is already done within baselineBytes.
+        emit(NetworkStats(totalBytesReceived - baseline.first, totalBytesSent - baseline.second))
+      } catch (e: RuntimeException) {
+        Logger.e("Error reading traffic stats", e)
         emit(NetworkStats.UNSUPPORTED)
         break
       }
-      emit(NetworkStats(totalBytesReceived - baseline.first, totalBytesSent - baseline.second))
       delay(TRAFFIC_STATS_UPDATE_INTERVAL)
     }
   }
