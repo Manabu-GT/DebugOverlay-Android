@@ -62,6 +62,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogLevel
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
@@ -81,11 +83,12 @@ private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
  * - Tap log entry to copy to clipboard
  * - FAB to resume auto-scroll when paused
  *
- * @param logcatEntries List of all available log entries
  * @param modifier Modifier to be applied to the root layout
  */
 @Composable
-internal fun LogcatTabContent(logcatEntries: List<LogcatEntry>, modifier: Modifier = Modifier) {
+internal fun LogcatTabContent(modifier: Modifier = Modifier) {
+  val logcatEntries by DebugOverlay.overlayDataRepository.logs.collectAsStateWithLifecycle(emptyList())
+
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
   var showOnlyMyApp by remember { mutableStateOf(true) }
   var isPaused by remember { mutableStateOf(false) }
