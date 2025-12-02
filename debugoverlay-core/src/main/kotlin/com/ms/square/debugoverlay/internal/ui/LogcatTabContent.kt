@@ -1,6 +1,5 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import android.content.ClipData
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,7 +7,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,14 +39,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -64,7 +58,7 @@ import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogLevel
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
-import kotlinx.coroutines.launch
+import com.ms.square.debugoverlay.internal.data.model.toColor
 
 // Constants
 private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
@@ -89,6 +83,7 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
   var isPaused by remember { mutableStateOf(false) }
   var isProgrammaticScroll by remember { mutableStateOf(false) }
   var searchQuery by remember { mutableStateOf("") }
+  var selectedLogEntry by remember { mutableStateOf<LogcatEntry?>(null) }
 
   val filteredEntries = remember(logcatEntries, selectedLevel, searchQuery) {
     logcatEntries.filter { entry ->
@@ -113,19 +108,17 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
 
   Box(modifier = modifier.fillMaxWidth()) {
     Column(modifier = Modifier.fillMaxWidth()) {
-      SearchField(
+      LogcatFilterBar(
         searchQuery = searchQuery,
-        onSearchQueryChanged = { searchQuery = it }
-      )
-
-      LogcatFilters(
+        onSearchQueryChanged = { searchQuery = it },
         selectedLevel = selectedLevel,
         onLevelSelected = { selectedLevel = it }
       )
 
       LogcatContent(
         filteredEntries = filteredEntries,
-        listState = listState
+        listState = listState,
+        onEntryClick = { selectedLogEntry = it }
       )
     }
 
@@ -135,6 +128,39 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
       modifier = Modifier
         .align(Alignment.BottomEnd)
         .padding(16.dp)
+    )
+  }
+
+  // Show log entry detail bottom sheet
+  selectedLogEntry?.let { entry ->
+    LogEntryDetailBottomSheet(
+      logEntry = entry,
+      onDismiss = { selectedLogEntry = null },
+      onFilterTag = { tag ->
+        searchQuery = tag
+        selectedLogEntry = null
+      }
+    )
+  }
+}
+
+@Composable
+private fun LogcatFilterBar(
+  searchQuery: String,
+  onSearchQueryChanged: (String) -> Unit,
+  selectedLevel: LogLevel,
+  onLevelSelected: (LogLevel) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Column(modifier = modifier.fillMaxWidth()) {
+    SearchField(
+      searchQuery = searchQuery,
+      onSearchQueryChanged = onSearchQueryChanged
+    )
+
+    LogcatFilters(
+      selectedLevel = selectedLevel,
+      onLevelSelected = onLevelSelected
     )
   }
 }
@@ -166,6 +192,7 @@ private fun LogcatFilters(
 private fun LogcatContent(
   filteredEntries: List<LogcatEntry>,
   listState: androidx.compose.foundation.lazy.LazyListState,
+  onEntryClick: (LogcatEntry) -> Unit,
 ) {
   if (filteredEntries.isEmpty()) {
     Box(
@@ -183,7 +210,10 @@ private fun LogcatContent(
         .padding(horizontal = 16.dp)
     ) {
       items(filteredEntries, key = { it.id }) { entry ->
-        LogcatEntryItem(entry = entry)
+        LogcatEntryItem(
+          entry = entry,
+          onClick = { onEntryClick(entry) }
+        )
       }
     }
   }
@@ -220,15 +250,14 @@ private fun NoLogEntryPlaceHolder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LogcatEntryItem(entry: LogcatEntry, modifier: Modifier = Modifier) {
-  val resource = LocalResources.current
-  val clipboard = LocalClipboard.current
-  val coroutineScope = rememberCoroutineScope()
+private fun LogcatEntryItem(entry: LogcatEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
   val entryDescription = stringResource(
     R.string.debugoverlay_log_entry_description,
     entry.tag,
     entry.message
   )
+  val viewDetailsLabel = stringResource(R.string.debugoverlay_view_details)
+
   Row(
     modifier = modifier
       .fillMaxWidth()
@@ -241,13 +270,8 @@ private fun LogcatEntryItem(entry: LogcatEntry, modifier: Modifier = Modifier) {
         contentDescription = entryDescription
         role = Role.Button
       }
-      .clickable(onClickLabel = stringResource(R.string.debugoverlay_copy_to_clipboard)) {
-        coroutineScope.launch {
-          // Copy full log line to clipboard
-          val clipboardLabel = resource.getString(R.string.debugoverlay_clipboard_label)
-          val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, entry.rawLine))
-          clipboard.setClipEntry(clipEntry)
-        }
+      .clickable(onClickLabel = viewDetailsLabel) {
+        onClick()
       }
       .padding(vertical = 4.dp, horizontal = 8.dp), // Add horizontal padding too
     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -277,7 +301,7 @@ private fun LogcatEntryItem(entry: LogcatEntry, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.onSurface,
         fontSize = 11.sp,
         lineHeight = 14.sp,
-        maxLines = 4,
+        maxLines = 2,
         overflow = TextOverflow.Ellipsis
       )
     }
@@ -376,32 +400,6 @@ private fun FilterChip(
       style = MaterialTheme.typography.labelSmall,
       color = if (selected) color else MaterialTheme.colorScheme.onSurface
     )
-  }
-}
-
-// Log level colors for light theme
-private val VERBOSE_COLOR_LIGHT = Color(0xFF757575)
-private val DEBUG_COLOR_LIGHT = Color(0xFF2196F3)
-private val INFO_COLOR_LIGHT = Color(0xFF4CAF50)
-private val WARN_COLOR_LIGHT = Color(0xFFFF9800)
-private val ERROR_COLOR_LIGHT = Color(0xFFF44336)
-
-// Log level colors for dark theme
-private val VERBOSE_COLOR_DARK = Color(0xFFBDBDBD)
-private val DEBUG_COLOR_DARK = Color(0xFF64B5F6)
-private val INFO_COLOR_DARK = Color(0xFF81C784)
-private val WARN_COLOR_DARK = Color(0xFFFFB74D)
-private val ERROR_COLOR_DARK = Color(0xFFE57373)
-
-@Composable
-private fun LogLevel.toColor(): Color {
-  val isDark = isSystemInDarkTheme()
-  return when (this) {
-    LogLevel.VERBOSE -> if (isDark) VERBOSE_COLOR_DARK else VERBOSE_COLOR_LIGHT
-    LogLevel.DEBUG -> if (isDark) DEBUG_COLOR_DARK else DEBUG_COLOR_LIGHT
-    LogLevel.INFO -> if (isDark) INFO_COLOR_DARK else INFO_COLOR_LIGHT
-    LogLevel.WARN -> if (isDark) WARN_COLOR_DARK else WARN_COLOR_LIGHT
-    LogLevel.ERROR -> if (isDark) ERROR_COLOR_DARK else ERROR_COLOR_LIGHT
   }
 }
 
