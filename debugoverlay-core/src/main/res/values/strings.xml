@@ -16,4 +16,12 @@
   <string name="debugoverlay_tab_network">Network</string>
   <string name="debugoverlay_debug_panel">Debug Panel</string>
   <string name="debugoverlay_close_description">Close</string>
+  <string name="debugoverlay_log_details">Log Details</string>
+  <string name="debugoverlay_level_label">LEVEL</string>
+  <string name="debugoverlay_tag_label">TAG</string>
+  <string name="debugoverlay_time_label">TIME</string>
+  <string name="debugoverlay_message_label">MESSAGE</string>
+  <string name="debugoverlay_copy">Copy</string>
+  <string name="debugoverlay_filter_tag">Filter Tag</string>
+  <string name="debugoverlay_view_details">View details</string>
 </resources>
