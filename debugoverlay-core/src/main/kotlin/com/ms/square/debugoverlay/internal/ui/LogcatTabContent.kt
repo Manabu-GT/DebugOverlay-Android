@@ -25,16 +25,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -154,6 +149,7 @@ private fun LogcatFilterBar(
 ) {
   Column(modifier = modifier.fillMaxWidth()) {
     SearchField(
+      searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
       searchQuery = searchQuery,
       onSearchQueryChanged = onSearchQueryChanged
     )
@@ -401,47 +397,4 @@ private fun FilterChip(
       color = if (selected) color else MaterialTheme.colorScheme.onSurface
     )
   }
-}
-
-@Composable
-private fun SearchField(searchQuery: String, onSearchQueryChanged: (String) -> Unit, modifier: Modifier = Modifier) {
-  OutlinedTextField(
-    value = searchQuery,
-    onValueChange = onSearchQueryChanged,
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp, vertical = 8.dp),
-    placeholder = {
-      Text(
-        text = stringResource(R.string.debugoverlay_search_logs),
-        style = MaterialTheme.typography.bodyMedium
-      )
-    },
-    leadingIcon = {
-      Icon(
-        imageVector = Icons.Default.Search,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant
-      )
-    },
-    trailingIcon = {
-      if (searchQuery.isNotEmpty()) {
-        IconButton(onClick = { onSearchQueryChanged("") }) {
-          Icon(
-            imageVector = Icons.Default.Clear,
-            contentDescription = stringResource(R.string.debugoverlay_clear_search),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-        }
-      }
-    },
-    singleLine = true,
-    shape = RoundedCornerShape(12.dp),
-    colors = TextFieldDefaults.colors(
-      focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-      unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-      focusedIndicatorColor = Color.Transparent,
-      unfocusedIndicatorColor = Color.Transparent
-    )
-  )
 }

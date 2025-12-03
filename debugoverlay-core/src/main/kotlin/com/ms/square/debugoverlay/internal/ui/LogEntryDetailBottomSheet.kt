@@ -133,6 +133,7 @@ private fun DetailHeader(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
 
 @Composable
 private fun DetailMetadataRow(logEntry: LogcatEntry, modifier: Modifier = Modifier) {
+  val levelColor = logEntry.level.toColor()
   Row(
     modifier = modifier
       .fillMaxWidth()
@@ -148,13 +149,13 @@ private fun DetailMetadataRow(logEntry: LogcatEntry, modifier: Modifier = Modifi
       )
       Surface(
         shape = RoundedCornerShape(12.dp),
-        color = logEntry.level.toColor().copy(alpha = 0.2f)
+        color = levelColor.copy(alpha = 0.2f)
       ) {
         Text(
           text = logEntry.level.name,
           style = MaterialTheme.typography.labelMedium,
           fontWeight = FontWeight.Bold,
-          color = logEntry.level.toColor(),
+          color = levelColor,
           modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
         )
       }
@@ -171,7 +172,7 @@ private fun DetailMetadataRow(logEntry: LogcatEntry, modifier: Modifier = Modifi
         text = logEntry.tag,
         style = MaterialTheme.typography.bodyMedium,
         fontFamily = FontFamily.Monospace,
-        color = logEntry.level.toColor(),
+        color = levelColor,
         fontWeight = FontWeight.SemiBold
       )
     }

@@ -5,6 +5,8 @@ plugins {
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.kotlin.serialization)
+  alias(libs.plugins.ksp)
+  alias(libs.plugins.hilt.android)
 }
 
 java {
@@ -81,6 +83,7 @@ composeCompiler {
 
 dependencies {
   debugImplementation(project(":debugoverlay"))
+  debugImplementation(project(":debugoverlay-extension-okhttp"))
   // if your app is using the androidx.startup library
   // debugImplementation(project(":debugoverlay-androidx-startup"))
   implementation(libs.androidx.core)
@@ -103,6 +106,11 @@ dependencies {
   // Coroutines
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.kotlinx.coroutines.android)
+
+  // Hilt
+  implementation(libs.hilt.android)
+  implementation(libs.hilt.navigation.compose)
+  ksp(libs.hilt.android.ksp)
 
   // HTTP Client
   implementation(libs.okhttp)

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ms.square.debugoverlay.sample.data.model.FeedItem
 import com.ms.square.debugoverlay.sample.data.repository.FeedRepository
-import com.ms.square.debugoverlay.sample.data.repository.FeedRepositoryProvider
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,11 +12,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * ViewModel for the issue list screen.
  */
-class FeedListViewModel(private val repository: FeedRepository = FeedRepositoryProvider.repository) : ViewModel() {
+@HiltViewModel
+class FeedListViewModel @Inject constructor(private val repository: FeedRepository) : ViewModel() {
 
   private val _uiState = MutableStateFlow<FeedListUiState>(FeedListUiState.Loading)
   val uiState: StateFlow<FeedListUiState> = _uiState.asStateFlow()

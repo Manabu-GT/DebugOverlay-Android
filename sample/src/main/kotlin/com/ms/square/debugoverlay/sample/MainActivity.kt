@@ -9,11 +9,13 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import com.ms.square.debugoverlay.sample.ui.navigation.NavGraph
 import com.ms.square.debugoverlay.sample.ui.navigation.Route
 import com.ms.square.debugoverlay.sample.ui.theme.AppTheme
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
 /**
  * Main activity for the DebugOverlay sample app, which shows the RSS feed of Android Weekly.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
