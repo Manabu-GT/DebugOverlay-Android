@@ -11,6 +11,7 @@ import org.xmlpull.v1.XmlPullParserException
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
+import javax.inject.Inject
 
 private const val RSS_URL = "https://androidweekly.net/rss.xml"
 private val NAMESPACE = null
@@ -18,7 +19,7 @@ private val NAMESPACE = null
 /**
  * Data source for fetching Android Weekly RSS feed.
  */
-class AndroidWeeklyDataSource(private val httpClient: OkHttpClient = OkHttpClient()) {
+class AndroidWeeklyDataSource @Inject constructor(private val httpClient: OkHttpClient) {
   /**
    * Fetches the list of Android Weekly issues from the RSS feed.
    *

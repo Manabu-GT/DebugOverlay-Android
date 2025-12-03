@@ -39,7 +39,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.core.text.getSpans
 import androidx.core.text.parseAsHtml
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ms.square.debugoverlay.sample.data.model.FeedItem
 
 /**
@@ -56,7 +56,7 @@ fun FeedDetailScreen(
   itemId: Int,
   onNavigateBack: () -> Unit,
   modifier: Modifier = Modifier,
-  viewModel: FeedDetailViewModel = viewModel(),
+  viewModel: FeedDetailViewModel = hiltViewModel(),
 ) {
   val uiState by viewModel.uiState.collectAsState()
 

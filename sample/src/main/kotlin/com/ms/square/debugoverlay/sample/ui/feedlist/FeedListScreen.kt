@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ms.square.debugoverlay.sample.data.model.FeedItem
 import com.ms.square.debugoverlay.sample.ui.components.FeedItemCard
 
@@ -40,7 +40,7 @@ import com.ms.square.debugoverlay.sample.ui.components.FeedItemCard
 fun FeedListScreen(
   onFeedClick: (Int) -> Unit,
   modifier: Modifier = Modifier,
-  viewModel: FeedListViewModel = viewModel(),
+  viewModel: FeedListViewModel = hiltViewModel(),
 ) {
   val uiState by viewModel.uiState.collectAsState()
 

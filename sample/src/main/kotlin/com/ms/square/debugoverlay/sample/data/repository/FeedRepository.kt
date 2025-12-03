@@ -4,12 +4,15 @@ import com.ms.square.debugoverlay.sample.data.model.FeedItem
 import com.ms.square.debugoverlay.sample.data.source.AndroidWeeklyDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Repository for managing RSS feed items.
  * Provides a clean API for accessing feed data with in-memory caching.
  */
-class FeedRepository(private val dataSource: AndroidWeeklyDataSource = AndroidWeeklyDataSource()) {
+@Singleton
+class FeedRepository @Inject constructor(private val dataSource: AndroidWeeklyDataSource) {
   // Simple in-memory cache for feed items list
   private var cachedFeedItems: List<FeedItem>? = null
 
