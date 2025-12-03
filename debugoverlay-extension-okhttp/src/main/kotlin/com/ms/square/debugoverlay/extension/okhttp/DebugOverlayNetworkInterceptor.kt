@@ -39,10 +39,7 @@ public class DebugOverlayNetworkInterceptor(private val maxStoredRequests: Int =
 
       // Get response size from Content-Length header or body
       // NOTE: this could return -1 for chunked/streaming responses
-      responseSize = (
-        response.header("Content-Length")?.toLongOrNull()
-          ?: response.body.contentLength()
-        )
+      responseSize = response.body.contentLength()
     } catch (e: IOException) {
       // Network failure - record with 0 status code
       val endTime = System.currentTimeMillis()
@@ -105,7 +102,11 @@ public class DebugOverlayNetworkInterceptor(private val maxStoredRequests: Int =
 
     // Keep only the last N requests
     _requests.update { currentList ->
-      (currentList + newRequest).takeLast(maxStoredRequests)
+      if (currentList.size >= maxStoredRequests) {
+        currentList.drop(1) + newRequest
+      } else {
+        currentList + newRequest
+      }
     }
   }
 }

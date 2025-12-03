@@ -6,7 +6,7 @@ import java.util.UUID
  * Data class for network request.
  */
 public data class NetworkRequest(
-  val id: String = "${UUID.randomUUID()}",
+  val id: String = UUID.randomUUID().toString(),
   val method: HttpMethod, // GET, POST, etc.
   val fullUrl: String, // https://test.com/api/v1/feed
   val shortUrl: String, // /api/v1/feed

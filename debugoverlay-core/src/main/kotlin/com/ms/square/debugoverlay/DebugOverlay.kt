@@ -3,6 +3,7 @@ package com.ms.square.debugoverlay
 import android.app.Application
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
+import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
@@ -22,25 +23,12 @@ import kotlinx.coroutines.SupervisorJob
  */
 public object DebugOverlay {
 
-  /**
-   * DebugOverlay configuration data class. Properties can be updated via [copy].
-   *
-   * @see [config]
-   */
-  public data class Config(val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker)
-
-  @get:MainThread
-  @set:MainThread
-  public var config: Config = Config()
-    get() {
-      checkMainThread()
-      return field
-    }
+  private var config: Config = Config()
     set(newConfig) {
-      checkMainThread()
       if (field != newConfig) {
         field = newConfig
         _overlayDataRepository?.setNetworkTracker(newConfig.networkRequestTracker)
+          ?: Logger.d("Config updated before install, will apply during install")
       }
     }
 
@@ -74,4 +62,46 @@ public object DebugOverlay {
       overlayViewManager = OverlayViewManager(application, it)
     }
   }
+
+  /**
+   * Configures DebugOverlay settings. Must be called on the main thread.
+   *
+   * Auto-installation happens via ContentProvider before [Application.onCreate].
+   * Call this function in [Application.onCreate] after dependency injection to
+   * configure network tracking or other features.
+   *
+   * Example with Hilt:
+   * ```kotlin
+   * @HiltAndroidApp
+   * class MyApp : Application() {
+   *   @Inject lateinit var networkInterceptor: DebugOverlayNetworkInterceptor
+   *
+   *   override fun onCreate() {
+   *     super.onCreate()
+   *     DebugOverlay.configure {
+   *       copy(networkRequestTracker = networkInterceptor)
+   *     }
+   *   }
+   * }
+   * ```
+   *
+   * @param block Configuration builder that receives current [Config] and returns new [Config]
+   * @throws IllegalStateException if called from non-main thread
+   */
+  @MainThread
+  public fun configure(block: Config.() -> Config) {
+    checkMainThread()
+    config = config.block()
+  }
+
+  /**
+   * DebugOverlay configuration.
+   *
+   * @property networkRequestTracker Tracks HTTP requests for display in Network tab.
+   *   Default is [NoOpNetworkRequestTracker] which disables network tracking.
+   *   Use DebugOverlayNetworkInterceptor from debugoverlay-extension-okhttp for OkHttp integration.
+   *
+   * @see configure
+   */
+  public data class Config(val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker)
 }

@@ -13,7 +13,8 @@ class SampleApplication : Application() {
 
   override fun onCreate() {
     super.onCreate()
-    DebugOverlay.config =
-      DebugOverlay.config.copy(networkRequestTracker = debugOverlayNetworkInterceptor)
+    DebugOverlay.configure {
+      copy(networkRequestTracker = debugOverlayNetworkInterceptor)
+    }
   }
 }

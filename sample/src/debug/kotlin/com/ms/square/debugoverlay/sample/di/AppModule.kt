@@ -14,7 +14,8 @@ object AppModule {
 
   @Singleton
   @Provides
-  fun debugOverlayNetworkInterceptor(): DebugOverlayNetworkInterceptor = DebugOverlayNetworkInterceptor()
+  fun debugOverlayNetworkInterceptor(): DebugOverlayNetworkInterceptor =
+    DebugOverlayNetworkInterceptor(maxStoredRequests = 150)
 
   @Singleton
   @Provides

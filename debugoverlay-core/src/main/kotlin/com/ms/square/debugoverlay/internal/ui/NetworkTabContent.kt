@@ -384,8 +384,8 @@ private fun NetworkStats.augmentNetworkStatsWith(requests: List<NetworkRequest>)
 
   if (this == NetworkStats.UNSUPPORTED) {
     // since it might not have all the requests due to its size capping, this is just approximate.
-    val totalDownloaded = requests.sumOf { it.responseSize.coerceAtLeast(0) }
-    val totalUploaded = requests.sumOf { it.requestSize.coerceAtLeast(0) }
+    val totalDownloaded = requests.filter { it.responseSize >= 0 }.sumOf { it.responseSize }
+    val totalUploaded = requests.filter { it.requestSize >= 0 }.sumOf { it.requestSize }
     return NetworkStats(
       totalDownloaded = totalDownloaded,
       totalUploaded = totalUploaded,

@@ -37,8 +37,6 @@ internal class DebugOverlayDataRepository(scope: CoroutineScope) {
   val logs: Flow<List<LogcatEntry>> = logcatDataSource.logs
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
 
-  // var networkRequests: Flow<List<NetworkRequest>> by mutableStateOf(flowOf(emptyList()))
-
   @OptIn(ExperimentalCoroutinesApi::class)
   val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestTracker
     .flatMapLatest { tracker -> tracker.requests }
