@@ -20,6 +20,7 @@ public class DebugOverlayNetworkInterceptor(private val maxStoredRequests: Int =
 
   override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()
 
+  @Suppress("TooGenericExceptionCaught")
   override fun intercept(chain: Interceptor.Chain): Response {
     val request = chain.request()
     val startTime = System.currentTimeMillis()

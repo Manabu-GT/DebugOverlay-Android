@@ -19,7 +19,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 
-// TODO: Look into using SearchBar composable instead.
+/**
+ * A simple search field using OutlinedTextField.
+ * Note: Material3's SearchBar component could be considered in the future for richer search UI.
+ */
 @Composable
 internal fun SearchField(
   searchPlaceholder: String,

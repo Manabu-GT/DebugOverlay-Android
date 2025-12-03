@@ -37,6 +37,31 @@ import com.ms.square.debugoverlay.model.HttpMethod
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlin.math.roundToInt
 
+// HTTP Status Code ranges
+private const val HTTP_SUCCESS_START = 200
+private const val HTTP_SUCCESS_END = 299
+private const val HTTP_REDIRECT_START = 300
+private const val HTTP_REDIRECT_END = 399
+private const val HTTP_CLIENT_ERROR_START = 400
+private const val HTTP_CLIENT_ERROR_END = 499
+private const val HTTP_SERVER_ERROR_START = 500
+private const val HTTP_SERVER_ERROR_END = 599
+
+// Status code colors
+private val STATUS_COLOR_SUCCESS = Color(0xFF4CAF50) // Green
+private val STATUS_COLOR_REDIRECT = Color(0xFF2196F3) // Blue
+private val STATUS_COLOR_CLIENT_ERROR = Color(0xFFF44336) // Red
+private val STATUS_COLOR_SERVER_ERROR = Color(0xFFFF5722) // Deep orange
+private val STATUS_COLOR_UNKNOWN = Color(0xFF757575) // Gray
+
+// HTTP method colors
+private val METHOD_COLOR_GET = Color(0xFF03DAC6) // Cyan
+private val METHOD_COLOR_POST = Color(0xFFFFC107) // Amber
+private val METHOD_COLOR_PUT = Color(0xFF2196F3) // Blue
+private val METHOD_COLOR_DELETE = Color(0xFFF44336) // Red
+private val METHOD_COLOR_PATCH = Color(0xFF9C27B0) // Purple
+private val METHOD_COLOR_UNKNOWN = Color(0xFF757575) // Gray
+
 /**
  * Network tab showing HTTP requests with stats.
  *
@@ -104,7 +129,7 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
       ) { request ->
         NetworkRequestItem(
           request = request,
-          onClick = { /* TODO: Show detail */ }
+          onClick = { /* No-op: Detail view not implemented yet */ }
         )
       }
     }
@@ -321,11 +346,11 @@ private fun MethodBadge(method: HttpMethod, modifier: Modifier = Modifier) {
 @Composable
 private fun StatusCodeBadge(statusCode: Int?, modifier: Modifier = Modifier) {
   val color = when (statusCode) {
-    in 200..299 -> Color(0xFF4CAF50) // Green - Success
-    in 300..399 -> Color(0xFF2196F3) // Blue - Redirect
-    in 400..499 -> Color(0xFFF44336) // Red - Client error
-    in 500..599 -> Color(0xFFFF5722) // Deep orange - Server error
-    else -> Color(0xFF757575) // Gray - Unknown
+    in HTTP_SUCCESS_START..HTTP_SUCCESS_END -> STATUS_COLOR_SUCCESS
+    in HTTP_REDIRECT_START..HTTP_REDIRECT_END -> STATUS_COLOR_REDIRECT
+    in HTTP_CLIENT_ERROR_START..HTTP_CLIENT_ERROR_END -> STATUS_COLOR_CLIENT_ERROR
+    in HTTP_SERVER_ERROR_START..HTTP_SERVER_ERROR_END -> STATUS_COLOR_SERVER_ERROR
+    else -> STATUS_COLOR_UNKNOWN
   }
 
   Text(
@@ -339,12 +364,12 @@ private fun StatusCodeBadge(statusCode: Int?, modifier: Modifier = Modifier) {
 }
 
 private fun HttpMethod.toColor(): Color = when (this) {
-  HttpMethod.GET -> Color(0xFF03DAC6) // Cyan
-  HttpMethod.POST -> Color(0xFFFFC107) // Amber
-  HttpMethod.PUT -> Color(0xFF2196F3) // Blue
-  HttpMethod.DELETE -> Color(0xFFF44336) // Red
-  HttpMethod.PATCH -> Color(0xFF9C27B0) // Purple
-  else -> Color(0xFF757575) // Gray
+  HttpMethod.GET -> METHOD_COLOR_GET
+  HttpMethod.POST -> METHOD_COLOR_POST
+  HttpMethod.PUT -> METHOD_COLOR_PUT
+  HttpMethod.DELETE -> METHOD_COLOR_DELETE
+  HttpMethod.PATCH -> METHOD_COLOR_PATCH
+  else -> METHOD_COLOR_UNKNOWN
 }
 
 /**
@@ -354,7 +379,7 @@ private fun NetworkStats.augmentNetworkStatsWith(requests: List<NetworkRequest>)
   if (requests.isEmpty()) {
     return this
   }
-  val errorCount = requests.count { it.statusCode != null && it.statusCode >= 400 }
+  val errorCount = requests.count { it.statusCode != null && it.statusCode >= HTTP_CLIENT_ERROR_START }
   val avgDuration = requests.map { it.durationMs }.average().roundToInt().toLong()
 
   if (this == NetworkStats.UNSUPPORTED) {
