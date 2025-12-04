@@ -48,7 +48,10 @@ public val DEFAULT_HEADERS_REDACT: Set<String> = setOf(
   "cookie",
   "set-cookie",
   "x-auth-token",
-  "x-csrf-token"
+  "x-csrf-token",
+  "x-session-id",
+  "proxy-authorization",
+  "x-access-token"
 )
 
 public val DEFAULT_QUERY_PARAMS_REDACT: Set<String> = setOf(
@@ -184,6 +187,16 @@ public class DebugOverlayNetworkInterceptor(
       )
     }
 
+    // Early size check to avoid buffering large requests
+    if (requestContentLength != null && requestContentLength > maxBodySize) {
+      return NetworkData(
+        headers = requestHeaders,
+        contentType = requestContentType,
+        contentSize = requestContentLength,
+        content = "N/A - [body ($requestContentType) too large: $requestContentLength-byte body omitted]"
+      )
+    }
+
     return captureRequestBodyContent(
       body = body,
       headers = request.headers,
@@ -268,6 +281,16 @@ public class DebugOverlayNetworkInterceptor(
         contentType = responseContentType,
         contentSize = responseContentLength,
         content = "N/A - [streaming body omitted]"
+      )
+    }
+
+    // Early size check to avoid buffering large responses
+    if (responseContentLength != null && responseContentLength > maxBodySize) {
+      return NetworkData(
+        headers = responseHeaders,
+        contentType = responseContentType,
+        contentSize = responseContentLength,
+        content = "N/A - [body ($responseContentType) too large: $responseContentLength-byte body omitted]"
       )
     }
 
