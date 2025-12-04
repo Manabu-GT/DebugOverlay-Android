@@ -60,6 +60,11 @@ public val DEFAULT_QUERY_PARAMS_REDACT: Set<String> = setOf(
   "password"
 )
 
+private const val HTTP_CLIENT_ERROR_START = 400
+private const val HTTP_CLIENT_ERROR_END = 499
+private const val HTTP_SERVER_ERROR_START = 500
+private const val HTTP_SERVER_ERROR_END = 599
+
 /**
  * OkHttp interceptor that captures network requests including headers and bodies.
  *
@@ -128,7 +133,7 @@ public class DebugOverlayNetworkInterceptor(
       statusCode = response.code,
       requestData = requestData,
       responseData = responseData,
-      error = if (response.code >= 400) {
+      error = if (response.code >= HTTP_CLIENT_ERROR_START) {
         createErrorFromResponse(response, responseData.content)
       } else {
         null
@@ -235,19 +240,31 @@ public class DebugOverlayNetworkInterceptor(
       }
     }
 
-    return if (buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {
+    // Reports compressed size when gzipped
+    val contentSizeToReport = gzippedLength ?: requestContentLength
+
+    if (!buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {
+      return NetworkData(
+        headers = requestHeaders,
+        contentType = requestContentType,
+        contentSize = contentSizeToReport,
+        content = "N/A - [binary ${buffer.size}-byte $requestContentType body omitted]"
+      )
+    }
+
+    return if (buffer.size > maxBodySize) {
       NetworkData(
         headers = requestHeaders,
         contentType = requestContentType,
-        contentSize = gzippedLength ?: requestContentLength,
-        content = buffer.readString(charset = body.contentType().charsetOrUtf8())
+        contentSize = contentSizeToReport,
+        content = "N/A - [raw body too large: ${buffer.size}-byte body omitted]"
       )
     } else {
       NetworkData(
         headers = requestHeaders,
         contentType = requestContentType,
-        contentSize = requestContentLength,
-        content = "N/A - [binary ${buffer.size}-byte $requestContentType body omitted]"
+        contentSize = contentSizeToReport,
+        content = buffer.readString(charset = body.contentType().charsetOrUtf8())
       )
     }
   }
@@ -310,8 +327,16 @@ public class DebugOverlayNetworkInterceptor(
   ): NetworkData {
     val body = response.body
     val source = body.source()
-    // Buffer the entire body
-    source.request(Long.MAX_VALUE)
+    val maxBytesToBuffer = minOf(Long.MAX_VALUE, maxBodySize + 1) // +1 to detect overflow
+    source.request(maxBytesToBuffer)
+    if (source.buffer.size > maxBodySize) {
+      return NetworkData(
+        headers = responseHeaders,
+        contentType = responseContentType,
+        contentSize = source.buffer.size,
+        content = "N/A - [response too large: ${source.buffer.size}-byte body omitted]"
+      )
+    }
 
     // Clone buffer to preserve original for OkHttp to read
     var buffer = source.buffer.clone()
@@ -334,6 +359,7 @@ public class DebugOverlayNetworkInterceptor(
       }
     }
 
+    // Reports compressed size when gzipped
     val contentSizeToReport = gzippedLength ?: responseContentLength
 
     if (!buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {
@@ -345,24 +371,19 @@ public class DebugOverlayNetworkInterceptor(
       )
     }
 
-    return when {
-      buffer.size > maxBodySize -> NetworkData(
+    return if (buffer.size > maxBodySize) {
+      NetworkData(
         headers = responseHeaders,
         contentType = responseContentType,
         contentSize = contentSizeToReport,
         content = "N/A - [raw body too large: ${buffer.size}-byte body omitted]"
       )
-      buffer.size > 0 -> NetworkData(
+    } else {
+      NetworkData(
         headers = responseHeaders,
         contentType = responseContentType,
         contentSize = contentSizeToReport,
         content = buffer.readString(charset = body.contentType().charsetOrUtf8())
-      )
-      else -> NetworkData(
-        headers = responseHeaders,
-        contentType = responseContentType,
-        contentSize = contentSizeToReport,
-        content = null
       )
     }
   }
@@ -480,8 +501,8 @@ private fun createErrorFromResponse(response: Response, body: String?): NetworkE
   return NetworkError(
     title = "$statusCode $statusMessage",
     message = when (statusCode) {
-      in 400..499 -> "Client error: The request was invalid or cannot be served."
-      in 500..599 -> "Server error: The server failed to fulfill a valid request."
+      in HTTP_CLIENT_ERROR_START..HTTP_CLIENT_ERROR_END -> "Client error: The request was invalid or cannot be served."
+      in HTTP_SERVER_ERROR_START..HTTP_SERVER_ERROR_END -> "Server error: The server failed to fulfill a valid request."
       else -> "Request failed with status $statusCode"
     },
     stackTrace = body
