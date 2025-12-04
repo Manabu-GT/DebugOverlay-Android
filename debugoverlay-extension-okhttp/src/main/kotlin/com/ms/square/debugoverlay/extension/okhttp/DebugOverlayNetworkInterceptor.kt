@@ -20,6 +20,13 @@ import okhttp3.internal.http.promisesBody
 import okio.Buffer
 import okio.GzipSource
 import java.io.IOException
+import java.net.HttpURLConnection.HTTP_BAD_GATEWAY
+import java.net.HttpURLConnection.HTTP_BAD_REQUEST
+import java.net.HttpURLConnection.HTTP_FORBIDDEN
+import java.net.HttpURLConnection.HTTP_INTERNAL_ERROR
+import java.net.HttpURLConnection.HTTP_NOT_FOUND
+import java.net.HttpURLConnection.HTTP_UNAUTHORIZED
+import java.net.HttpURLConnection.HTTP_UNAVAILABLE
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
@@ -116,8 +123,13 @@ public class DebugOverlayNetworkInterceptor(
       url = request.url,
       durationMs = tookMs,
       statusCode = response.code,
-      requestData = responseData,
-      responseData = responseData
+      requestData = requestData,
+      responseData = responseData,
+      error = if (response.code >= 400) {
+        createErrorFromResponse(response, responseData.content)
+      } else {
+        null
+      }
     )
 
     return response
@@ -427,6 +439,30 @@ private fun bodyHasUnknownEncoding(headers: Headers): Boolean {
 private fun bodyIsStreaming(response: Response): Boolean {
   val contentType = response.body.contentType()
   return contentType != null && contentType.type == "text" && contentType.subtype == "event-stream"
+}
+
+private fun createErrorFromResponse(response: Response, body: String?): NetworkError {
+  val statusCode = response.code
+  val statusMessage = when (statusCode) {
+    HTTP_BAD_REQUEST -> "Bad Request"
+    HTTP_UNAUTHORIZED -> "Unauthorized"
+    HTTP_FORBIDDEN -> "Forbidden"
+    HTTP_NOT_FOUND -> "Not Found"
+    HTTP_INTERNAL_ERROR -> "Internal Server Error"
+    HTTP_BAD_GATEWAY -> "Bad Gateway"
+    HTTP_UNAVAILABLE -> "Service Unavailable"
+    else -> "Error"
+  }
+
+  return NetworkError(
+    title = "$statusCode $statusMessage",
+    message = when (statusCode) {
+      in 400..499 -> "Client error: The request was invalid or cannot be served."
+      in 500..599 -> "Server error: The server failed to fulfill a valid request."
+      else -> "Request failed with status $statusCode"
+    },
+    stackTrace = body
+  )
 }
 
 private fun MediaType?.charsetOrUtf8(): Charset = this?.charset() ?: Charsets.UTF_8
