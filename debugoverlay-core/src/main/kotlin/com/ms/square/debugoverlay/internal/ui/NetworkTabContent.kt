@@ -384,8 +384,8 @@ private fun NetworkStats.augmentNetworkStatsWith(requests: List<NetworkRequest>)
 
   if (this == NetworkStats.UNSUPPORTED) {
     // since it might not have all the requests due to its size capping, this is just approximate.
-    val totalDownloaded = requests.filter { it.responseSize >= 0 }.sumOf { it.responseSize }
-    val totalUploaded = requests.filter { it.requestSize >= 0 }.sumOf { it.requestSize }
+    val totalDownloaded = requests.mapNotNull { it.responseSize }.filter { it >= 0 }.sumOf { it }
+    val totalUploaded = requests.mapNotNull { it.requestSize }.filter { it >= 0 }.sumOf { it }
     return NetworkStats(
       totalDownloaded = totalDownloaded,
       totalUploaded = totalUploaded,
@@ -409,8 +409,8 @@ private const val BYTES_PER_GB = 1024L * 1024L * 1024L
 /**
  * Format bytes to human-readable string.
  */
-private fun formatBytes(bytes: Long): String = when {
-  bytes < 0 -> "—"
+private fun formatBytes(bytes: Long?): String = when {
+  bytes == null || bytes < 0 -> "—"
   bytes < BYTES_PER_KB -> "$bytes B"
   bytes < BYTES_PER_MB -> {
     val kb = bytes / BYTES_PER_KB.toDouble()
