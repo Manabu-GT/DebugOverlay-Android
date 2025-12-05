@@ -2,7 +2,6 @@
 
 package com.ms.square.debugoverlay.internal.ui
 
-import android.content.ClipData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,9 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -56,12 +53,12 @@ import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.data.UrlParts
+import com.ms.square.debugoverlay.internal.util.copyToClipboard
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.internal.util.httpStatusColor
 import com.ms.square.debugoverlay.internal.util.httpStatusMessage
 import com.ms.square.debugoverlay.model.NetworkRequest
-import kotlinx.coroutines.launch
 
 private const val BOTTOM_SHEET_HEIGHT_FRACTION = 0.8f
 
@@ -153,7 +150,6 @@ private fun NetworkRequestDetailContent(
 @Composable
 private fun NetworkDetailHeader(request: NetworkRequest, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
-  val context = LocalContext.current
   val scope = rememberCoroutineScope()
   val domain = remember(request.url) { UrlParts.from(request.url).domain }
 
@@ -192,11 +188,7 @@ private fun NetworkDetailHeader(request: NetworkRequest, onDismiss: () -> Unit, 
       // Actions
       Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         IconButton(onClick = {
-          scope.launch {
-            val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-            val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, request.url))
-            clipboard.setClipEntry(clipEntry)
-          }
+          scope.copyToClipboard(clipboard, request.url)
         }) {
           Icon(
             imageVector = Icons.Default.ContentCopy,
@@ -221,7 +213,6 @@ private fun NetworkDetailHeader(request: NetworkRequest, onDismiss: () -> Unit, 
 @Composable
 private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
-  val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
   LazyColumn(
@@ -241,11 +232,7 @@ private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) 
       DetailSection(
         title = "URL",
         onCopy = {
-          scope.launch {
-            val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-            val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, request.url))
-            clipboard.setClipEntry(clipEntry)
-          }
+          scope.copyToClipboard(clipboard, request.url)
         }
       ) {
         UrlDisplay(url = request.url)
@@ -305,7 +292,6 @@ private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) 
 @Composable
 private fun HeadersTab(request: NetworkRequest, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
-  val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var requestHeadersExpanded by remember { mutableStateOf(true) }
   var responseHeadersExpanded by remember { mutableStateOf(true) }
@@ -324,14 +310,10 @@ private fun HeadersTab(request: NetworkRequest, modifier: Modifier = Modifier) {
         onToggleExpand = { requestHeadersExpanded = !requestHeadersExpanded },
         onCopy = if (request.requestHeaders.isNotEmpty()) {
           {
-            scope.launch {
-              val text = request.requestHeaders.entries.joinToString("\n") {
-                "${it.key}: ${it.value}"
-              }
-              val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-              val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, text))
-              clipboard.setClipEntry(clipEntry)
+            val text = request.requestHeaders.entries.joinToString("\n") {
+              "${it.key}: ${it.value}"
             }
+            scope.copyToClipboard(clipboard, text)
           }
         } else {
           null
@@ -360,14 +342,10 @@ private fun HeadersTab(request: NetworkRequest, modifier: Modifier = Modifier) {
         onToggleExpand = { responseHeadersExpanded = !responseHeadersExpanded },
         onCopy = if (request.responseHeaders.isNotEmpty()) {
           {
-            scope.launch {
-              val text = request.responseHeaders.entries.joinToString("\n") {
-                "${it.key}: ${it.value}"
-              }
-              val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-              val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, text))
-              clipboard.setClipEntry(clipEntry)
+            val text = request.responseHeaders.entries.joinToString("\n") {
+              "${it.key}: ${it.value}"
             }
+            scope.copyToClipboard(clipboard, text)
           }
         } else {
           null
@@ -395,7 +373,6 @@ private fun HeadersTab(request: NetworkRequest, modifier: Modifier = Modifier) {
 @Composable
 private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
-  val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
   LazyColumn(
@@ -409,11 +386,7 @@ private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
         title = "Request Body",
         onCopy = request.requestBody?.let {
           {
-            scope.launch {
-              val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-              val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, it))
-              clipboard.setClipEntry(clipEntry)
-            }
+            scope.copyToClipboard(clipboard, it)
           }
         }
       ) {
@@ -434,11 +407,7 @@ private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
         title = "Response Body",
         onCopy = request.responseBody?.let {
           {
-            scope.launch {
-              val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-              val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, it))
-              clipboard.setClipEntry(clipEntry)
-            }
+            scope.copyToClipboard(clipboard, it)
           }
         }
       ) {
@@ -673,9 +642,9 @@ private fun HeaderItem(name: String, value: String, modifier: Modifier = Modifie
  * Body preview.
  */
 @Composable
-private fun BodyPreview(body: String, contentType: String?, modifier: Modifier = Modifier) {
+private fun BodyPreview(body: String, contentType: String?) {
   val textType = remember(body, contentType) { TextType.from(body, contentType) }
-  TextPreview(body, textType, modifier)
+  TextPreview(body, textType)
 }
 
 /**

@@ -1,16 +1,13 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import android.content.ClipData
 import android.graphics.Color
 import android.graphics.Typeface
 import android.view.ViewGroup
-import android.webkit.WebView
 import android.widget.TextView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,90 +18,44 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.TextType
-import com.ms.square.debugoverlay.internal.util.formatJsonAsHtml
-import com.ms.square.debugoverlay.internal.util.formatPlainTextAsHtml
+import com.ms.square.debugoverlay.internal.util.copyToClipboard
+import com.ms.square.debugoverlay.internal.util.formatJson
 import com.ms.square.debugoverlay.internal.util.formatTextSize
-import kotlinx.coroutines.launch
 
-private const val SMALL_TEXT_THRESHOLD = 10_000 // Use Compose Text
-private const val LARGE_TEXT_THRESHOLD = 500_000 // Use TextView, above this truncate
+private const val COMPOSE_TEXT_MAX_SIZE = 10_000 // Use Compose Text
+private const val TEXT_VIEW_MAX_SIZE = 500_000 // Use TextView, above this truncate
 
 /**
  * Text preview with four-tier performance optimization for large texts.
  */
 @Composable
-internal fun TextPreview(text: String, textType: TextType, modifier: Modifier = Modifier) {
+internal fun TextPreview(text: String, textType: TextType) {
   when {
-    // Tier 1: Small texts - Use Compose Text (best UX, integrated styling)
-    text.length < SMALL_TEXT_THRESHOLD -> {
-      CompactTextPreview(text, modifier)
-    }
-    // Tier 2: Structured data - Offer formatted view
-    textType == TextType.JSON || textType == TextType.HTML -> {
-      StructuredTextPreview(text, textType, modifier)
-    }
-    // Tier 3: Large plain text - Use native TextView (performant)
-    text.length < LARGE_TEXT_THRESHOLD -> {
-      TextViewTextPreview(text, modifier)
-    }
-    // Tier 4: Very large - Truncate (always instant)
-    else -> {
-      TruncatedTextPreview(text, modifier)
-    }
-  }
-}
+    // Tier 1: Small - Compose Text
+    text.length < COMPOSE_TEXT_MAX_SIZE -> CompactTextPreview(text)
 
-/**
- * Structured text data preview with raw/formatted toggle.
- */
-@Composable
-private fun StructuredTextPreview(text: String, textType: TextType, modifier: Modifier = Modifier) {
-  var showFormatted by remember { mutableStateOf(false) }
-
-  Column(modifier = modifier.fillMaxWidth()) {
-    // Toggle buttons
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 8.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      Button(
-        onClick = { showFormatted = false },
-        modifier = Modifier.weight(1f)
-      ) {
-        Text("Raw")
+    // Tier 2: Medium/Large - TextView (formatted if JSON)
+    text.length < TEXT_VIEW_MAX_SIZE -> {
+      val formatted = if (textType == TextType.JSON) {
+        formatJson(text)
+      } else {
+        text
       }
-      Button(
-        onClick = { showFormatted = true },
-        modifier = Modifier.weight(1f)
-      ) {
-        Text("Formatted")
-      }
+      TextViewTextPreview(formatted)
     }
 
-    if (showFormatted) {
-      WebViewTextPreview(text, textType)
-    } else {
-      TextViewTextPreview(text)
-    }
+    // Tier 3: Very Large - Truncate
+    else -> TruncatedTextPreview(text)
   }
 }
 
@@ -147,43 +98,6 @@ private fun TextViewTextPreview(text: String, modifier: Modifier = Modifier) {
 }
 
 /**
- * WebView preview for formatted JSON/HTML text.
- */
-@Composable
-private fun WebViewTextPreview(text: String, textType: TextType, modifier: Modifier = Modifier) {
-  Surface(
-    modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
-    color = MaterialTheme.colorScheme.surfaceContainerLowest,
-    tonalElevation = 1.dp
-  ) {
-    AndroidView(
-      factory = { context ->
-        WebView(context).apply {
-          settings.javaScriptEnabled = false // Security: No JS needed
-          settings.builtInZoomControls = true
-          settings.displayZoomControls = false
-          settings.setSupportZoom(true)
-          setBackgroundColor(Color.TRANSPARENT)
-        }
-      },
-      update = { webView ->
-        val html = when (textType) {
-          TextType.JSON -> formatJsonAsHtml(text)
-          // For now, just display the raw HTML for BodyType.HTML.
-          // Could add a toggle to show rendered vs source
-          else -> formatPlainTextAsHtml(text)
-        }
-        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
-      },
-      modifier = Modifier
-        .fillMaxWidth()
-        .heightIn(min = 200.dp, max = 600.dp)
-    )
-  }
-}
-
-/**
  * Compose Text preview for short texts.
  */
 @Composable
@@ -212,7 +126,6 @@ internal fun CompactTextPreview(body: String, modifier: Modifier = Modifier) {
 @Composable
 internal fun TruncatedTextPreview(text: String, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
-  val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
   Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -235,7 +148,7 @@ internal fun TruncatedTextPreview(text: String, modifier: Modifier = Modifier) {
         Text(
           text = "Text too large (${formatTextSize(text.length)}). Showing first ${
             formatTextSize(
-              SMALL_TEXT_THRESHOLD
+              COMPOSE_TEXT_MAX_SIZE
             )
           }.",
           style = MaterialTheme.typography.bodySmall,
@@ -245,16 +158,12 @@ internal fun TruncatedTextPreview(text: String, modifier: Modifier = Modifier) {
     }
 
     // Truncated preview
-    CompactTextPreview(body = text.take(SMALL_TEXT_THRESHOLD))
+    CompactTextPreview(body = text.take(COMPOSE_TEXT_MAX_SIZE))
 
     // Copy full body button
     Button(
       onClick = {
-        scope.launch {
-          val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-          val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, text))
-          clipboard.setClipEntry(clipEntry)
-        }
+        scope.copyToClipboard(clipboard, text)
       },
       modifier = Modifier.fillMaxWidth()
     ) {

@@ -1,5 +1,7 @@
 package com.ms.square.debugoverlay.internal.util
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -7,6 +9,10 @@ import java.util.Locale
 private const val BYTES_PER_KB = 1024L
 private const val BYTES_PER_MB = 1024L * 1024L
 private const val BYTES_PER_GB = 1024L * 1024L * 1024L
+
+private val JSON_FORMATTER = Json {
+  prettyPrint = true
+}
 
 /**
  * Format bytes to human-readable string.
@@ -38,90 +44,9 @@ internal fun formatTimestamp(timestamp: Long): String {
   return formatter.format(date)
 }
 
-/**
- * Format JSON as syntax-highlighted HTML.
- */
-@Suppress("MaxLineLength") // HTML template
-internal fun formatJsonAsHtml(json: String): String {
-  val escaped = json
-    .replace("&", "&amp;")
-    .replace("<", "&lt;")
-    .replace(">", "&gt;")
-    .replace("\"", "&quot;")
-
-  // Simple syntax highlighting with regex
-  val highlighted = escaped
-    .replace(Regex("""(&quot;[^&]+&quot;)\s*:"""), """<span style="color: #9cdcfe;">$1</span>:""") // Keys
-    .replace(Regex(""":\s*(&quot;[^&]+&quot;)"""), """: <span style="color: #ce9178;">$1</span>""") // String values
-    .replace(Regex("""\b(\d+\.?\d*)\b"""), """<span style="color: #b5cea8;">$1</span>""") // Numbers
-    .replace(Regex("""\b(true|false)\b"""), """<span style="color: #569cd6;">$1</span>""") // Booleans
-    .replace(Regex("""\b(null)\b"""), """<span style="color: #808080;">$1</span>""") // Null
-
-  return """
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      background: #1e1e1e;
-      color: #d4d4d4;
-      margin: 16px;
-      padding: 0;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-    }
-    pre {
-      white-space: pre-wrap;
-      margin: 0;
-      line-height: 1.5;
-    }
-  </style>
-</head>
-<body>
-  <pre>$highlighted</pre>
-</body>
-</html>
-  """.trimIndent()
-}
-
-/**
- * Format plain text as HTML.
- */
-internal fun formatPlainTextAsHtml(text: String): String {
-  val escaped = text
-    .replace("&", "&amp;")
-    .replace("<", "&lt;")
-    .replace(">", "&gt;")
-
-  return """
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      background: #1e1e1e;
-      color: #d4d4d4;
-      margin: 16px;
-      padding: 0;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-    }
-    pre {
-      white-space: pre-wrap;
-      margin: 0;
-      line-height: 1.5;
-    }
-  </style>
-</head>
-<body>
-  <pre>$escaped</pre>
-</body>
-</html>
-  """.trimIndent()
+internal fun formatJson(json: String): String = try {
+  val element = Json.parseToJsonElement(json)
+  JSON_FORMATTER.encodeToString(JsonElement.serializer(), element)
+} catch (_: Exception) {
+  json
 }

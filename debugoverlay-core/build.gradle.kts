@@ -66,6 +66,9 @@ dependencies {
 
   debugImplementation(libs.androidx.compose.ui.tooling)
 
+  // Json
+  implementation(libs.kotlinx.serialization.json)
+
   // Lifecycle for synthetic lifecycle owner
   implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.runtime.ktx)

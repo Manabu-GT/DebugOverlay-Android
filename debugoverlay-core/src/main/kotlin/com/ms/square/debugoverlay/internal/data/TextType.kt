@@ -25,7 +25,10 @@ internal enum class TextType {
       val trimmed = body.trimStart()
       return when {
         trimmed.startsWith("{") || trimmed.startsWith("[") -> JSON
-        trimmed.startsWith("<!DOCTYPE html") || trimmed.startsWith("<html") -> HTML
+        trimmed.startsWith(
+          "<!DOCTYPE html",
+          ignoreCase = true
+        ) || trimmed.startsWith("<html", ignoreCase = true) -> HTML
         trimmed.startsWith("<?xml") || trimmed.startsWith("<") -> XML
         else -> PLAIN
       }

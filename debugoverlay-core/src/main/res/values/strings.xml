@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="debugoverlay_no_log_entries">No log entries</string>
-  <string name="debugoverlay_clipboard_label">Logcat Line</string>
+  <string name="debugoverlay_clipboard_label_logcat">Logcat Line</string>
   <string name="debugoverlay_copy_to_clipboard">Copy log to clipboard</string>
   <string name="debugoverlay_copied_to_clipboard">Copied to clipboard</string>
   <string name="debugoverlay_scroll_to_bottom">Scroll to bottom</string>
