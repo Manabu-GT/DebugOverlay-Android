@@ -8,6 +8,9 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
+private const val FULL_SCREEN_OFFSET = 1f
+private const val HALF_SCREEN_OFFSET = 0.5f
+
 /**
  * Generic detail navigation container with slide transitions.
  *
@@ -40,12 +43,12 @@ internal fun <T> DetailNavigation(
     transitionSpec = {
       if (targetState != null) {
         // Navigating to detail - slide in from right
-        slideInHorizontally(initialOffsetX = { it }) togetherWith
-          slideOutHorizontally(targetOffsetX = { -it / 2 })
+        slideInHorizontally(initialOffsetX = { (it * FULL_SCREEN_OFFSET).toInt() }) togetherWith
+          slideOutHorizontally(targetOffsetX = { (-it * HALF_SCREEN_OFFSET).toInt() })
       } else {
         // Back to list - slide in from left
-        slideInHorizontally(initialOffsetX = { -it / 2 }) togetherWith
-          slideOutHorizontally(targetOffsetX = { it })
+        slideInHorizontally(initialOffsetX = { (-it * HALF_SCREEN_OFFSET).toInt() }) togetherWith
+          slideOutHorizontally(targetOffsetX = { (it * FULL_SCREEN_OFFSET).toInt() })
       }
     },
     label = "detail_navigation",
