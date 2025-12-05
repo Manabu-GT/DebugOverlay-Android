@@ -328,7 +328,7 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
       // Left side: Method badge + URL + metadata
       Column(
         modifier = Modifier.weight(1f),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
       ) {
         // Method badge + URL path
         Row(
@@ -373,7 +373,7 @@ private fun NetworkRequestMetadata(
 
   Column(
     modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(4.dp)
+    verticalArrangement = Arrangement.spacedBy(2.dp)
   ) {
     // Domain
     Text(
