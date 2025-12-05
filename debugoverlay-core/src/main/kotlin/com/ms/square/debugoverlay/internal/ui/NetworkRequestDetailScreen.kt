@@ -126,7 +126,7 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
 }
 
 @Composable
-internal fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modifier = Modifier) {
+private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modifier = Modifier) {
   var selectedTab by remember { mutableIntStateOf(0) }
 
   Column(modifier = modifier.fillMaxSize()) {
