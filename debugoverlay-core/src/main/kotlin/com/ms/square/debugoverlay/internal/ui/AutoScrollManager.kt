@@ -4,12 +4,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
-import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 
 @Composable
-internal fun AutoScrollManager(
+internal fun <T> AutoScrollManager(
   listState: LazyListState,
-  filteredEntries: List<LogcatEntry>,
+  filteredEntries: List<T>,
   isProgrammaticScroll: Boolean,
   isPaused: Boolean,
   onProgrammaticScrollChanged: (Boolean) -> Unit,

@@ -1,10 +1,5 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,10 +19,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -248,26 +239,6 @@ private fun LogcatContent(
           onClick = { onEntryClick(entry) }
         )
       }
-    }
-  }
-}
-
-@Composable
-private fun ResumeScrollFab(visible: Boolean, onResume: () -> Unit, modifier: Modifier = Modifier) {
-  AnimatedVisibility(
-    visible = visible,
-    modifier = modifier,
-    enter = fadeIn() + scaleIn(),
-    exit = fadeOut() + scaleOut()
-  ) {
-    FloatingActionButton(
-      onClick = onResume,
-      containerColor = MaterialTheme.colorScheme.primaryContainer
-    ) {
-      Icon(
-        imageVector = Icons.Default.ArrowDownward,
-        contentDescription = stringResource(R.string.debugoverlay_scroll_to_bottom)
-      )
     }
   }
 }

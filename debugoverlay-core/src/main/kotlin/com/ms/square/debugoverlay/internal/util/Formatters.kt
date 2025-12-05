@@ -44,6 +44,23 @@ internal fun formatTimestamp(timestamp: Long): String {
   return formatter.format(date)
 }
 
+/**
+ * Format timestamp as relative time (e.g., "2s ago", "5m ago", "2h ago").
+ */
+@Suppress("MagicNumber")
+internal fun formatRelativeTime(timestamp: Long): String {
+  val now = System.currentTimeMillis()
+  val diff = now - timestamp
+
+  return when {
+    diff < 1000 -> "just now" // Less than 1 second
+    diff < 60_000 -> "${diff / 1000}s ago" // Less than 1 minute
+    diff < 3_600_000 -> "${diff / 60_000}m ago" // Less than 1 hour
+    diff < 86_400_000 -> "${diff / 3_600_000}h ago" // Less than 1 day
+    else -> "${diff / 86_400_000}d ago" // Days
+  }
+}
+
 internal fun formatJson(json: String): String = try {
   val element = Json.parseToJsonElement(json)
   JSON_FORMATTER.encodeToString(JsonElement.serializer(), element)
