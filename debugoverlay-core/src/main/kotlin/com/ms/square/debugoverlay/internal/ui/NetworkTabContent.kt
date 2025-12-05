@@ -32,35 +32,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.data.UrlParts
 import com.ms.square.debugoverlay.internal.data.model.NetworkStats
-import com.ms.square.debugoverlay.model.HttpMethod
+import com.ms.square.debugoverlay.internal.util.HTTP_CLIENT_ERROR_START
+import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlin.math.roundToInt
-
-// HTTP Status Code ranges
-private const val HTTP_SUCCESS_START = 200
-private const val HTTP_SUCCESS_END = 299
-private const val HTTP_REDIRECT_START = 300
-private const val HTTP_REDIRECT_END = 399
-private const val HTTP_CLIENT_ERROR_START = 400
-private const val HTTP_CLIENT_ERROR_END = 499
-private const val HTTP_SERVER_ERROR_START = 500
-private const val HTTP_SERVER_ERROR_END = 599
-
-// Status code colors
-private val STATUS_COLOR_SUCCESS = Color(0xFF4CAF50) // Green
-private val STATUS_COLOR_REDIRECT = Color(0xFF2196F3) // Blue
-private val STATUS_COLOR_CLIENT_ERROR = Color(0xFFF44336) // Red
-private val STATUS_COLOR_SERVER_ERROR = Color(0xFFFF5722) // Deep orange
-private val STATUS_COLOR_UNKNOWN = Color(0xFF757575) // Gray
-
-// HTTP method colors
-private val METHOD_COLOR_GET = Color(0xFF03DAC6) // Cyan
-private val METHOD_COLOR_POST = Color(0xFFFFC107) // Amber
-private val METHOD_COLOR_PUT = Color(0xFF2196F3) // Blue
-private val METHOD_COLOR_DELETE = Color(0xFFF44336) // Red
-private val METHOD_COLOR_PATCH = Color(0xFF9C27B0) // Purple
-private val METHOD_COLOR_UNKNOWN = Color(0xFF757575) // Gray
 
 /**
  * Network tab showing HTTP requests with stats.
@@ -68,6 +45,7 @@ private val METHOD_COLOR_UNKNOWN = Color(0xFF757575) // Gray
  * Features:
  * - Download/Upload stats
  */
+@Suppress("LongMethod") // Added detail bottom sheet handling
 @Composable
 internal fun NetworkTabContent(modifier: Modifier = Modifier) {
   val networkStats by DebugOverlay.overlayDataRepository.netStats.collectAsStateWithLifecycle(
@@ -77,6 +55,7 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
     initialValue = emptyList()
   )
   var searchQuery by remember { mutableStateOf("") }
+  var selectedRequest by remember { mutableStateOf<NetworkRequest?>(null) }
 
   val augmentedNetworkStats = remember(networkStats, networkRequests) {
     networkStats.augmentNetworkStatsWith(networkRequests)
@@ -88,8 +67,8 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
       networkRequests
     } else {
       networkRequests.filter { request ->
-        request.shortUrl.contains(searchQuery, ignoreCase = true) ||
-          request.method.toString().contains(searchQuery, ignoreCase = true)
+        request.url.contains(searchQuery, ignoreCase = true) ||
+          request.method.contains(searchQuery, ignoreCase = true)
       }
     }
   }
@@ -129,10 +108,18 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
       ) { request ->
         NetworkRequestItem(
           request = request,
-          onClick = { /* No-op: Detail view not implemented yet */ }
+          onClick = { selectedRequest = request }
         )
       }
     }
+  }
+
+  // Show detail bottom sheet
+  selectedRequest?.let { request ->
+    NetworkRequestDetailBottomSheet(
+      request = request,
+      onDismiss = { selectedRequest = null }
+    )
   }
 }
 
@@ -253,6 +240,7 @@ private fun NetworkStatsHeaderValue(
  */
 @Composable
 private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, modifier: Modifier = Modifier) {
+  val urlPath = remember(request.url) { UrlParts.from(request.url).path }
   Surface(
     onClick = onClick,
     modifier = modifier.fillMaxWidth(),
@@ -279,7 +267,7 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
           MethodBadge(method = request.method)
 
           Text(
-            text = request.shortUrl,
+            text = urlPath,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontFamily = FontFamily.Monospace,
@@ -320,59 +308,6 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
 }
 
 /**
- * HTTP method badge (GET, POST, etc.)
- */
-@Composable
-private fun MethodBadge(method: HttpMethod, modifier: Modifier = Modifier) {
-  Surface(
-    modifier = modifier,
-    color = method.toColor(),
-    shape = RoundedCornerShape(4.dp)
-  ) {
-    Text(
-      text = method.name,
-      modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-      style = MaterialTheme.typography.labelSmall,
-      color = Color.Black,
-      fontWeight = FontWeight.Bold,
-      fontSize = 10.sp
-    )
-  }
-}
-
-/**
- * Status code badge with color coding.
- */
-@Composable
-private fun StatusCodeBadge(statusCode: Int?, modifier: Modifier = Modifier) {
-  val color = when (statusCode) {
-    in HTTP_SUCCESS_START..HTTP_SUCCESS_END -> STATUS_COLOR_SUCCESS
-    in HTTP_REDIRECT_START..HTTP_REDIRECT_END -> STATUS_COLOR_REDIRECT
-    in HTTP_CLIENT_ERROR_START..HTTP_CLIENT_ERROR_END -> STATUS_COLOR_CLIENT_ERROR
-    in HTTP_SERVER_ERROR_START..HTTP_SERVER_ERROR_END -> STATUS_COLOR_SERVER_ERROR
-    else -> STATUS_COLOR_UNKNOWN
-  }
-
-  Text(
-    text = statusCode?.toString() ?: "ERR",
-    modifier = modifier,
-    style = MaterialTheme.typography.titleMedium,
-    color = color,
-    fontWeight = FontWeight.Bold,
-    fontFamily = FontFamily.Monospace
-  )
-}
-
-private fun HttpMethod.toColor(): Color = when (this) {
-  HttpMethod.GET -> METHOD_COLOR_GET
-  HttpMethod.POST -> METHOD_COLOR_POST
-  HttpMethod.PUT -> METHOD_COLOR_PUT
-  HttpMethod.DELETE -> METHOD_COLOR_DELETE
-  HttpMethod.PATCH -> METHOD_COLOR_PATCH
-  else -> METHOD_COLOR_UNKNOWN
-}
-
-/**
  * Augment network statistics from requests.
  */
 private fun NetworkStats.augmentNetworkStatsWith(requests: List<NetworkRequest>): NetworkStats {
@@ -400,23 +335,4 @@ private fun NetworkStats.augmentNetworkStatsWith(requests: List<NetworkRequest>)
       avgDuration = avgDuration
     )
   }
-}
-
-private const val BYTES_PER_KB = 1024L
-private const val BYTES_PER_MB = 1024L * 1024L
-private const val BYTES_PER_GB = 1024L * 1024L * 1024L
-
-/**
- * Format bytes to human-readable string.
- */
-private fun formatBytes(bytes: Long?): String = when {
-  bytes == null || bytes < 0 -> "—"
-  bytes < BYTES_PER_KB -> "$bytes B"
-  bytes < BYTES_PER_MB -> {
-    val kb = bytes / BYTES_PER_KB.toDouble()
-    @Suppress("MagicNumber")
-    if (kb < 10) "%.2f KB".format(kb) else "%.1f KB".format(kb)
-  }
-  bytes < BYTES_PER_GB -> "%.1f MB".format(bytes / BYTES_PER_MB.toDouble())
-  else -> "%.1f GB".format(bytes / BYTES_PER_GB.toDouble())
 }

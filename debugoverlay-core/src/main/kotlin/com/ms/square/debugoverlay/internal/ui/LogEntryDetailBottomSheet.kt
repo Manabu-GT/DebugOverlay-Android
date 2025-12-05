@@ -1,6 +1,5 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import android.content.ClipData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -39,7 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.toColor
-import kotlinx.coroutines.launch
+import com.ms.square.debugoverlay.internal.util.copyToClipboard
 
 private const val BOTTOM_SHEET_HEIGHT_FRACTION = 0.8f
 private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
@@ -236,11 +234,8 @@ private fun DetailActionButtons(logEntry: LogcatEntry, onFilterTag: (String) -> 
     // Copy button
     Button(
       onClick = {
-        scope.launch {
-          val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label)
-          val clipEntry = ClipEntry(ClipData.newPlainText(clipboardLabel, logEntry.rawLine))
-          clipboard.setClipEntry(clipEntry)
-        }
+        val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label_logcat)
+        scope.copyToClipboard(clipboard, logEntry.rawLine, clipboardLabel)
       },
       modifier = Modifier.weight(1f)
     ) {

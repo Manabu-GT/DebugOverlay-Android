@@ -9,9 +9,8 @@ public data class NetworkRequest(
   // Base NetworkRequest fields
   val id: String = UUID.randomUUID().toString(),
   val protocol: String?, // http/1.1, h2, quic..etc
-  val method: HttpMethod, // GET, POST, etc.
-  val fullUrl: String, // https://test.com/api/v1/feed
-  val shortUrl: String, // /api/v1/feed
+  val method: String, // GET, POST, etc.
+  val url: String, // https://test.com/api/v1/feed
   val statusCode: Int?, // 200, 404, etc.
   val durationMs: Long, // 245
   val responseSize: Long?, // bytes
@@ -24,18 +23,6 @@ public data class NetworkRequest(
   val responseBody: String? = null,
   val error: NetworkError? = null,
 )
-
-public enum class HttpMethod {
-  GET,
-  POST,
-  PUT,
-  DELETE,
-  PATCH,
-  HEAD,
-  OPTIONS,
-  TRACE,
-  UNKNOWN,
-}
 
 /**
  * Error information for failed requests.

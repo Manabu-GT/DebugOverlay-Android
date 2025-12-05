@@ -2,7 +2,6 @@ package com.ms.square.debugoverlay.extension.okhttp
 
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.extension.okhttp.internal.isProbablyUtf8
-import com.ms.square.debugoverlay.model.HttpMethod
 import com.ms.square.debugoverlay.model.NetworkError
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.flow.Flow
@@ -402,9 +401,8 @@ public class DebugOverlayNetworkInterceptor(
     val redactUrl = redactUrl(url)
     val newRequest = NetworkRequest(
       protocol = protocol,
-      method = method.toHttpMethod(),
-      fullUrl = redactUrl.toString(),
-      shortUrl = redactUrl.toShortUrlString(),
+      method = method,
+      url = redactUrl.toString(),
       statusCode = statusCode,
       durationMs = durationMs,
       responseSize = responseData?.contentSize,
@@ -510,20 +508,6 @@ private fun createErrorFromResponse(response: Response, body: String?): NetworkE
 }
 
 private fun MediaType?.charsetOrUtf8(): Charset = this?.charset() ?: Charsets.UTF_8
-
-private fun String.toHttpMethod(): HttpMethod = when (this) {
-  "GET" -> HttpMethod.GET
-  "POST" -> HttpMethod.POST
-  "PUT" -> HttpMethod.PUT
-  "DELETE" -> HttpMethod.DELETE
-  "PATCH" -> HttpMethod.PATCH
-  "HEAD" -> HttpMethod.HEAD
-  "OPTIONS" -> HttpMethod.OPTIONS
-  "TRACE" -> HttpMethod.TRACE
-  else -> HttpMethod.UNKNOWN
-}
-
-private fun HttpUrl.toShortUrlString(): String = encodedPath + (encodedQuery?.let { "?$it" } ?: "")
 
 private data class NetworkData(
   val headers: Map<String, String>,
