@@ -1,10 +1,5 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +46,6 @@ import kotlin.math.roundToInt
  * - Download/Upload stats
  * - Detail screen navigation with back button
  */
-@Suppress("LongMethod") // State management for navigation
 @Composable
 internal fun NetworkTabContent(modifier: Modifier = Modifier) {
   val networkStats by DebugOverlay.overlayDataRepository.netStats.collectAsStateWithLifecycle(
@@ -79,36 +73,11 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
     }
   }
 
-  // Handle system back button when detail screen is shown
-  BackHandler(enabled = selectedRequest != null) {
-    selectedRequest = null
-  }
-
-  // State-based navigation with slide transitions
-  AnimatedContent(
-    targetState = selectedRequest,
-    transitionSpec = {
-      if (targetState != null) {
-        // Navigating to detail - slide in from right
-        slideInHorizontally(initialOffsetX = { it }) togetherWith
-          slideOutHorizontally(targetOffsetX = { -it / 2 })
-      } else {
-        // Back to list - slide in from left
-        slideInHorizontally(initialOffsetX = { -it / 2 }) togetherWith
-          slideOutHorizontally(targetOffsetX = { it })
-      }
-    },
-    label = "network_navigation",
-    modifier = modifier
-  ) { request ->
-    if (request != null) {
-      // Detail Screen
-      NetworkRequestDetailScreen(
-        request = request,
-        onBack = { selectedRequest = null }
-      )
-    } else {
-      // List Screen
+  // State-based navigation with shared DetailNavigation
+  DetailNavigation(
+    selectedItem = selectedRequest,
+    onBack = { selectedRequest = null },
+    listContent = {
       NetworkListScreen(
         augmentedNetworkStats = augmentedNetworkStats,
         filteredRequests = filteredRequests,
@@ -116,8 +85,15 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
         onSearchQueryChanged = { searchQuery = it },
         onRequestClick = { selectedRequest = it }
       )
-    }
-  }
+    },
+    detailContent = { request ->
+      NetworkRequestDetailScreen(
+        request = request,
+        onBack = { selectedRequest = null }
+      )
+    },
+    modifier = modifier
+  )
 }
 
 /**

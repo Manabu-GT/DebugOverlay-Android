@@ -2,8 +2,6 @@
 <resources>
   <string name="debugoverlay_no_log_entries">No log entries</string>
   <string name="debugoverlay_clipboard_label_logcat">Logcat Line</string>
-  <string name="debugoverlay_copy_to_clipboard">Copy log to clipboard</string>
-  <string name="debugoverlay_copied_to_clipboard">Copied to clipboard</string>
   <string name="debugoverlay_scroll_to_bottom">Scroll to bottom</string>
   <string name="debugoverlay_log_entry_description">Log entry: %1$s, %2$s</string>
   <string name="debugoverlay_filter_chip_description">Filter by %1$s level logs</string>
@@ -18,10 +16,6 @@
   <string name="debugoverlay_debug_panel">Debug Panel</string>
   <string name="debugoverlay_close_description">Close</string>
   <string name="debugoverlay_back">Back</string>
-  <string name="debugoverlay_log_details">Log Details</string>
-  <string name="debugoverlay_level_label">LEVEL</string>
-  <string name="debugoverlay_tag_label">TAG</string>
-  <string name="debugoverlay_time_label">TIME</string>
   <string name="debugoverlay_message_label">MESSAGE</string>
   <string name="debugoverlay_copy">Copy</string>
   <string name="debugoverlay_filter_tag">Filter Tag</string>

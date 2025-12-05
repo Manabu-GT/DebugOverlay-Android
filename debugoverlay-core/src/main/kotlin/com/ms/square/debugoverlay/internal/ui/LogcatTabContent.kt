@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,7 +66,7 @@ private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
  * - Filter by log level (V, D, I, W, E)
  * - Auto-scroll to bottom for new entries
  * - Manual scroll pauses auto-scroll
- * - Tap log entry to copy to clipboard
+ * - Detail screen navigation with back button
  * - FAB to resume auto-scroll when paused
  *
  * @param modifier Modifier to be applied to the root layout
@@ -101,40 +102,76 @@ internal fun LogcatTabContent(modifier: Modifier = Modifier) {
     onPauseChanged = { isPaused = it }
   )
 
+  // State-based navigation with shared DetailNavigation
+  DetailNavigation(
+    selectedItem = selectedLogEntry,
+    onBack = { selectedLogEntry = null },
+    listContent = {
+      LogcatListScreen(
+        searchQuery = searchQuery,
+        onSearchQueryChanged = { searchQuery = it },
+        selectedLevel = selectedLevel,
+        onLevelSelected = { selectedLevel = it },
+        filteredEntries = filteredEntries,
+        listState = listState,
+        onEntryClick = { selectedLogEntry = it },
+        isPaused = isPaused,
+        onResume = { isPaused = false }
+      )
+    },
+    detailContent = { entry ->
+      LogEntryDetailScreen(
+        logEntry = entry,
+        onBack = { selectedLogEntry = null },
+        onFilterTag = { tag ->
+          searchQuery = tag
+          selectedLogEntry = null
+        }
+      )
+    },
+    modifier = modifier
+  )
+}
+
+/**
+ * Logcat list screen with filters and log entries.
+ */
+@Suppress("LongParameterList")
+@Composable
+private fun LogcatListScreen(
+  searchQuery: String,
+  onSearchQueryChanged: (String) -> Unit,
+  selectedLevel: LogLevel,
+  onLevelSelected: (LogLevel) -> Unit,
+  filteredEntries: List<LogcatEntry>,
+  listState: LazyListState,
+  onEntryClick: (LogcatEntry) -> Unit,
+  isPaused: Boolean,
+  onResume: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
   Box(modifier = modifier.fillMaxWidth()) {
     Column(modifier = Modifier.fillMaxWidth()) {
       LogcatFilterBar(
         searchQuery = searchQuery,
-        onSearchQueryChanged = { searchQuery = it },
+        onSearchQueryChanged = onSearchQueryChanged,
         selectedLevel = selectedLevel,
-        onLevelSelected = { selectedLevel = it }
+        onLevelSelected = onLevelSelected
       )
 
       LogcatContent(
         filteredEntries = filteredEntries,
         listState = listState,
-        onEntryClick = { selectedLogEntry = it }
+        onEntryClick = onEntryClick
       )
     }
 
     ResumeScrollFab(
       visible = isPaused,
-      onResume = { isPaused = false },
+      onResume = onResume,
       modifier = Modifier
         .align(Alignment.BottomEnd)
         .padding(16.dp)
-    )
-  }
-
-  // Show log entry detail bottom sheet
-  selectedLogEntry?.let { entry ->
-    LogEntryDetailBottomSheet(
-      logEntry = entry,
-      onDismiss = { selectedLogEntry = null },
-      onFilterTag = { tag ->
-        searchQuery = tag
-        selectedLogEntry = null
-      }
     )
   }
 }
