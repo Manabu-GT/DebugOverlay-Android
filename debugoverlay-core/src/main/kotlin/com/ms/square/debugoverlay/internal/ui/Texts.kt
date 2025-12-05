@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,26 +37,27 @@ private const val COMPOSE_TEXT_MAX_SIZE = 10_000 // Use Compose Text
 private const val TEXT_VIEW_MAX_SIZE = 500_000 // Use TextView, above this truncate
 
 /**
- * Text preview with four-tier performance optimization for large texts.
+ * Text preview with three-tier performance optimization for large texts.
  */
 @Composable
 internal fun TextPreview(text: String, textType: TextType) {
+  // format if JSON
+  val formatted = remember(text) {
+    if (textType == TextType.JSON) {
+      formatJson(text)
+    } else {
+      text
+    }
+  }
   when {
     // Tier 1: Small - Compose Text
-    text.length < COMPOSE_TEXT_MAX_SIZE -> CompactTextPreview(text)
-
-    // Tier 2: Medium/Large - TextView (formatted if JSON)
-    text.length < TEXT_VIEW_MAX_SIZE -> {
-      val formatted = if (textType == TextType.JSON) {
-        formatJson(text)
-      } else {
-        text
-      }
+    formatted.length < COMPOSE_TEXT_MAX_SIZE -> CompactTextPreview(formatted)
+    // Tier 2: Medium/Large - TextView
+    formatted.length < TEXT_VIEW_MAX_SIZE -> {
       TextViewTextPreview(formatted)
     }
-
     // Tier 3: Very Large - Truncate
-    else -> TruncatedTextPreview(text)
+    else -> TruncatedTextPreview(formatted)
   }
 }
 

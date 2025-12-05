@@ -17,6 +17,7 @@
   <string name="debugoverlay_tab_network">Network</string>
   <string name="debugoverlay_debug_panel">Debug Panel</string>
   <string name="debugoverlay_close_description">Close</string>
+  <string name="debugoverlay_back">Back</string>
   <string name="debugoverlay_log_details">Log Details</string>
   <string name="debugoverlay_level_label">LEVEL</string>
   <string name="debugoverlay_tag_label">TAG</string>

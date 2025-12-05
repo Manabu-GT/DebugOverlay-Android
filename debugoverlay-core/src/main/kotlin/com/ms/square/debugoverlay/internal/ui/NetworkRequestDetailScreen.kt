@@ -2,14 +2,12 @@
 
 package com.ms.square.debugoverlay.internal.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,8 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandMore
@@ -28,12 +26,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,6 +47,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
@@ -60,62 +60,76 @@ import com.ms.square.debugoverlay.internal.util.httpStatusColor
 import com.ms.square.debugoverlay.internal.util.httpStatusMessage
 import com.ms.square.debugoverlay.model.NetworkRequest
 
-private const val BOTTOM_SHEET_HEIGHT_FRACTION = 0.8f
-
 /**
- * Network request detail bottom sheet with comprehensive information.
+ * Network request detail screen with TopAppBar and comprehensive information.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun NetworkRequestDetailBottomSheet(request: NetworkRequest, onDismiss: () -> Unit) {
-  val sheetState = rememberModalBottomSheetState(
-    skipPartiallyExpanded = true
-  )
+internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> Unit, modifier: Modifier = Modifier) {
+  val clipboard = LocalClipboard.current
+  val scope = rememberCoroutineScope()
+  val domain = remember(request.url) { UrlParts.from(request.url).domain }
 
-  ModalBottomSheet(
-    onDismissRequest = onDismiss,
-    sheetState = sheetState,
-    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    tonalElevation = 3.dp,
-    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-    dragHandle = {
-      Box(
-        modifier = Modifier
-          .padding(top = 12.dp, bottom = 8.dp)
-          .size(width = 32.dp, height = 4.dp)
-          .background(
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            shape = RoundedCornerShape(2.dp)
-          )
+  Scaffold(
+    modifier = modifier.fillMaxSize(),
+    topBar = {
+      TopAppBar(
+        title = {
+          Column {
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              MethodBadge(method = request.method)
+              StatusCodeBadge(statusCode = request.statusCode)
+            }
+            Text(
+              text = domain,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              fontFamily = FontFamily.Monospace,
+              modifier = Modifier.padding(top = 2.dp)
+            )
+          }
+        },
+        navigationIcon = {
+          IconButton(onClick = onBack) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = stringResource(R.string.debugoverlay_back)
+            )
+          }
+        },
+        actions = {
+          IconButton(onClick = {
+            scope.copyToClipboard(clipboard, request.url)
+          }) {
+            Icon(
+              imageVector = Icons.Default.ContentCopy,
+              contentDescription = stringResource(R.string.debugoverlay_copy)
+            )
+          }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+          containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
       )
     }
-  ) {
+  ) { paddingValues ->
     NetworkRequestDetailContent(
       request = request,
-      onDismiss = onDismiss
+      modifier = Modifier.padding(paddingValues)
     )
   }
 }
 
 @Composable
-private fun NetworkRequestDetailContent(
-  request: NetworkRequest,
-  onDismiss: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
+private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modifier = Modifier) {
   var selectedTab by remember { mutableIntStateOf(0) }
 
-  Column(
-    modifier = modifier
-      .fillMaxWidth()
-      .fillMaxHeight(BOTTOM_SHEET_HEIGHT_FRACTION)
-  ) {
-    // Header
-    NetworkDetailHeader(
-      request = request,
-      onDismiss = onDismiss
-    )
-
+  Column(modifier = modifier.fillMaxSize()) {
     // Tabs
     SecondaryTabRow(
       selectedTabIndex = selectedTab,
@@ -143,65 +157,6 @@ private fun NetworkRequestDetailContent(
       0 -> OverviewTab(request = request)
       1 -> HeadersTab(request = request)
       2 -> BodyTab(request = request)
-    }
-  }
-}
-
-@Composable
-private fun NetworkDetailHeader(request: NetworkRequest, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
-  val clipboard = LocalClipboard.current
-  val scope = rememberCoroutineScope()
-  val domain = remember(request.url) { UrlParts.from(request.url).domain }
-
-  Surface(
-    modifier = modifier.fillMaxWidth(),
-    color = MaterialTheme.colorScheme.surfaceContainer,
-    tonalElevation = 2.dp
-  ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      // Method and Status
-      Column(modifier = Modifier.weight(1f)) {
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          MethodBadge(method = request.method)
-          StatusCodeBadge(statusCode = request.statusCode)
-        }
-
-        Text(
-          text = domain,
-          style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          maxLines = 1,
-          fontFamily = FontFamily.Monospace,
-          modifier = Modifier.padding(top = 4.dp)
-        )
-      }
-
-      // Actions
-      Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        IconButton(onClick = {
-          scope.copyToClipboard(clipboard, request.url)
-        }) {
-          Icon(
-            imageVector = Icons.Default.ContentCopy,
-            contentDescription = stringResource(R.string.debugoverlay_copy)
-          )
-        }
-        IconButton(onClick = onDismiss) {
-          Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = stringResource(R.string.debugoverlay_close_description)
-          )
-        }
-      }
     }
   }
 }

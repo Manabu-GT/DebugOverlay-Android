@@ -1,5 +1,10 @@
 package com.ms.square.debugoverlay.internal.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,8 +49,9 @@ import kotlin.math.roundToInt
  *
  * Features:
  * - Download/Upload stats
+ * - Detail screen navigation with back button
  */
-@Suppress("LongMethod") // Added detail bottom sheet handling
+@Suppress("LongMethod") // State management for navigation
 @Composable
 internal fun NetworkTabContent(modifier: Modifier = Modifier) {
   val networkStats by DebugOverlay.overlayDataRepository.netStats.collectAsStateWithLifecycle(
@@ -73,6 +79,59 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
     }
   }
 
+  // Handle system back button when detail screen is shown
+  BackHandler(enabled = selectedRequest != null) {
+    selectedRequest = null
+  }
+
+  // State-based navigation with slide transitions
+  AnimatedContent(
+    targetState = selectedRequest,
+    transitionSpec = {
+      if (targetState != null) {
+        // Navigating to detail - slide in from right
+        slideInHorizontally(initialOffsetX = { it }) togetherWith
+          slideOutHorizontally(targetOffsetX = { -it / 2 })
+      } else {
+        // Back to list - slide in from left
+        slideInHorizontally(initialOffsetX = { -it / 2 }) togetherWith
+          slideOutHorizontally(targetOffsetX = { it })
+      }
+    },
+    label = "network_navigation",
+    modifier = modifier
+  ) { request ->
+    if (request != null) {
+      // Detail Screen
+      NetworkRequestDetailScreen(
+        request = request,
+        onBack = { selectedRequest = null }
+      )
+    } else {
+      // List Screen
+      NetworkListScreen(
+        augmentedNetworkStats = augmentedNetworkStats,
+        filteredRequests = filteredRequests,
+        searchQuery = searchQuery,
+        onSearchQueryChanged = { searchQuery = it },
+        onRequestClick = { selectedRequest = it }
+      )
+    }
+  }
+}
+
+/**
+ * Network list screen with stats header and request list.
+ */
+@Composable
+private fun NetworkListScreen(
+  augmentedNetworkStats: NetworkStats,
+  filteredRequests: List<NetworkRequest>,
+  searchQuery: String,
+  onSearchQueryChanged: (String) -> Unit,
+  onRequestClick: (NetworkRequest) -> Unit,
+  modifier: Modifier = Modifier,
+) {
   Column(modifier = modifier.fillMaxSize()) {
     // Stats Header
     when {
@@ -93,7 +152,7 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
     SearchField(
       searchPlaceholder = stringResource(R.string.debugoverlay_search_requests),
       searchQuery = searchQuery,
-      onSearchQueryChanged = { searchQuery = it }
+      onSearchQueryChanged = onSearchQueryChanged
     )
 
     // Request List
@@ -108,18 +167,10 @@ internal fun NetworkTabContent(modifier: Modifier = Modifier) {
       ) { request ->
         NetworkRequestItem(
           request = request,
-          onClick = { selectedRequest = request }
+          onClick = { onRequestClick(request) }
         )
       }
     }
-  }
-
-  // Show detail bottom sheet
-  selectedRequest?.let { request ->
-    NetworkRequestDetailBottomSheet(
-      request = request,
-      onDismiss = { selectedRequest = null }
-    )
   }
 }
 
