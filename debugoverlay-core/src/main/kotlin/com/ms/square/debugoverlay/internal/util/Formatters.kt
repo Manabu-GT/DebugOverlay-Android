@@ -44,20 +44,24 @@ internal fun formatTimestamp(timestamp: Long): String {
   return formatter.format(date)
 }
 
+private const val MILLIS_PER_SECOND = 1000L
+private const val MILLIS_PER_MINUTE = 60_000L
+private const val MILLIS_PER_HOUR = 3_600_000L
+private const val MILLIS_PER_DAY = 86_400_000L
+
 /**
  * Format timestamp as relative time (e.g., "2s ago", "5m ago", "2h ago").
  */
-@Suppress("MagicNumber")
 internal fun formatRelativeTime(timestamp: Long): String {
   val now = System.currentTimeMillis()
   val diff = now - timestamp
 
   return when {
-    diff < 1000 -> "just now" // Less than 1 second
-    diff < 60_000 -> "${diff / 1000}s ago" // Less than 1 minute
-    diff < 3_600_000 -> "${diff / 60_000}m ago" // Less than 1 hour
-    diff < 86_400_000 -> "${diff / 3_600_000}h ago" // Less than 1 day
-    else -> "${diff / 86_400_000}d ago" // Days
+    diff < MILLIS_PER_SECOND -> "just now" // Less than 1 second
+    diff < MILLIS_PER_MINUTE -> "${diff / MILLIS_PER_SECOND}s ago" // Less than 1 minute
+    diff < MILLIS_PER_HOUR -> "${diff / MILLIS_PER_MINUTE}m ago" // Less than 1 hour
+    diff < MILLIS_PER_DAY -> "${diff / MILLIS_PER_HOUR}h ago" // Less than 1 day
+    else -> "${diff / MILLIS_PER_DAY}d ago" // Days
   }
 }
 
