@@ -20,7 +20,7 @@ public class DebugPanelActivity : ComponentActivity() {
       MaterialTheme(
         colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme()
       ) {
-        DebugPanelBottomSheet(
+        DebugPanelDialog(
           onDismiss = { finish() }
         )
       }

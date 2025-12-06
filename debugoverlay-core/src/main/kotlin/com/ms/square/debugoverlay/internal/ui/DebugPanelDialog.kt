@@ -30,7 +30,7 @@ import com.ms.square.debugoverlay.core.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DebugPanelBottomSheet(onDismiss: () -> Unit) {
+internal fun DebugPanelDialog(onDismiss: () -> Unit) {
   Dialog(
     onDismissRequest = onDismiss,
     properties = DialogProperties(
