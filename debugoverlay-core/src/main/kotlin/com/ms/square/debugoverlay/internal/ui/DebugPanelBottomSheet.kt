@@ -1,20 +1,21 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -23,49 +24,62 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.ms.square.debugoverlay.core.R
-
-private const val BOTTOM_SHEET_HEIGHT_FRACTION = 0.8f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DebugPanelBottomSheet(onDismiss: () -> Unit) {
-  val sheetState = rememberModalBottomSheetState(
-    skipPartiallyExpanded = true
-  )
-
-  ModalBottomSheet(
+  Dialog(
     onDismissRequest = onDismiss,
-    sheetState = sheetState,
-    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    tonalElevation = 3.dp,
-    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-    dragHandle = {
-      Box(
-        modifier = Modifier
-          .padding(top = 12.dp, bottom = 8.dp)
-          .size(width = 32.dp, height = 4.dp)
-          .background(
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            shape = RoundedCornerShape(2.dp)
+    properties = DialogProperties(
+      usePlatformDefaultWidth = false,
+      dismissOnBackPress = true,
+      dismissOnClickOutside = false
+    )
+  ) {
+    Scaffold(
+      modifier = Modifier.fillMaxSize(),
+      containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+      topBar = {
+        TopAppBar(
+          title = {
+            Text(
+              text = stringResource(R.string.debugoverlay_debug_panel),
+              style = MaterialTheme.typography.titleLarge
+            )
+          },
+          actions = {
+            IconButton(onClick = onDismiss) {
+              Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.debugoverlay_close)
+              )
+            }
+          },
+          colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
           )
+        )
+      }
+    ) { paddingValues ->
+      DebugPanelContent(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(paddingValues)
       )
     }
-  ) {
-    DebugBottomSheetContent()
   }
 }
 
 @Composable
-private fun DebugBottomSheetContent(modifier: Modifier = Modifier) {
+private fun DebugPanelContent(modifier: Modifier = Modifier) {
   var selectedTabIndex by remember { mutableIntStateOf(0) }
   val tabs = remember { listOf(R.string.debugoverlay_tab_logcat, R.string.debugoverlay_tab_network) }
 
   Column(
-    modifier = modifier
-      .fillMaxWidth()
-      .fillMaxHeight(BOTTOM_SHEET_HEIGHT_FRACTION)
+    modifier = modifier.fillMaxSize()
   ) {
     // Tabs
     PrimaryTabRow(
