@@ -76,7 +76,13 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
   var selectedTabIndex by remember { mutableIntStateOf(0) }
-  val tabs = remember { listOf(R.string.debugoverlay_tab_logcat, R.string.debugoverlay_tab_network) }
+  val tabs = remember {
+    listOf(
+      R.string.debugoverlay_tab_logcat,
+      R.string.debugoverlay_tab_network,
+      R.string.debugoverlay_tab_device_info
+    )
+  }
 
   Column(
     modifier = modifier.fillMaxSize()
@@ -104,6 +110,7 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     when (selectedTabIndex) {
       0 -> LogcatTabContent()
       1 -> NetworkTabContent()
+      2 -> DeviceInfoTabContent()
     }
   }
 }

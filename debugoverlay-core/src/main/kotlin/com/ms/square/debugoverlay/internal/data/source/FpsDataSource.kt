@@ -1,9 +1,9 @@
 package com.ms.square.debugoverlay.internal.data.source
 
 import android.content.Context
-import android.hardware.display.DisplayManager
 import android.view.Choreographer
-import android.view.Display
+import com.ms.square.debugoverlay.internal.util.defaultDisplay
+import com.ms.square.debugoverlay.internal.util.maxSupportedFps
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -21,14 +21,14 @@ internal class FpsDataSource(context: Context) {
     get() = defaultDisplay.refreshRate
 
   val maxSupportedFps: Float by lazy {
-    defaultDisplay.supportedModes.maxOf { it.refreshRate }
+    defaultDisplay.maxSupportedFps
   }
 
   fun fps(interval: Duration = 1L.seconds): Flow<Float> = callbackFlow {
-    var frameCount: Long = 0
-    var startFrameTimeNanos: Long = 0
-
     val callback = object : Choreographer.FrameCallback {
+      var frameCount: Long = 0
+      var startFrameTimeNanos: Long = 0
+
       override fun doFrame(frameTimeNanos: Long) {
         if (startFrameTimeNanos > 0) {
           frameCount++
@@ -53,9 +53,4 @@ internal class FpsDataSource(context: Context) {
       Choreographer.getInstance().removeFrameCallback(callback)
     }
   }.flowOn(Dispatchers.Main)
-}
-
-private fun Context.defaultDisplay(): Display {
-  val dm = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-  return dm.getDisplay(Display.DEFAULT_DISPLAY)
 }

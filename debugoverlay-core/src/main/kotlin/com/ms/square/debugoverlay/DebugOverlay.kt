@@ -56,7 +56,7 @@ public object DebugOverlay {
     check(!isInstalled) { "DebugOverlay already installed" }
 
     overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
-      _overlayDataRepository = DebugOverlayDataRepository(it).apply {
+      _overlayDataRepository = DebugOverlayDataRepository(application, it).apply {
         setNetworkTracker(config.networkRequestTracker)
       }
       overlayViewManager = OverlayViewManager(application, it)

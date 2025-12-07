@@ -1,9 +1,12 @@
 package com.ms.square.debugoverlay.internal.data
 
+import android.content.Context
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.NoOpNetworkRequestTracker
+import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.NetworkStats
+import com.ms.square.debugoverlay.internal.data.source.DeviceInfoDataSource
 import com.ms.square.debugoverlay.internal.data.source.LogcatDataSource
 import com.ms.square.debugoverlay.internal.data.source.NetStatsDataSource
 import com.ms.square.debugoverlay.model.NetworkRequest
@@ -15,11 +18,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
-internal class DebugOverlayDataRepository(scope: CoroutineScope) {
+internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScope) {
 
   private val currentNetworkRequestTracker = MutableStateFlow<NetworkRequestTracker>(NoOpNetworkRequestTracker)
   private val logcatDataSource = LogcatDataSource(scope)
   private val netStatsDataSource = NetStatsDataSource(scope)
+  private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
 
   init {
     scope.launch {
@@ -36,6 +40,7 @@ internal class DebugOverlayDataRepository(scope: CoroutineScope) {
 
   val logs: Flow<List<LogcatEntry>> = logcatDataSource.logs
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
+  val deviceInfo: Flow<DeviceInfo?> = deviceInfoDataSource.deviceInfo
 
   @OptIn(ExperimentalCoroutinesApi::class)
   val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestTracker

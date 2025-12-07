@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Normal permission for reading network state (No user approval required) -->
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
   <application>
     <activity
       android:name="com.ms.square.debugoverlay.internal.ui.DebugPanelActivity"
@@ -7,4 +10,17 @@
       android:exported="false"
       android:excludeFromRecents="true" />
   </application>
+
+
+  <!-- Will not cause a permission dialog to show up for the user, this is invisible to the end user, and added to be
+   able to query certain packages for the device root detection -->
+  <queries>
+    <package android:name="com.topjohnwu.magisk" />
+    <package android:name="eu.chainfire.supersu" />
+    <package android:name="com.noshufou.android.su" />
+    <package android:name="com.koushikdutta.superuser" />
+    <package android:name="com.zachspenner.zbksu" />
+    <package android:name="com.thirdparty.superuser" />
+    <package android:name="com.yellowes.su" />
+  </queries>
 </manifest>
