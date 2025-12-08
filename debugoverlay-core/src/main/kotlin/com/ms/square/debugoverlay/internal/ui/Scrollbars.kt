@@ -164,12 +164,18 @@ private fun calculateThumbMetrics(
   minLengthPx: Float,
 ): Pair<Dp, Dp> {
   val totalContentPx = scrollState.maxValue + scrollState.viewportSize
-
-  val thumbFraction = (scrollState.viewportSize.toFloat() / totalContentPx)
-    .coerceAtLeast(minLengthPx / trackLengthPx)
+  val thumbFraction = if (totalContentPx > 0) {
+    (scrollState.viewportSize.toFloat() / totalContentPx)
+      .coerceAtLeast(minLengthPx / trackLengthPx)
+  } else {
+    minLengthPx / trackLengthPx
+  }
   val thumbLengthDp = with(density) { (trackLengthPx * thumbFraction).toDp() }
-
-  val scrollFraction = scrollState.value.toFloat() / scrollState.maxValue
+  val scrollFraction = if (scrollState.maxValue > 0) {
+    scrollState.value.toFloat() / scrollState.maxValue
+  } else {
+    0f
+  }
   val availableTravel = trackLengthPx * (1f - thumbFraction)
   val thumbOffsetDp = with(density) { (availableTravel * scrollFraction).toDp() }
 

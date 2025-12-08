@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,11 +66,16 @@ internal fun UiTabContent(modifier: Modifier = Modifier) {
   fun refresh() {
     scope.launch {
       isLoading = true
-      hierarchyOutput = withContext(Dispatchers.Default) {
-        Radiography.scan(
-          viewStateRenderers = DefaultsNoPii,
-          scanScope = excludeDebugPanelActivityScope
-        )
+      hierarchyOutput = runCatching {
+        withContext(Dispatchers.Default) {
+          Radiography.scan(
+            viewStateRenderers = DefaultsNoPii,
+            scanScope = excludeDebugPanelActivityScope
+          )
+        }
+      }.getOrElse { e ->
+        if (e is CancellationException) throw e
+        "Failed to scan view hierarchy: ${e.message}"
       }
       isLoading = false
     }
