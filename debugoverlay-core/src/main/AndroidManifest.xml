@@ -12,8 +12,13 @@
   </application>
 
 
-  <!-- Will not cause a permission dialog to show up for the user, this is invisible to the end user, and added to be
-   able to query certain packages for the device root detection -->
+  <!--
+    Root detection package queries (required for Android 11+ package visibility):
+    - Only checks if these packages are installed, not whether root is actively used
+    - Best-effort heuristic; rooted devices can hide these packages
+    - No permission dialog shown to users (invisible to end user)
+    - Used for debugging/diagnostics only, not security enforcement
+  -->
   <queries>
     <package android:name="com.topjohnwu.magisk" />
     <package android:name="eu.chainfire.supersu" />

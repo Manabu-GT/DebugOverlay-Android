@@ -83,7 +83,7 @@
   <string name="debugoverlay_device_info_camera">Camera</string>
   <string name="debugoverlay_device_info_fingerprint">Fingerprint Sensor</string>
   <string name="debugoverlay_device_info_type">Type</string>
-  <string name="debugoverlay_device_info_connected">Connected</string>
+  <string name="debugoverlay_device_info_connected">Internet Access</string>
 
   <!-- Common Values -->
   <string name="debugoverlay_device_info_yes">Yes</string>
@@ -95,6 +95,6 @@
   <string name="debugoverlay_device_info_none">None</string>
 
   <!-- Format Strings -->
-  <string name="debugoverlay_device_info_percentage_value">%d%%</string>
+  <string name="debugoverlay_device_info_percentage_value">%d%% free</string>
   <string name="debugoverlay_device_info_hz_value">%.0f Hz/%.0f Hz</string>
 </resources>

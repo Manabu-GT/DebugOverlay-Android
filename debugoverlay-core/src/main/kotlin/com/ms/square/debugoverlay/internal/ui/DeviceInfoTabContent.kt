@@ -32,10 +32,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.NetworkType
 import com.ms.square.debugoverlay.internal.util.formatBytes
+import kotlinx.coroutines.flow.Flow
 import kotlin.math.roundToInt
 
 // Status indicator colors
@@ -44,13 +45,14 @@ private val WarningColor = Color(0xFFFF9800) // Orange
 
 /**
  * Device Info tab showing comprehensive device information.
+ *
+ * @param deviceInfoFlow Flow of device information to collect and display.
+ * @param modifier Modifier for the composable.
  */
 @Suppress("LongMethod") // Declarative Compose UI - splitting would reduce readability
 @Composable
-internal fun DeviceInfoTabContent(modifier: Modifier = Modifier) {
-  val deviceInfo by DebugOverlay.overlayDataRepository.deviceInfo.collectAsStateWithLifecycle(
-    initialValue = null
-  )
+internal fun DeviceInfoTabContent(deviceInfoFlow: Flow<DeviceInfo?>, modifier: Modifier = Modifier) {
+  val deviceInfo by deviceInfoFlow.collectAsStateWithLifecycle(initialValue = null)
 
   deviceInfo?.let { info ->
     LazyColumn(
@@ -111,7 +113,7 @@ internal fun DeviceInfoTabContent(modifier: Modifier = Modifier) {
           // Available RAM with progress
           StorageIndicator(
             label = stringResource(R.string.debugoverlay_device_info_available_ram),
-            current = info.hardware.availableRam,
+            available = info.hardware.availableRam,
             total = info.hardware.totalRam
           )
 
@@ -126,7 +128,7 @@ internal fun DeviceInfoTabContent(modifier: Modifier = Modifier) {
           // Available Storage with progress
           StorageIndicator(
             label = stringResource(R.string.debugoverlay_device_info_available_storage),
-            current = info.hardware.availableStorage,
+            available = info.hardware.availableStorage,
             total = info.hardware.totalStorage
           )
         }
@@ -386,7 +388,7 @@ private fun BooleanInfoRow(label: String, value: Boolean, positiveIsGood: Boolea
  * Storage indicator with progress bar.
  */
 @Composable
-private fun StorageIndicator(label: String, current: Long, total: Long) {
+private fun StorageIndicator(label: String, available: Long, total: Long) {
   Column(
     modifier = Modifier.fillMaxWidth(),
     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -402,7 +404,7 @@ private fun StorageIndicator(label: String, current: Long, total: Long) {
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
       Text(
-        text = formatBytes(current),
+        text = formatBytes(available),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Medium,
@@ -411,8 +413,8 @@ private fun StorageIndicator(label: String, current: Long, total: Long) {
       )
     }
 
-    // Progress bar
-    val progress = if (total > 0) (current.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 0f
+    // Progress bar showing free space ratio
+    val progress = if (total > 0) (available.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 0f
 
     @Suppress("MagicNumber") // Standard percentage calculation
     val percentage = (progress * 100).roundToInt()
@@ -423,9 +425,9 @@ private fun StorageIndicator(label: String, current: Long, total: Long) {
         .fillMaxWidth()
         .height(6.dp),
       color = when {
-        percentage < 20 -> MaterialTheme.colorScheme.error
-        percentage < 50 -> WarningColor
-        else -> MaterialTheme.colorScheme.primary
+        percentage < 10 -> MaterialTheme.colorScheme.error // Critical: < 10% free
+        percentage < 25 -> WarningColor // Low: 10-25% free
+        else -> MaterialTheme.colorScheme.primary // Good: > 25% free
       },
       trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
     )

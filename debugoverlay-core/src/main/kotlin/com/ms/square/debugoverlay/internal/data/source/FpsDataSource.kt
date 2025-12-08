@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay.internal.data.source
 
 import android.content.Context
 import android.view.Choreographer
+import com.ms.square.debugoverlay.internal.util.currentRefreshRate
 import com.ms.square.debugoverlay.internal.util.defaultDisplay
 import com.ms.square.debugoverlay.internal.util.maxSupportedFps
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,7 @@ internal class FpsDataSource(context: Context) {
   private val defaultDisplay = context.defaultDisplay()
 
   val currentTargetFps: Float
-    get() = defaultDisplay.refreshRate
+    get() = defaultDisplay.currentRefreshRate
 
   val maxSupportedFps: Float by lazy {
     defaultDisplay.maxSupportedFps

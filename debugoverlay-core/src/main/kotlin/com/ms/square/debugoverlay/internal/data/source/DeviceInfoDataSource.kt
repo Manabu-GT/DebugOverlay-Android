@@ -21,7 +21,9 @@ import com.ms.square.debugoverlay.internal.data.model.NetworkInfo
 import com.ms.square.debugoverlay.internal.data.model.NetworkType
 import com.ms.square.debugoverlay.internal.data.model.SystemInfo
 import com.ms.square.debugoverlay.internal.util.DeviceRootDetector
+import com.ms.square.debugoverlay.internal.util.currentRefreshRate
 import com.ms.square.debugoverlay.internal.util.defaultDisplay
+import com.ms.square.debugoverlay.internal.util.maxSupportedFps
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -46,6 +48,7 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
 
   // ===== Truly Immutable (safe to cache forever) =====
 
+  // this returns configured (not necessarily online) cores
   private val cpuCores by lazy {
     runCatching { Os.sysconf(OsConstants._SC_NPROCESSORS_CONF).toInt() }
       .getOrDefault(Runtime.getRuntime().availableProcessors())
@@ -79,15 +82,8 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
   private val defaultDisplay by lazy { context.defaultDisplay() }
 
   private val maxRefreshRate by lazy {
-    defaultDisplay.supportedModes.maxOfOrNull { it.refreshRate } ?: 60f
+    defaultDisplay.maxSupportedFps
   }
-
-  // ===== Config-Dependent (cached, may become stale on config change) =====
-  // For debug overlay, staleness after rotation/density change is acceptable
-
-  private val screenDensityInfo by lazy { computeScreenDensity() }
-  private val screenResolution by lazy { computeScreenResolution() }
-  private val screenSizeCategory by lazy { computeScreenSizeCategory() }
 
   val deviceInfo: Flow<DeviceInfo?> = flow {
     while (currentCoroutineContext().isActive) {
@@ -110,15 +106,15 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       maxRefreshRate = maxRefreshRate,
       hardwareFeature = hardwareFeatures,
 
-      // Config-dependent - cached (acceptable for debug tool)
-      screenSizeCategory = screenSizeCategory,
-      screenDensity = screenDensityInfo,
-      screenResolution = screenResolution,
+      // Config-dependent - queried fresh to reflect runtime changes
+      screenSizeCategory = computeScreenSizeCategory(),
+      screenDensity = computeScreenDensity(),
+      screenResolution = computeScreenResolution(),
 
       totalStorage = totalStorage, // Cached (immutable per boot)
 
       // Dynamic - always fresh
-      currentRefreshRate = defaultDisplay.refreshRate, // Current refresh rate can change (adaptive refresh)
+      currentRefreshRate = defaultDisplay.currentRefreshRate,
       availableRam = queryMemoryInfo()?.availMem ?: 0L,
       availableStorage = queryAvailableStorage()
     ),
@@ -248,6 +244,9 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
 
   // ===== System Information =====
 
+  /**
+   * This is a "best effort" detection that may have false positives.
+   */
   private fun detectEmulator(): Boolean = (
     Build.FINGERPRINT.startsWith("generic") ||
       Build.FINGERPRINT.startsWith("unknown") ||
@@ -256,7 +255,6 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       Build.MODEL.contains("Android SDK built for x86") ||
       Build.BOARD == "QC_Reference_Phone" ||
       Build.MANUFACTURER.contains("Genymotion") ||
-      Build.HOST.startsWith("Build") ||
       (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")) ||
       Build.PRODUCT == "google_sdk" ||
       Build.HARDWARE.contains("goldfish") ||

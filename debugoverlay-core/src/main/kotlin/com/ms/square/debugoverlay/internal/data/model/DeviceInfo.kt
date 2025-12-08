@@ -58,7 +58,7 @@ internal data class HardwareFeature(
  */
 internal data class BatteryInfo(
   val level: Int, // percentage (0-100)
-  val status: String, // "Charging (USB)", "Charging (AC)", "Charging (Wireless)", "Discharging", "Full", "Not Charging"
+  val status: String, // "Charging", "Discharging", "Full", "Not Charging"
 )
 
 /**

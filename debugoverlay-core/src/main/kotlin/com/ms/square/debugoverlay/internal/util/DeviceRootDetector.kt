@@ -32,7 +32,12 @@ internal object DeviceRootDetector {
       "/data/local/su",
       "/su/bin/su"
     )
-    return paths.any { File(it).exists() }
+    return paths.any {
+      runCatching { File(it).exists() }.getOrElse { e ->
+        Logger.w("checkRootFiles failed", e)
+        false
+      }
+    }
   }
 
   @Suppress("TooGenericExceptionCaught")
@@ -55,7 +60,7 @@ internal object DeviceRootDetector {
         // Expected case - not installed, no logging needed
         false
       } catch (e: Exception) {
-        Logger.w("checkRootPackages unexpected failure", e)
+        Logger.w("checkRootPackages failed", e)
         false
       }
     }
