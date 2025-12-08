@@ -207,7 +207,7 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
 
   private fun queryAvailableStorage(): Long = runCatching {
     val dataDir = Environment.getDataDirectory()
-    dataDir.freeSpace
+    dataDir.usableSpace
   }.getOrElse { e ->
     Logger.w("AvailableStorage query failed", e)
     0L
@@ -215,11 +215,13 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
 
   // ===== Battery Information =====
 
+  // Note: getIntProperty returns Int.MIN_VALUE on devices without battery (TV, Automotive).
+  // We don't handle this edge case; battery info may show incorrect values on such devices.
   private fun queryBatteryInfo(): BatteryInfo = runCatching {
     val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
     val level = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 0
     val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS) ?: -1
+      batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
     } else {
       BatteryManager.BATTERY_STATUS_UNKNOWN
     }

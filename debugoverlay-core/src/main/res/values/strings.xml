@@ -57,8 +57,8 @@
   <string name="debugoverlay_device_info_opengl">OpenGL</string>
   <string name="debugoverlay_device_info_total_ram">Total RAM</string>
   <string name="debugoverlay_device_info_available_ram">Available RAM</string>
-  <string name="debugoverlay_device_info_total_storage">Total Storage</string>
-  <string name="debugoverlay_device_info_available_storage">Available Storage</string>
+  <string name="debugoverlay_device_info_total_storage">Total Storage (/data)</string>
+  <string name="debugoverlay_device_info_available_storage">Available Storage (/data)</string>
   <string name="debugoverlay_device_info_version">Version</string>
   <string name="debugoverlay_device_info_api_level">API Level</string>
   <string name="debugoverlay_device_info_security_patch">Security Patch</string>
