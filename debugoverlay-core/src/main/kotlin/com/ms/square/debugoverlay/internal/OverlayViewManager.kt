@@ -101,10 +101,9 @@ internal class OverlayViewManager(private val application: Application, private 
             }
           )
         }
-
-        // Tag the ComposeView so UI hierarchy scan can filter it out
-        setTag(R.id.debugoverlay_window_marker, true)
       }
+      // Tag the ComposeView so UI hierarchy scan can filter it out
+      setTag(R.id.debugoverlay_window_marker, true)
     } to lifecycleOwner
   }
 
