@@ -219,7 +219,8 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
   private fun queryBatteryInfo(): BatteryInfo = runCatching {
     val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
     val rawLevel = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: Int.MIN_VALUE
-    // Note: getIntProperty returns Int.MIN_VALUE on devices without battery (TV, Automotive); thus return 0 in such case.
+    // Note: getIntProperty returns Int.MIN_VALUE on devices without battery (TV, Automotive);
+    // thus return 0 in such case.
     val level = if (rawLevel == Int.MIN_VALUE) 0 else rawLevel
     val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
