@@ -245,6 +245,8 @@ internal fun DeviceInfoTabContent(deviceInfoFlow: Flow<DeviceInfo?>, modifier: M
             when (info.network.type) {
               NetworkType.WIFI -> stringResource(R.string.debugoverlay_device_info_wifi)
               NetworkType.CELLULAR -> stringResource(R.string.debugoverlay_device_info_cellular)
+              NetworkType.ETHERNET -> stringResource(R.string.debugoverlay_device_info_ethernet)
+              NetworkType.VPN -> stringResource(R.string.debugoverlay_device_info_vpn)
               NetworkType.NONE -> stringResource(R.string.debugoverlay_device_info_none)
             }
           )

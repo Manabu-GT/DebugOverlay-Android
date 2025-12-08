@@ -106,7 +106,8 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       maxRefreshRate = maxRefreshRate,
       hardwareFeature = hardwareFeatures,
 
-      // Config-dependent - queried fresh to reflect runtime changes
+      // Config-dependent - queried fresh to reflect runtime changes (rotation, font scaling)
+      // Could be cached with config change listener for efficiency in the future if needed.
       screenSizeCategory = computeScreenSizeCategory(),
       screenDensity = computeScreenDensity(),
       screenResolution = computeScreenResolution(),
@@ -215,11 +216,11 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
 
   // ===== Battery Information =====
 
-  // Note: getIntProperty returns Int.MIN_VALUE on devices without battery (TV, Automotive).
-  // We don't handle this edge case; battery info may show incorrect values on such devices.
   private fun queryBatteryInfo(): BatteryInfo = runCatching {
     val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
-    val level = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 0
+    val rawLevel = batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: Int.MIN_VALUE
+    // Note: getIntProperty returns Int.MIN_VALUE on devices without battery (TV, Automotive); thus return 0 in such case.
+    val level = if (rawLevel == Int.MIN_VALUE) 0 else rawLevel
     val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
     } else {
@@ -312,6 +313,8 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       val networkType = when {
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> NetworkType.WIFI
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkType.CELLULAR
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetworkType.ETHERNET
+        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) -> NetworkType.VPN
         else -> NetworkType.NONE
       }
       val isConnected = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&

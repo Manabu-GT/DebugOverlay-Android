@@ -110,5 +110,7 @@ internal data class NetworkInfo(
 internal enum class NetworkType {
   WIFI,
   CELLULAR,
+  ETHERNET,
+  VPN,
   NONE,
 }

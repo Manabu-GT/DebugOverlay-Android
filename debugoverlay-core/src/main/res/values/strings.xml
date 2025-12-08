@@ -92,6 +92,8 @@
   <string name="debugoverlay_device_info_sideloaded">Sideloaded</string>
   <string name="debugoverlay_device_info_wifi">WiFi</string>
   <string name="debugoverlay_device_info_cellular">Cellular</string>
+  <string name="debugoverlay_device_info_ethernet">Ethernet</string>
+  <string name="debugoverlay_device_info_vpn">Vpn</string>
   <string name="debugoverlay_device_info_none">None</string>
 
   <!-- Format Strings -->
