@@ -69,6 +69,9 @@ dependencies {
   // Json
   implementation(libs.kotlinx.serialization.json)
 
+  // View hierarchy inspection
+  implementation(libs.radiography)
+
   // Lifecycle for synthetic lifecycle owner
   implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.runtime.ktx)

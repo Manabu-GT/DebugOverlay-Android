@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!--
+  Resource ID used as a tag key to mark DebugOverlay windows.
+  Views tagged with this key (value = `true`) are excluded from
+  Radiography UI hierarchy scans to prevent the debug panel from
+  appearing in its own output.
+  Used by:
+    - DebugPanelActivity (DecorView)
+    - DebugPanelDialog (Dialog's DecorView)
+    - OverlayViewManager (overlay ComposeView)
+  -->
+  <item name="debugoverlay_window_marker" type="id" />
+</resources>

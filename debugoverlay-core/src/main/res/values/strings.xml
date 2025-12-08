@@ -13,10 +13,12 @@
   <string name="debugoverlay_netstat_unavailable">Network stats not available on this device</string>
   <string name="debugoverlay_tab_logcat">Logcat</string>
   <string name="debugoverlay_tab_network">Network</string>
+  <string name="debugoverlay_tab_ui">UI</string>
   <string name="debugoverlay_tab_device_info">Device Info</string>
   <string name="debugoverlay_back">Back</string>
   <string name="debugoverlay_message_label">MESSAGE</string>
   <string name="debugoverlay_copy">Copy</string>
+  <string name="debugoverlay_refresh">Refresh</string>
   <string name="debugoverlay_filter_tag">Filter Tag</string>
   <string name="debugoverlay_view_details">View details</string>
   <string name="debugoverlay_debug_panel">Debug Panel</string>

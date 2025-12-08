@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
@@ -101,6 +102,8 @@ internal class OverlayViewManager(private val application: Application, private 
           )
         }
       }
+      // Tag the ComposeView so UI hierarchy scan can filter it out
+      setTag(R.id.debugoverlay_window_marker, true)
     } to lifecycleOwner
   }
 
