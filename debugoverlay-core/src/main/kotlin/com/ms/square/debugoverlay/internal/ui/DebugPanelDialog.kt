@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
+import android.view.View
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,17 +18,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
+
+private const val TAB_LOGCAT = 0
+private const val TAB_NETWORK = 1
+private const val TAB_UI = 2
+private const val TAB_DEVICE_INFO = 3
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +48,16 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
       dismissOnClickOutside = false
     )
   ) {
+    // Tag the Dialog's window DecorView for UI hierarchy filtering
+    val view = LocalView.current
+    LaunchedEffect(Unit) {
+      var v: View? = view
+      while ((v?.parent as? View) != null) {
+        v = v.parent as? View
+      }
+      v?.setTag(R.id.debugoverlay_window_marker, true)
+    }
+
     Scaffold(
       modifier = Modifier.fillMaxSize(),
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -81,6 +99,7 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     listOf(
       R.string.debugoverlay_tab_logcat,
       R.string.debugoverlay_tab_network,
+      R.string.debugoverlay_tab_ui,
       R.string.debugoverlay_tab_device_info
     )
   }
@@ -109,12 +128,13 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     }
     // Tab content
     when (selectedTabIndex) {
-      0 -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
-      1 -> NetworkTabContent(
+      TAB_LOGCAT -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
+      TAB_NETWORK -> NetworkTabContent(
         netStatsFlow = DebugOverlay.overlayDataRepository.netStats,
         networkRequestsFlow = DebugOverlay.overlayDataRepository.networkRequests
       )
-      2 -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
+      TAB_UI -> UiTabContent()
+      TAB_DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
     }
   }
 }
