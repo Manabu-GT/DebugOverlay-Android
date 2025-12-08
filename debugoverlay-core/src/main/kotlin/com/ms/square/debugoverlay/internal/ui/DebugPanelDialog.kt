@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +77,13 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
   var selectedTabIndex by remember { mutableIntStateOf(0) }
-  val tabs = remember { listOf(R.string.debugoverlay_tab_logcat, R.string.debugoverlay_tab_network) }
+  val tabs = remember {
+    listOf(
+      R.string.debugoverlay_tab_logcat,
+      R.string.debugoverlay_tab_network,
+      R.string.debugoverlay_tab_device_info
+    )
+  }
 
   Column(
     modifier = modifier.fillMaxSize()
@@ -102,8 +109,12 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     }
     // Tab content
     when (selectedTabIndex) {
-      0 -> LogcatTabContent()
-      1 -> NetworkTabContent()
+      0 -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
+      1 -> NetworkTabContent(
+        netStatsFlow = DebugOverlay.overlayDataRepository.netStats,
+        networkRequestsFlow = DebugOverlay.overlayDataRepository.networkRequests
+      )
+      2 -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
     }
   }
 }

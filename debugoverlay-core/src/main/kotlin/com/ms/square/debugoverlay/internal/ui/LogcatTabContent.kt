@@ -41,11 +41,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogLevel
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.toColor
+import kotlinx.coroutines.flow.Flow
 
 // Constants
 private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
@@ -60,11 +60,12 @@ private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
  * - Detail screen navigation with back button
  * - FAB to resume auto-scroll when paused
  *
+ * @param logsFlow Flow of logcat entries to collect and display.
  * @param modifier Modifier to be applied to the root layout
  */
 @Composable
-internal fun LogcatTabContent(modifier: Modifier = Modifier) {
-  val logcatEntries by DebugOverlay.overlayDataRepository.logs.collectAsStateWithLifecycle(emptyList())
+internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modifier = Modifier) {
+  val logcatEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
   var isPaused by remember { mutableStateOf(false) }

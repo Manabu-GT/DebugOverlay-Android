@@ -13,6 +13,7 @@
   <string name="debugoverlay_netstat_unavailable">Network stats not available on this device</string>
   <string name="debugoverlay_tab_logcat">Logcat</string>
   <string name="debugoverlay_tab_network">Network</string>
+  <string name="debugoverlay_tab_device_info">Device Info</string>
   <string name="debugoverlay_back">Back</string>
   <string name="debugoverlay_message_label">MESSAGE</string>
   <string name="debugoverlay_copy">Copy</string>
@@ -20,4 +21,82 @@
   <string name="debugoverlay_view_details">View details</string>
   <string name="debugoverlay_debug_panel">Debug Panel</string>
   <string name="debugoverlay_close">Close</string>
+
+  <!-- Device Info Tab -->
+  <string name="debugoverlay_device_info_loading">Loading device information…</string>
+
+  <!-- Sections -->
+  <string name="debugoverlay_device_info_hardware">Hardware</string>
+  <string name="debugoverlay_device_info_system">System</string>
+  <string name="debugoverlay_device_info_network">Network</string>
+
+  <!-- Card Titles -->
+  <string name="debugoverlay_device_info_device">Device</string>
+  <string name="debugoverlay_device_info_cpu">CPU</string>
+  <string name="debugoverlay_device_info_display">Display</string>
+  <string name="debugoverlay_device_info_memory_storage">Memory &amp; Storage</string>
+  <string name="debugoverlay_device_info_android">Android</string>
+  <string name="debugoverlay_device_info_build">Build</string>
+  <string name="debugoverlay_device_info_security_services">Security &amp; Services</string>
+  <string name="debugoverlay_device_info_localization">Localization</string>
+  <string name="debugoverlay_device_info_battery">Battery</string>
+  <string name="debugoverlay_device_info_hardware_features">Hardware Features</string>
+  <string name="debugoverlay_device_info_connection">Connection</string>
+
+  <!-- Device Info Labels -->
+  <string name="debugoverlay_device_info_manufacturer">Manufacturer</string>
+  <string name="debugoverlay_device_info_model">Model</string>
+  <string name="debugoverlay_device_info_brand">Brand</string>
+  <string name="debugoverlay_device_info_architecture">Architecture</string>
+  <string name="debugoverlay_device_info_cores">Cores</string>
+  <string name="debugoverlay_device_info_supported_abis">Supported ABIs</string>
+  <string name="debugoverlay_device_info_resolution">Resolution</string>
+  <string name="debugoverlay_device_info_density">Density</string>
+  <string name="debugoverlay_device_info_size_category">Size Category</string>
+  <string name="debugoverlay_device_info_refresh_rate">Refresh Rate (Current/Max)</string>
+  <string name="debugoverlay_device_info_opengl">OpenGL</string>
+  <string name="debugoverlay_device_info_total_ram">Total RAM</string>
+  <string name="debugoverlay_device_info_available_ram">Available RAM</string>
+  <string name="debugoverlay_device_info_total_storage">Total Storage (/data)</string>
+  <string name="debugoverlay_device_info_available_storage">Available Storage (/data)</string>
+  <string name="debugoverlay_device_info_version">Version</string>
+  <string name="debugoverlay_device_info_api_level">API Level</string>
+  <string name="debugoverlay_device_info_security_patch">Security Patch</string>
+  <string name="debugoverlay_device_info_build_id">Build ID</string>
+  <string name="debugoverlay_device_info_build_type">Build Type</string>
+  <string name="debugoverlay_device_info_build_tags">Build Tags</string>
+  <string name="debugoverlay_device_info_bootloader">Bootloader</string>
+  <string name="debugoverlay_device_info_build_fingerprint">Fingerprint</string>
+  <string name="debugoverlay_device_info_rooted">Rooted</string>
+  <string name="debugoverlay_device_info_emulator">Emulator</string>
+  <string name="debugoverlay_device_info_installer">Installer</string>
+  <string name="debugoverlay_device_info_play_services">Play Services</string>
+  <string name="debugoverlay_device_info_play_services_code">Play Services Code</string>
+  <string name="debugoverlay_device_info_kernel">Kernel</string>
+  <string name="debugoverlay_device_info_locale">Locale</string>
+  <string name="debugoverlay_device_info_language">Language</string>
+  <string name="debugoverlay_device_info_timezone">Time Zone</string>
+  <string name="debugoverlay_device_info_level">Level</string>
+  <string name="debugoverlay_device_info_status">Status</string>
+  <string name="debugoverlay_device_info_nfc">NFC</string>
+  <string name="debugoverlay_device_info_bluetooth">Bluetooth</string>
+  <string name="debugoverlay_device_info_camera">Camera</string>
+  <string name="debugoverlay_device_info_fingerprint">Fingerprint Sensor</string>
+  <string name="debugoverlay_device_info_type">Type</string>
+  <string name="debugoverlay_device_info_connected">Internet Access</string>
+
+  <!-- Common Values -->
+  <string name="debugoverlay_device_info_yes">Yes</string>
+  <string name="debugoverlay_device_info_no">No</string>
+  <string name="debugoverlay_device_info_not_available">Not Available</string>
+  <string name="debugoverlay_device_info_sideloaded">Sideloaded</string>
+  <string name="debugoverlay_device_info_wifi">WiFi</string>
+  <string name="debugoverlay_device_info_cellular">Cellular</string>
+  <string name="debugoverlay_device_info_ethernet">Ethernet</string>
+  <string name="debugoverlay_device_info_vpn">VPN</string>
+  <string name="debugoverlay_device_info_none">None</string>
+
+  <!-- Format Strings -->
+  <string name="debugoverlay_device_info_percentage_value">%d%% free</string>
+  <string name="debugoverlay_device_info_hz_value">%.0f Hz/%.0f Hz</string>
 </resources>

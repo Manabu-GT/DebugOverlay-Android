@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.UrlParts
 import com.ms.square.debugoverlay.internal.data.model.NetworkStats
@@ -45,6 +44,7 @@ import com.ms.square.debugoverlay.internal.util.HTTP_CLIENT_ERROR_START
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatRelativeTime
 import com.ms.square.debugoverlay.model.NetworkRequest
+import kotlinx.coroutines.flow.Flow
 import kotlin.math.roundToInt
 
 /**
@@ -56,13 +56,21 @@ import kotlin.math.roundToInt
  * - Manual scroll pauses auto-scroll
  * - Detail screen navigation with back button
  * - FAB to resume auto-scroll when paused
+ *
+ * @param netStatsFlow Flow of network statistics to collect and display.
+ * @param networkRequestsFlow Flow of network requests to collect and display.
+ * @param modifier Modifier to be applied to the root layout.
  */
 @Composable
-internal fun NetworkTabContent(modifier: Modifier = Modifier) {
-  val networkStats by DebugOverlay.overlayDataRepository.netStats.collectAsStateWithLifecycle(
+internal fun NetworkTabContent(
+  netStatsFlow: Flow<NetworkStats>,
+  networkRequestsFlow: Flow<List<NetworkRequest>>,
+  modifier: Modifier = Modifier,
+) {
+  val networkStats by netStatsFlow.collectAsStateWithLifecycle(
     initialValue = NetworkStats.INITIAL_VALUE
   )
-  val networkRequests by DebugOverlay.overlayDataRepository.networkRequests.collectAsStateWithLifecycle(
+  val networkRequests by networkRequestsFlow.collectAsStateWithLifecycle(
     initialValue = emptyList()
   )
   var searchQuery by remember { mutableStateOf("") }
