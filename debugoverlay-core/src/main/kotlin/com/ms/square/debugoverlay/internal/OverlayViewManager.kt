@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
@@ -114,13 +115,11 @@ internal class OverlayViewManager(private val application: Application, private 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
       Logger.d("onCreate() called for ${activity.javaClass.simpleName}")
       // Don't create overlay for DebugPanelActivity - no need for it there
-      if (activity is DebugPanelActivity) {
-        Logger.d("Skipping overlay creation for DebugPanelActivity")
-        return
-      }
-      OverlayViewAttachStateChangeListener().also {
-        activity.window.decorView.addOnAttachStateChangeListener(it)
-        attachStateChangeListeners[activity] = it
+      if (activity !is DebugPanelActivity) {
+        OverlayViewAttachStateChangeListener().also {
+          activity.window.decorView.addOnAttachStateChangeListener(it)
+          attachStateChangeListeners[activity] = it
+        }
       }
     }
 
@@ -130,17 +129,25 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityResumed(activity: Activity) {
       Logger.d("onResume() called for ${activity.javaClass.simpleName}")
-      attachStateChangeListeners[activity]?.onActivityResumed()
+      if (activity !is DebugPanelActivity) {
+        attachStateChangeListeners[activity]?.onActivityResumed()
+        DebugOverlay.overlayDataRepository.startOrResumeJankStatsTracking(activity)
+      }
     }
 
     override fun onActivityPaused(activity: Activity) {
       Logger.d("onPause() called for ${activity.javaClass.simpleName}")
-      attachStateChangeListeners[activity]?.onActivityPaused()
+      if (activity !is DebugPanelActivity) {
+        attachStateChangeListeners[activity]?.onActivityPaused()
+        DebugOverlay.overlayDataRepository.pauseJankStatsTracking(activity)
+      }
     }
 
     override fun onActivityStopped(activity: Activity) {
       Logger.d("onStop() called for ${activity.javaClass.simpleName}")
-      attachStateChangeListeners[activity]?.onActivityStopped()
+      if (activity !is DebugPanelActivity) {
+        attachStateChangeListeners[activity]?.onActivityStopped()
+      }
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
@@ -149,7 +156,10 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityDestroyed(activity: Activity) {
       Logger.d("onDestroy() called for ${activity.javaClass.simpleName}")
-      attachStateChangeListeners.remove(activity)
+      if (activity !is DebugPanelActivity) {
+        attachStateChangeListeners.remove(activity)
+        DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
+      }
     }
   }
 

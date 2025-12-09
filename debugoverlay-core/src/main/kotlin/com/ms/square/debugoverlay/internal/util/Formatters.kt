@@ -1,8 +1,12 @@
 package com.ms.square.debugoverlay.internal.util
 
+import android.os.Build
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -10,8 +14,19 @@ private const val BYTES_PER_KB = 1024L
 private const val BYTES_PER_MB = 1024L * 1024L
 private const val BYTES_PER_GB = 1024L * 1024L * 1024L
 
+private const val MILLIS_PER_SECOND = 1000L
+private const val MILLIS_PER_MINUTE = 60_000L
+private const val MILLIS_PER_HOUR = 3_600_000L
+private const val MILLIS_PER_DAY = 86_400_000L
+
 private val JSON_FORMATTER = Json {
   prettyPrint = true
+}
+
+private val TIME_FORMATTER = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+  DateTimeFormatter.ofPattern("HH:mm:ss.SSS", Locale.US)
+} else {
+  null
 }
 
 /**
@@ -38,16 +53,12 @@ internal fun formatTextSize(length: Int): String = when {
   else -> "${"%.1f".format(length / (BYTES_PER_MB.toDouble()))} MB"
 }
 
-internal fun formatTimestamp(timestamp: Long): String {
-  val date = Date(timestamp)
-  val formatter = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
-  return formatter.format(date)
-}
-
-private const val MILLIS_PER_SECOND = 1000L
-private const val MILLIS_PER_MINUTE = 60_000L
-private const val MILLIS_PER_HOUR = 3_600_000L
-private const val MILLIS_PER_DAY = 86_400_000L
+internal fun formatTimestamp(timestamp: Long): String =
+  if (TIME_FORMATTER != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    TIME_FORMATTER.format(Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()))
+  } else {
+    SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
+  }
 
 /**
  * Format timestamp as relative time (e.g., "2s ago", "5m ago", "2h ago").

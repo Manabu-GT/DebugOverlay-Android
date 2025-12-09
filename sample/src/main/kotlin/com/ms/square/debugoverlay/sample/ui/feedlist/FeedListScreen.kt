@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,13 +19,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.metrics.performance.PerformanceMetricsState
 import com.ms.square.debugoverlay.sample.data.model.FeedItem
 import com.ms.square.debugoverlay.sample.ui.components.FeedItemCard
 
@@ -91,10 +97,32 @@ fun FeedListScreen(
   }
 }
 
+/**
+ * Retrieve MetricsStateHolder from compose and remember until the current view changes.
+ */
+@Composable
+private fun rememberMetricsStateHolder(): PerformanceMetricsState.Holder {
+  val view = LocalView.current
+  return remember(view) { PerformanceMetricsState.getHolderForHierarchy(view) }
+}
+
 @Composable
 private fun FeedList(feedItems: List<FeedItem>, onFeedClick: (Int) -> Unit, modifier: Modifier = Modifier) {
+  val listState = rememberLazyListState()
+  val metricsStateHolder = rememberMetricsStateHolder()
+  // Reporting scrolling state from compose should be done from side effect to prevent recomposition.
+  LaunchedEffect(metricsStateHolder, listState) {
+    snapshotFlow { listState.isScrollInProgress }.collect { isScrolling ->
+      if (isScrolling) {
+        metricsStateHolder.state?.putState("LazyList", "Scrolling")
+      } else {
+        metricsStateHolder.state?.removeState("LazyList")
+      }
+    }
+  }
   LazyColumn(
     modifier = modifier.fillMaxSize(),
+    state = listState,
     contentPadding = PaddingValues(16.dp),
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {

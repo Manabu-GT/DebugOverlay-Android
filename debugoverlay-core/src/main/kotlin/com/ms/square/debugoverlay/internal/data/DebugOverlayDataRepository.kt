@@ -1,12 +1,15 @@
 package com.ms.square.debugoverlay.internal.data
 
+import android.app.Activity
 import android.content.Context
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.NoOpNetworkRequestTracker
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
+import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.NetworkStats
 import com.ms.square.debugoverlay.internal.data.source.DeviceInfoDataSource
+import com.ms.square.debugoverlay.internal.data.source.JankStatsDataSource
 import com.ms.square.debugoverlay.internal.data.source.LogcatDataSource
 import com.ms.square.debugoverlay.internal.data.source.NetStatsDataSource
 import com.ms.square.debugoverlay.model.NetworkRequest
@@ -15,6 +18,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
@@ -24,6 +28,7 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   private val logcatDataSource = LogcatDataSource(scope)
   private val netStatsDataSource = NetStatsDataSource(scope)
   private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
+  private val jankStatsDataSource = JankStatsDataSource()
 
   init {
     scope.launch {
@@ -41,6 +46,7 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   val logs: Flow<List<LogcatEntry>> = logcatDataSource.logs
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
   val deviceInfo: Flow<DeviceInfo?> = deviceInfoDataSource.deviceInfo
+  val jankStats: StateFlow<JankStatsUiState> = jankStatsDataSource.state
 
   @OptIn(ExperimentalCoroutinesApi::class)
   val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestTracker
@@ -48,5 +54,17 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   fun setNetworkTracker(tracker: NetworkRequestTracker) {
     currentNetworkRequestTracker.value = tracker
+  }
+
+  fun startOrResumeJankStatsTracking(activity: Activity) {
+    jankStatsDataSource.startOrResumeTracking(activity)
+  }
+
+  fun pauseJankStatsTracking(activity: Activity) {
+    jankStatsDataSource.pauseTracking(activity)
+  }
+
+  fun stopJankStatsTracking(activity: Activity) {
+    jankStatsDataSource.stopTracking(activity)
   }
 }
