@@ -4,25 +4,46 @@ DebugOverlay-Android
 [![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**DebugOverlay** is an overlay fully written in Kotlin that runs inside your app process and surfaces real-time CPU, heap, PSS, and FPS metrics in a draggable UI. v2.0.0 rewrites the original 1.x Java implementation and no longer requires the `SYSTEM_ALERT_WINDOW` permission.
+**DebugOverlay** gives you always-on visibility into CPU, memory, FPS, logs, network, and UI hierarchy—right inside your app, no permissions required.
 
-The overlay is ideal for debug builds, QA drops, or instrumentation test sessions where you want lightweight insight into runtime health without attaching profilers.
+Drop it into your debug build and get a draggable overlay with real-time metrics plus a full diagnostic panel. Ideal for development, QA testing, or instrumentation runs where you need runtime insight without attaching profilers.
+
+> v2.0.0 is a complete Kotlin + Compose rewrite of the original 1.x Java implementation.
 
 <img src="art/readme_simple_demo.gif" width="50%" alt="DebugOverlay Simple Demo">
 
-## Highlights in v2.0.0-SNAPSHOT
+## Features
 
-- Pure Kotlin + Jetpack Compose implementation rendered using application-layer windows attached to each Activity (no system permissions)
-- Updated metrics pipeline that continuously samples CPU, heap, process PSS, and frame rate with historical sparklines
-- Drag-to-move UI with edge snapping, dark/light theme awareness, and shared position across activities
-- Automatic install by default through a lightweight ContentProvider (or AndroidX Startup if you prefer)
+### Overlay Metrics
+The draggable overlay displays real-time metrics with 16-sample historical sparklines:
+
+- **CPU** – App CPU usage sampled from `/proc/self/stat` every second
+- **Heap** – JVM heap usage percentage relative to max heap, refreshed every second
+- **PSS** – Process Proportional Set Size in MB, sampled every 3 seconds
+- **FPS** – Current frame rate vs. target frame rate, refreshed every second
+
+Each row shows a status dot (green/yellow/red) based on current health. Long-press to drag; the overlay snaps to the nearest edge and remembers its position across activities.
+
+### Debug Panel
+Tap the overlay to open a full-screen diagnostic panel with four tabs:
+
+- **Logcat** – Live logcat stream with search, tag filtering, and log level chips
+- **Network** – Upload/download stats and HTTP request history (requires [interceptor setup](#network-request-tracking))
+- **UI** – View hierarchy inspector powered by [Radiography](https://github.com/square/radiography), with refresh and copy-to-clipboard
+- **Device Info** – Hardware, OS, display, memory, and network details
+
+<img src="art/readme_debug_panel.png" width="50%" alt="Debug Panel">
+
+### v2.0.0 Highlights
+- Pure Kotlin + Jetpack Compose (no system permissions required)
+- Automatic install via ContentProvider or AndroidX Startup
+- Dark/light theme support
 - Minimum SDK 24 / target SDK 36
 
-### Upcoming features
-- Bottom sheet panel (tapping the overlay will reveal):
-  - Logcat messages
-  - Network usage statistics
-  - Additional diagnostic data (TBD)
+### Upcoming Features
+- **JankStats tab** – Frame timing analysis using AndroidX JankStats
+- **Custom tab API** – Allow apps to register custom diagnostic tabs
+- **Bug reporting** – Export diagnostics and share bug reports
 
 ## Requirements
 
@@ -36,7 +57,7 @@ DebugOverlay is intended for debug builds in general; keep it out of release var
 
 ### 1. Repositories
 
-`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: early-Dec 2025). Add the repository next to `mavenCentral()`:
+`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: mid-Dec 2025). Add the repository next to `mavenCentral()`:
 
 ```kotlin
 dependencyResolutionManagement {
@@ -75,14 +96,23 @@ In debug builds the overlay installs itself on app startup via `DebugOverlayInst
 
 If your app already depends on `androidx.startup:startup-runtime`, include `debugoverlay-androidx-startup` instead of the default artifact. It registers `DebugOverlayStartupInitializer`, which automatically installs the overlay on app start. No additional configuration is required.
 
-## What the overlay shows
+### Network request tracking
 
-- **CPU** – App CPU usage sampled from `/proc/self/stat` every second with a 16-sample historical sparkline
-- **Heap** – JVM heap usage percentage relative to the max heap size, refreshed once per second
-- **PSS** – Process Proportional Set Size in MB with automatic scaling based on observed max, sampled every 3 seconds to smooth out noise
-- **FPS** – Current frame rate vs. the target frame rate, refreshed every second
+To see HTTP requests in the Network tab, add the OkHttp extension and attach the interceptor:
 
-Each row shows a status dot (green = healthy, yellow = warning, red = critical) that reacts to the current value. All metrics refresh at the cadence described above, and the overlay adapts to dark/light themes automatically. The panel can be long-pressed to drag; it snaps to the nearest horizontal edge when released and remembers its position across activities.
+```kotlin
+dependencies {
+  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.0.0-SNAPSHOT")
+}
+```
+
+```kotlin
+val client = OkHttpClient.Builder()
+  .addNetworkInterceptor(DebugOverlayNetworkInterceptor(maxStoredRequests = 100))
+  .build()
+```
+
+The interceptor captures request/response metadata (URL, method, status, timing, size) and displays it in the debug panel. Use `maxStoredRequests` to limit memory usage.
 
 ## Known Limitations
 
