@@ -29,6 +29,7 @@ Welcome! This guide defines how automation and human agents should collaborate i
     - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
     - `debugoverlay` - Primary public API artifact that most apps depend on
     - `debugoverlay-androidx-startup` - Optional AndroidX Startup integration for apps that already rely on Startup initializers
+    - `debugoverlay-extension-okhttp` - OkHttp interceptor for network request tracking
     - `sample` - Demo application showcasing library features
 
 - **Coding Language**
