@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
@@ -115,9 +114,7 @@ internal fun CompactTextPreview(body: String, modifier: Modifier = Modifier) {
       modifier = Modifier.padding(16.dp),
       style = MaterialTheme.typography.bodySmall,
       color = MaterialTheme.colorScheme.onSurface,
-      fontFamily = FontFamily.Monospace,
-      fontSize = 12.sp,
-      lineHeight = 18.sp
+      fontFamily = FontFamily.Monospace
     )
   }
 }

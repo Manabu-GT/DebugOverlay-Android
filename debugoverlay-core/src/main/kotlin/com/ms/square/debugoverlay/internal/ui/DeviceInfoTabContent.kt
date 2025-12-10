@@ -30,7 +30,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
@@ -325,11 +324,10 @@ private fun InfoRow(label: String, value: String) {
     )
     Text(
       text = value,
-      style = MaterialTheme.typography.bodyMedium,
+      style = MaterialTheme.typography.bodySmall,
       color = MaterialTheme.colorScheme.onSurface,
       fontWeight = FontWeight.Medium,
       fontFamily = FontFamily.Monospace,
-      fontSize = 13.sp,
       textAlign = androidx.compose.ui.text.style.TextAlign.End,
       modifier = Modifier.weight(1f, fill = false)
     )
@@ -375,11 +373,10 @@ private fun BooleanInfoRow(label: String, value: Boolean, positiveIsGood: Boolea
         } else {
           stringResource(R.string.debugoverlay_device_info_no)
         },
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Medium,
         fontFamily = FontFamily.Monospace,
-        fontSize = 13.sp,
         textAlign = androidx.compose.ui.text.style.TextAlign.End
       )
     }
@@ -407,11 +404,10 @@ private fun StorageIndicator(label: String, available: Long, total: Long) {
       )
       Text(
         text = formatBytes(available),
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface,
         fontWeight = FontWeight.Medium,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 13.sp
+        fontFamily = FontFamily.Monospace
       )
     }
 
@@ -437,8 +433,7 @@ private fun StorageIndicator(label: String, available: Long, total: Long) {
     Text(
       text = stringResource(R.string.debugoverlay_device_info_percentage_value, percentage),
       style = MaterialTheme.typography.labelSmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-      fontSize = 11.sp
+      color = MaterialTheme.colorScheme.onSurfaceVariant
     )
   }
 }

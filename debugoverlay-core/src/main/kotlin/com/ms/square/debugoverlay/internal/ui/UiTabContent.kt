@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
 import kotlinx.coroutines.CancellationException
@@ -137,9 +136,8 @@ private fun HierarchyOutputDisplay(hierarchyOutput: String, modifier: Modifier =
           .verticalScroll(verticalScrollState)
           .horizontalScroll(horizontalScrollState)
           .padding(16.dp),
+        style = MaterialTheme.typography.labelSmall,
         fontFamily = FontFamily.Monospace,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
         color = MaterialTheme.colorScheme.onSurface
       )
     }

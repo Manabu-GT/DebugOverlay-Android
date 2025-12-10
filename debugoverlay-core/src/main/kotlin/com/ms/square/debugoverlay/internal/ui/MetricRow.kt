@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun MetricRow(
@@ -43,10 +42,8 @@ internal fun MetricRow(
       )
       Text(
         text = label,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Medium,
-        letterSpacing = 0.1.sp
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }
     LineGraph(
@@ -58,8 +55,8 @@ internal fun MetricRow(
     )
     Text(
       text = value,
+      style = MaterialTheme.typography.titleSmall,
       color = MaterialTheme.colorScheme.onSurface,
-      fontSize = 14.sp,
       fontWeight = FontWeight.SemiBold
     )
   }

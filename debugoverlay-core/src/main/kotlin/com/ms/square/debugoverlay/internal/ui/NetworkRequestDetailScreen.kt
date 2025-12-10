@@ -48,7 +48,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.data.UrlParts
@@ -423,8 +422,7 @@ private fun DetailSection(
           text = title,
           style = MaterialTheme.typography.labelLarge,
           color = MaterialTheme.colorScheme.primary,
-          fontWeight = FontWeight.Bold,
-          letterSpacing = 0.5.sp
+          fontWeight = FontWeight.Bold
         )
       }
 
@@ -486,16 +484,14 @@ private fun InfoRow(
     ) {
       Text(
         text = label,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontSize = 13.sp
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
       )
 
       Text(
         text = value,
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodySmall,
         color = valueColor,
-        fontSize = 13.sp,
         fontWeight = FontWeight.Medium,
         fontFamily = FontFamily.Monospace,
         modifier = Modifier.padding(start = 16.dp)
@@ -547,8 +543,7 @@ private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
         text = parts.path,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.tertiary,
-        fontFamily = FontFamily.Monospace,
-        lineHeight = 18.sp
+        fontFamily = FontFamily.Monospace
       )
     }
   }
@@ -570,8 +565,7 @@ private fun HeaderItem(name: String, value: String, modifier: Modifier = Modifie
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.Bold,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 12.sp
+        fontFamily = FontFamily.Monospace
       )
 
       Text(
@@ -579,8 +573,6 @@ private fun HeaderItem(name: String, value: String, modifier: Modifier = Modifie
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurface,
         fontFamily = FontFamily.Monospace,
-        fontSize = 12.sp,
-        lineHeight = 18.sp,
         modifier = Modifier.padding(top = 4.dp)
       )
     }
@@ -644,11 +636,9 @@ private fun ErrorSection(error: com.ms.square.debugoverlay.model.NetworkError, m
           Text(
             text = error.stackTrace,
             modifier = Modifier.padding(12.dp),
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
-            lineHeight = 16.sp
+            fontFamily = FontFamily.Monospace
           )
         }
       }
