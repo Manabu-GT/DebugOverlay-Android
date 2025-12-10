@@ -68,7 +68,7 @@ public object DebugOverlay {
   /**
    * Configures DebugOverlay settings.
    *
-   * Auto-installation happens via ContentProvider before [Application.onCreate].
+   * Auto-installation happens via AndroidX Startup before [Application.onCreate].
    * Call this function in [Application.onCreate] after dependency injection to
    * configure network tracking or other features.
    *
