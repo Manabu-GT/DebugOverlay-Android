@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.UrlParts
@@ -246,8 +246,7 @@ private fun NetworkStatsHeaderValue(
     Text(
       text = title,
       style = MaterialTheme.typography.labelSmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-      letterSpacing = 0.5.sp
+      color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Row(
       verticalAlignment = Alignment.CenterVertically,
@@ -305,7 +304,8 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontFamily = FontFamily.Monospace,
-            maxLines = 1
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
           )
         }
 
@@ -341,10 +341,9 @@ private fun NetworkRequestMetadata(
     // Domain
     Text(
       text = domain,
-      style = MaterialTheme.typography.bodySmall,
+      style = MaterialTheme.typography.labelSmall,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       fontFamily = FontFamily.Monospace,
-      fontSize = 11.sp,
       maxLines = 1
     )
 

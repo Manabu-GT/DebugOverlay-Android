@@ -27,7 +27,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.toColor
@@ -144,11 +143,9 @@ private fun DetailMessageSection(message: String, modifier: Modifier = Modifier)
     ) {
       Text(
         text = message,
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodySmall,
         fontFamily = FontFamily.Monospace,
         color = MaterialTheme.colorScheme.onSurface,
-        fontSize = 13.sp,
-        lineHeight = 18.sp,
         modifier = Modifier.padding(12.dp)
       )
     }

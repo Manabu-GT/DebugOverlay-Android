@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,7 +40,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogLevel
@@ -176,7 +176,7 @@ private fun LogcatFilterBar(
   onLevelSelected: (LogLevel) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Column(modifier = modifier.fillMaxWidth()) {
+  Column(modifier = modifier.fillMaxWidth().padding(top = 8.dp)) {
     SearchField(
       searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
       searchQuery = searchQuery,
@@ -230,9 +230,8 @@ private fun LogcatContent(
     LazyColumn(
       state = listState,
       verticalArrangement = Arrangement.spacedBy(8.dp),
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 16.dp)
+      modifier = Modifier.fillMaxSize(),
+      contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
       items(filteredEntries, key = { it.id }) { entry ->
         LogcatEntryItem(
@@ -304,8 +303,6 @@ private fun LogcatEntryItem(entry: LogcatEntry, onClick: () -> Unit, modifier: M
         style = MaterialTheme.typography.bodySmall,
         fontFamily = FontFamily.Monospace,
         color = MaterialTheme.colorScheme.onSurface,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis
       )
@@ -323,28 +320,25 @@ private fun LogcatEntryMetadata(entry: LogcatEntry, modifier: Modifier = Modifie
     // Timestamp
     Text(
       text = entry.timestamp.takeLast(TIMESTAMP_DISPLAY_LENGTH),
-      style = MaterialTheme.typography.bodySmall,
+      style = MaterialTheme.typography.labelSmall,
       fontFamily = FontFamily.Monospace,
-      color = MaterialTheme.colorScheme.onSurfaceVariant,
-      fontSize = 10.sp
+      color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     // Bullet separator
     Text(
       text = "•",
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-      fontSize = 10.sp
+      style = MaterialTheme.typography.labelSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     )
 
     // Thread name
     Text(
       text = entry.threadName,
-      style = MaterialTheme.typography.bodySmall,
+      style = MaterialTheme.typography.labelSmall,
       fontFamily = FontFamily.Monospace,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
-      fontSize = 10.sp,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis
     )
@@ -352,9 +346,8 @@ private fun LogcatEntryMetadata(entry: LogcatEntry, modifier: Modifier = Modifie
     // Bullet separator
     Text(
       text = "•",
-      style = MaterialTheme.typography.bodySmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-      fontSize = 10.sp
+      style = MaterialTheme.typography.labelSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     )
 
     // Tag in colored chip
@@ -365,10 +358,9 @@ private fun LogcatEntryMetadata(entry: LogcatEntry, modifier: Modifier = Modifie
     ) {
       Text(
         text = entry.tag,
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.labelSmall,
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 10.sp,
         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis

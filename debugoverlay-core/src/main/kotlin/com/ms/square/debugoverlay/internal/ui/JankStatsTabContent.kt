@@ -234,9 +234,8 @@ private fun StateBreakdownCard(breakdown: List<StateJankCount>) {
               Spacer(Modifier.width(12.dp))
               Text(
                 text = item.state,
-                style = MaterialTheme.typography.bodyMedium,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 13.sp
+                style = MaterialTheme.typography.bodySmall,
+                fontFamily = FontFamily.Monospace
               )
             }
             Text(

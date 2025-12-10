@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.ms.square.debugoverlay.internal.util.httpMethodColor
 import com.ms.square.debugoverlay.internal.util.httpStatusColor
 
@@ -30,8 +29,7 @@ internal fun MethodBadge(method: String, modifier: Modifier = Modifier) {
       modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
       style = MaterialTheme.typography.labelSmall,
       color = Color.Black,
-      fontWeight = FontWeight.Bold,
-      fontSize = 10.sp
+      fontWeight = FontWeight.Bold
     )
   }
 }
