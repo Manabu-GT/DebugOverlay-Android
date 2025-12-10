@@ -186,16 +186,14 @@ internal class JankStatsDataSource {
     null
   }
 
-  private fun getOverrunMs(frameData: FrameData): Long? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-      frameData.isJank &&
-      frameData is FrameDataApi31
-    ) {
-      val overrunNanos = frameData.frameOverrunNanos
-      return if (overrunNanos > 0) TimeUnit.NANOSECONDS.toMillis(overrunNanos) else null
-    } else {
-      null
-    }
+  private fun getOverrunMs(frameData: FrameData): Long? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+    frameData.isJank &&
+    frameData is FrameDataApi31
+  ) {
+    val overrunNanos = frameData.frameOverrunNanos
+    if (overrunNanos > 0) TimeUnit.NANOSECONDS.toMillis(overrunNanos) else null
+  } else {
+    null
   }
 
   private val FrameInfo.frameStates

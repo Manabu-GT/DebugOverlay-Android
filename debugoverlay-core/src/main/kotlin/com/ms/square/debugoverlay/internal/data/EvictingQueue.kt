@@ -14,6 +14,9 @@ internal class EvictingQueue<T>(private val capacity: Int) {
     return evicted
   }
 
+  /**
+   *  This creates and returns a defensive copy.
+   */
   @Synchronized
   fun toList(): List<T> = queue.toList()
 }

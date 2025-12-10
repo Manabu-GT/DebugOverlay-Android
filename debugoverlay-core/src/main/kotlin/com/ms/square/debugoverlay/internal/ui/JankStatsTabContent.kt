@@ -153,7 +153,7 @@ private fun JankPercentageDisplay(state: JankStatsUiState) {
         else -> JankRed
       }
     )
-    if (state.jankPercentage.value == 0f && state.totalFrames > 0) {
+    if (state.jankyFrames == 0 && state.totalFrames > 0) {
       Spacer(Modifier.width(8.dp))
       Text("\u2713", fontSize = 24.sp, color = JankGreen) // ✓
     }

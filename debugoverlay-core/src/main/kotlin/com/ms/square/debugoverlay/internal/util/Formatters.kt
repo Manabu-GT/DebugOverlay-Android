@@ -1,12 +1,8 @@
 package com.ms.square.debugoverlay.internal.util
 
-import android.os.Build
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -21,12 +17,6 @@ private const val MILLIS_PER_DAY = 86_400_000L
 
 private val JSON_FORMATTER = Json {
   prettyPrint = true
-}
-
-private val TIME_FORMATTER = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-  DateTimeFormatter.ofPattern("HH:mm:ss.SSS", Locale.US)
-} else {
-  null
 }
 
 /**
@@ -54,11 +44,7 @@ internal fun formatTextSize(length: Int): String = when {
 }
 
 internal fun formatTimestamp(timestamp: Long): String =
-  if (TIME_FORMATTER != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-    TIME_FORMATTER.format(Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()))
-  } else {
-    SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
-  }
+  SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
 
 /**
  * Format timestamp as relative time (e.g., "2s ago", "5m ago", "2h ago").
