@@ -33,6 +33,8 @@ public object DebugOverlay {
       }
     }
 
+  // added volatile as config setter reads it
+  @Volatile
   private var _overlayDataRepository: DebugOverlayDataRepository? = null
 
   private var overlayScope: CoroutineScope? = null
