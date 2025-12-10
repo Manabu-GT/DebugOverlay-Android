@@ -1,7 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.North
@@ -52,10 +50,9 @@ import kotlin.math.roundToInt
  *
  * Features:
  * - Download/Upload stats
- * - Auto-scroll to bottom for new requests
- * - Manual scroll pauses auto-scroll
+ * - Request list (newest first)
+ * - Search/filter by URL or method
  * - Detail screen navigation with back button
- * - FAB to resume auto-scroll when paused
  *
  * @param netStatsFlow Flow of network statistics to collect and display.
  * @param networkRequestsFlow Flow of network requests to collect and display.
@@ -75,16 +72,14 @@ internal fun NetworkTabContent(
   )
   var searchQuery by remember { mutableStateOf("") }
   var selectedRequest by remember { mutableStateOf<NetworkRequest?>(null) }
-  var isPaused by remember { mutableStateOf(false) }
-  var isProgrammaticScroll by remember { mutableStateOf(false) }
 
   val augmentedNetworkStats = remember(networkStats, networkRequests) {
     networkStats.augmentNetworkStatsWith(networkRequests)
   }
 
-  // Filter requests
+  // Filter requests (newest first)
   val filteredRequests = remember(networkRequests, searchQuery) {
-    if (searchQuery.isEmpty()) {
+    val filtered = if (searchQuery.isEmpty()) {
       networkRequests
     } else {
       networkRequests.filter { request ->
@@ -92,18 +87,8 @@ internal fun NetworkTabContent(
           request.method.contains(searchQuery, ignoreCase = true)
       }
     }
+    filtered.asReversed()
   }
-
-  val listState = rememberLazyListState()
-
-  AutoScrollManager(
-    listState = listState,
-    filteredEntries = filteredRequests,
-    isProgrammaticScroll = isProgrammaticScroll,
-    isPaused = isPaused,
-    onProgrammaticScrollChanged = { isProgrammaticScroll = it },
-    onPauseChanged = { isPaused = it }
-  )
 
   // State-based navigation with shared DetailNavigation
   DetailNavigation(
@@ -115,10 +100,7 @@ internal fun NetworkTabContent(
         filteredRequests = filteredRequests,
         searchQuery = searchQuery,
         onSearchQueryChanged = { searchQuery = it },
-        onRequestClick = { selectedRequest = it },
-        listState = listState,
-        isPaused = isPaused,
-        onResume = { isPaused = false }
+        onRequestClick = { selectedRequest = it }
       )
     },
     detailContent = { request ->
@@ -134,7 +116,6 @@ internal fun NetworkTabContent(
 /**
  * Network list screen with stats header and request list.
  */
-@Suppress("LongParameterList")
 @Composable
 private fun NetworkListScreen(
   augmentedNetworkStats: NetworkStats,
@@ -142,62 +123,36 @@ private fun NetworkListScreen(
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   onRequestClick: (NetworkRequest) -> Unit,
-  listState: androidx.compose.foundation.lazy.LazyListState,
-  isPaused: Boolean,
-  onResume: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Box(modifier = modifier.fillMaxSize()) {
-    Column(modifier = Modifier.fillMaxSize()) {
-      // Stats Header
-      when {
-        augmentedNetworkStats == NetworkStats.UNSUPPORTED -> {
-          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-              text = stringResource(R.string.debugoverlay_netstat_unavailable),
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-          }
-        }
-        else -> {
-          NetworkStatsHeader(augmentedNetworkStats)
-        }
-      }
-
-      SearchField(
-        searchPlaceholder = stringResource(R.string.debugoverlay_search_requests),
-        searchQuery = searchQuery,
-        onSearchQueryChanged = onSearchQueryChanged
-      )
-
-      // Request List
-      LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-      ) {
-        items(
-          items = filteredRequests,
-          key = { it.id }
-        ) { request ->
-          NetworkRequestItem(
-            request = request,
-            onClick = { onRequestClick(request) }
-          )
-        }
-      }
+  Column(modifier = modifier.fillMaxSize()) {
+    // Stats Header (only shown when supported)
+    if (augmentedNetworkStats != NetworkStats.UNSUPPORTED) {
+      NetworkStatsHeader(augmentedNetworkStats)
     }
 
-    // FAB to resume auto-scroll
-    ResumeScrollFab(
-      visible = isPaused,
-      onResume = onResume,
-      modifier = Modifier
-        .align(Alignment.BottomEnd)
-        .padding(16.dp)
+    SearchField(
+      searchPlaceholder = stringResource(R.string.debugoverlay_search_requests),
+      searchQuery = searchQuery,
+      onSearchQueryChanged = onSearchQueryChanged
     )
+
+    // Request List (newest first)
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      items(
+        items = filteredRequests,
+        key = { it.id }
+      ) { request ->
+        NetworkRequestItem(
+          request = request,
+          onClick = { onRequestClick(request) }
+        )
+      }
+    }
   }
 }
 
