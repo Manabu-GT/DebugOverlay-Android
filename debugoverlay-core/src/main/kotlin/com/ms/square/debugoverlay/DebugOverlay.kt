@@ -14,9 +14,8 @@ import kotlinx.coroutines.SupervisorJob
 
 /**
  * Internal entry point for DebugOverlay auto-installers.
- * [DebugOverlay.install] is called automatically on app startup by either:
- * - DebugOverlayInstaller (ContentProvider) in the default debugoverlay artifact
- * - DebugOverlayStartupInitializer (AndroidX Startup) in the debugoverlay-androidx-startup artifact
+ * [DebugOverlay.install] is called automatically on app startup by:
+ * - DebugOverlayStartupInitializer (AndroidX Startup) in the debugoverlay artifact
  *
  * ** [DebugOverlay.install] is Not intended for use by application code.**
  * There is no supported way to manually control the overlay lifecycle in v2.x.
