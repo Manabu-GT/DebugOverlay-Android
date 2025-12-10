@@ -34,7 +34,7 @@ Use tools deliberately:
   - Reference them via `libs.*` or `libs.plugins.*` in module build scripts.
 - Java/Kotlin toolchains default to Java 17; keep `java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }` unless the user requests a change.
 - Preserve resource prefixes (`resourcePrefix 'debugoverlay_'`) and do not remove default resource directories when adding extra paths (use `res.srcDir(...)` instead of overwriting `srcDirs`).
-- Honour the module list in `AGENTS.md` (`debugoverlay-core`, `debugoverlay`, `sample`), avoid creating new modules without approval, and keep all modules on AndroidX APIs (no legacy `android.support`). Remember that `debugoverlay` is the primary public API, `debugoverlay-core` is the underlying runtime, and `debugoverlay-androidx-startup` is an optional add-on for existing Startup users.
+- Honour the module list in `AGENTS.md` (`debugoverlay-core`, `debugoverlay`, `sample`), avoid creating new modules without approval, and keep all modules on AndroidX APIs (no legacy `android.support`). Remember that `debugoverlay` is the primary public API, `debugoverlay-core` is the underlying runtime.
 
 ---
 
