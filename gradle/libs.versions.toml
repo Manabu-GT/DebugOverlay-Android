@@ -33,6 +33,9 @@ nav3Core = "1.0.0-rc01"
 lifecycleViewmodelCompose = "2.9.4"
 lifecycleViewmodelNav3 = "2.10.0-rc01"
 
+# Performance
+metrics-performance = "1.0.0"
+
 # Other
 timber = "5.0.1"
 radiography = "2.7"
@@ -80,6 +83,9 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-ksp = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+
+# Performance
+androidx-metrics-performance = { module = "androidx.metrics:metrics-performance", version.ref = "metrics-performance" }
 
 # Other
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }

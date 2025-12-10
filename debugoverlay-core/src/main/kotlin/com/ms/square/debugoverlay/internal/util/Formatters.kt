@@ -10,6 +10,11 @@ private const val BYTES_PER_KB = 1024L
 private const val BYTES_PER_MB = 1024L * 1024L
 private const val BYTES_PER_GB = 1024L * 1024L * 1024L
 
+private const val MILLIS_PER_SECOND = 1000L
+private const val MILLIS_PER_MINUTE = 60_000L
+private const val MILLIS_PER_HOUR = 3_600_000L
+private const val MILLIS_PER_DAY = 86_400_000L
+
 private val JSON_FORMATTER = Json {
   prettyPrint = true
 }
@@ -38,16 +43,8 @@ internal fun formatTextSize(length: Int): String = when {
   else -> "${"%.1f".format(length / (BYTES_PER_MB.toDouble()))} MB"
 }
 
-internal fun formatTimestamp(timestamp: Long): String {
-  val date = Date(timestamp)
-  val formatter = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
-  return formatter.format(date)
-}
-
-private const val MILLIS_PER_SECOND = 1000L
-private const val MILLIS_PER_MINUTE = 60_000L
-private const val MILLIS_PER_HOUR = 3_600_000L
-private const val MILLIS_PER_DAY = 86_400_000L
+internal fun formatTimestamp(timestamp: Long): String =
+  SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
 
 /**
  * Format timestamp as relative time (e.g., "2s ago", "5m ago", "2h ago").

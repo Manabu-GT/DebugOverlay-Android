@@ -72,6 +72,9 @@ dependencies {
   // View hierarchy inspection
   implementation(libs.radiography)
 
+  // Frame performance monitoring
+  implementation(libs.androidx.metrics.performance)
+
   // Lifecycle for synthetic lifecycle owner
   implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.runtime.ktx)

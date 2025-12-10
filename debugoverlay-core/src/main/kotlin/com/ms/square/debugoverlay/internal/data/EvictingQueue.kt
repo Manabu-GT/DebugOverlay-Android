@@ -4,13 +4,19 @@ internal class EvictingQueue<T>(private val capacity: Int) {
   private val queue = ArrayDeque<T>(capacity)
 
   @Synchronized
-  fun add(item: T) {
-    if (queue.size >= capacity) {
+  fun add(item: T): T? {
+    val evicted = if (queue.size >= capacity) {
       queue.removeFirst()
+    } else {
+      null
     }
     queue.addLast(item)
+    return evicted
   }
 
+  /**
+   *  This creates and returns a defensive copy.
+   */
   @Synchronized
   fun toList(): List<T> = queue.toList()
 }

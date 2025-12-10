@@ -10,6 +10,8 @@ internal value class Percentage private constructor(val value: Float) {
 
   companion object {
 
+    val ZERO = Percentage(MIN_PERCENTAGE_VALUE)
+
     /**
      * Creates a Percentage from a ratio value.
      * @param ratio A value between 0.0 (0%) and 1.0 (100%). Values outside this range are clamped.

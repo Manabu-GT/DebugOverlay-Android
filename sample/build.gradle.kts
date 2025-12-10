@@ -112,6 +112,9 @@ dependencies {
   implementation(libs.hilt.navigation.compose)
   ksp(libs.hilt.android.ksp)
 
+  // Frame performance monitoring
+  implementation(libs.androidx.metrics.performance)
+
   // HTTP Client
   implementation(libs.okhttp)
 

@@ -13,6 +13,7 @@
   <string name="debugoverlay_netstat_unavailable">Network stats not available on this device</string>
   <string name="debugoverlay_tab_logcat">Logcat</string>
   <string name="debugoverlay_tab_network">Network</string>
+  <string name="debugoverlay_tab_jankstats">JankStats</string>
   <string name="debugoverlay_tab_ui">UI</string>
   <string name="debugoverlay_tab_device_info">Device Info</string>
   <string name="debugoverlay_back">Back</string>
@@ -101,4 +102,16 @@
   <!-- Format Strings -->
   <string name="debugoverlay_device_info_percentage_value">%d%% free</string>
   <string name="debugoverlay_device_info_hz_value">%.0f Hz/%.0f Hz</string>
+
+  <!-- JankStats Tab -->
+  <string name="debugoverlay_jankstats_clear">Clear</string>
+  <string name="debugoverlay_jankstats_waiting">Waiting for frames…</string>
+  <string name="debugoverlay_jankstats_waiting_subtitle">Interact with the app to generate\nframe data</string>
+  <string name="debugoverlay_jankstats_janky_frames">janky frames</string>
+  <string name="debugoverlay_jankstats_last_n_frames">last %1$d frames</string>
+  <string name="debugoverlay_jankstats_summary">%1$d frames · %2$d janky · avg %3$dms</string>
+  <string name="debugoverlay_jankstats_state_breakdown">State Breakdown</string>
+  <string name="debugoverlay_jankstats_n_janks">%1$d janks</string>
+  <string name="debugoverlay_jankstats_janky_frames_list">Janky Frames</string>
+  <string name="debugoverlay_jankstats_no_jank">No janky frames detected</string>
 </resources>

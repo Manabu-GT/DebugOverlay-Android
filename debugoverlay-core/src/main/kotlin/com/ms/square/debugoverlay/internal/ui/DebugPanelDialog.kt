@@ -1,6 +1,7 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,8 +12,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -20,7 +21,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -32,10 +33,13 @@ import androidx.compose.ui.window.DialogProperties
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 
-private const val TAB_LOGCAT = 0
-private const val TAB_NETWORK = 1
-private const val TAB_UI = 2
-private const val TAB_DEVICE_INFO = 3
+private enum class DebugTab(@param:StringRes val titleResId: Int) {
+  LOGCAT(R.string.debugoverlay_tab_logcat),
+  NETWORK(R.string.debugoverlay_tab_network),
+  JANKSTATS(R.string.debugoverlay_tab_jankstats),
+  UI(R.string.debugoverlay_tab_ui),
+  DEVICE_INFO(R.string.debugoverlay_tab_device_info),
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,32 +98,24 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
-  var selectedTabIndex by remember { mutableIntStateOf(0) }
-  val tabs = remember {
-    listOf(
-      R.string.debugoverlay_tab_logcat,
-      R.string.debugoverlay_tab_network,
-      R.string.debugoverlay_tab_ui,
-      R.string.debugoverlay_tab_device_info
-    )
-  }
+  var selectedTab by remember { mutableStateOf(DebugTab.LOGCAT) }
 
   Column(
     modifier = modifier.fillMaxSize()
   ) {
     // Tabs
-    PrimaryTabRow(
-      selectedTabIndex = selectedTabIndex,
+    SecondaryScrollableTabRow(
+      selectedTabIndex = selectedTab.ordinal,
       modifier = Modifier.fillMaxWidth(),
       containerColor = Color.Transparent
     ) {
-      tabs.forEachIndexed { index, titleResId ->
+      DebugTab.entries.forEach { tab ->
         Tab(
-          selected = selectedTabIndex == index,
-          onClick = { selectedTabIndex = index },
+          selected = selectedTab == tab,
+          onClick = { selectedTab = tab },
           text = {
             Text(
-              text = stringResource(titleResId),
+              text = stringResource(tab.titleResId),
               style = MaterialTheme.typography.labelLarge
             )
           }
@@ -127,14 +123,17 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
       }
     }
     // Tab content
-    when (selectedTabIndex) {
-      TAB_LOGCAT -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
-      TAB_NETWORK -> NetworkTabContent(
+    when (selectedTab) {
+      DebugTab.LOGCAT -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
+      DebugTab.NETWORK -> NetworkTabContent(
         netStatsFlow = DebugOverlay.overlayDataRepository.netStats,
         networkRequestsFlow = DebugOverlay.overlayDataRepository.networkRequests
       )
-      TAB_UI -> UiTabContent()
-      TAB_DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
+      DebugTab.JANKSTATS -> JankStatsTabContent(
+        jankStatsFlow = DebugOverlay.overlayDataRepository.jankStats
+      )
+      DebugTab.UI -> UiTabContent()
+      DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
     }
   }
 }
