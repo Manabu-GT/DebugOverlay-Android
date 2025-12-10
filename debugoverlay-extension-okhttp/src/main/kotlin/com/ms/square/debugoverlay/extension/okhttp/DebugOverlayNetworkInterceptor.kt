@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.extension.okhttp
 
+import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.extension.okhttp.internal.isProbablyUtf8
 import com.ms.square.debugoverlay.model.NetworkError
@@ -65,7 +66,14 @@ private const val HTTP_SERVER_ERROR_START = 500
 private const val HTTP_SERVER_ERROR_END = 599
 
 /**
- * OkHttp interceptor that captures network requests including headers and bodies.
+ * OkHttp interceptor that captures network requests including headers and bodies for DebugOverlay.
+ * **Note:** Automatically registers with [DebugOverlay] on creation.
+ * Recommended to use as a singleton via DI (e.g., Hilt) to avoid duplicate registrations as
+ * creating multiple instances will cause each instance to overwrite the previous registration.
+ *
+ * **Initialization:** DebugOverlay is installed automatically via ContentProvider before
+ * Application.onCreate(). This interceptor can be constructed at any point (including before
+ * installation) - configuration will be applied when DebugOverlay becomes available.
  *
  * Usage:
  * ```kotlin
@@ -85,6 +93,12 @@ public class DebugOverlayNetworkInterceptor(
   NetworkRequestTracker {
 
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
+
+  init {
+    DebugOverlay.configure {
+      copy(networkRequestTracker = this@DebugOverlayNetworkInterceptor)
+    }
+  }
 
   override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()
 

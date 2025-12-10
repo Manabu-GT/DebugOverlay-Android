@@ -23,6 +23,7 @@ import kotlinx.coroutines.SupervisorJob
  */
 public object DebugOverlay {
 
+  @Volatile
   private var config: Config = Config()
     set(newConfig) {
       if (field != newConfig) {
@@ -32,6 +33,8 @@ public object DebugOverlay {
       }
     }
 
+  // added volatile as config setter reads it
+  @Volatile
   private var _overlayDataRepository: DebugOverlayDataRepository? = null
 
   private var overlayScope: CoroutineScope? = null
@@ -64,33 +67,15 @@ public object DebugOverlay {
   }
 
   /**
-   * Configures DebugOverlay settings. Must be called on the main thread.
+   * Configures DebugOverlay settings.
    *
    * Auto-installation happens via ContentProvider before [Application.onCreate].
    * Call this function in [Application.onCreate] after dependency injection to
    * configure network tracking or other features.
    *
-   * Example with Hilt:
-   * ```kotlin
-   * @HiltAndroidApp
-   * class MyApp : Application() {
-   *   @Inject lateinit var networkInterceptor: DebugOverlayNetworkInterceptor
-   *
-   *   override fun onCreate() {
-   *     super.onCreate()
-   *     DebugOverlay.configure {
-   *       copy(networkRequestTracker = networkInterceptor)
-   *     }
-   *   }
-   * }
-   * ```
-   *
    * @param block Configuration builder that receives current [Config] and returns new [Config]
-   * @throws IllegalStateException if called from non-main thread
    */
-  @MainThread
   public fun configure(block: Config.() -> Config) {
-    checkMainThread()
     config = config.block()
   }
 
