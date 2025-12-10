@@ -28,7 +28,6 @@ Welcome! This guide defines how automation and human agents should collaborate i
 - **Project Modules**
     - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
     - `debugoverlay` - Primary public API artifact that most apps depend on
-    - `debugoverlay-androidx-startup` - Optional AndroidX Startup integration for apps that already rely on Startup initializers
     - `debugoverlay-extension-okhttp` - OkHttp interceptor for network request tracking
     - `sample` - Demo application showcasing library features
 
@@ -47,14 +46,13 @@ Welcome! This guide defines how automation and human agents should collaborate i
 
 ## 3. Testing Expectations
 
-| Change Type | Mandatory Checks |
-|-------------|------------------|
-| Gradle/build logic | `./gradlew help`; run the smallest assemble task that exercises your change when artifact wiring is affected |
-| Core runtime code | `./gradlew :debugoverlay-core:check` (or targeted tests) |
-| Legacy wrapper/API | `./gradlew :debugoverlay:check` |
-| AndroidX Startup adapter | `./gradlew :debugoverlay-androidx-startup:check` |
-| Sample app UX/UI | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
-| Documentation only | No build, but ensure links and code snippets compile conceptually |
+| Change Type              | Mandatory Checks |
+|--------------------------|------------------|
+| Gradle/build logic       | `./gradlew help`; run the smallest assemble task that exercises your change when artifact wiring is affected |
+| Core runtime code        | `./gradlew :debugoverlay-core:check` (or targeted tests) |
+| Auto Installer w AndroidX Startup        | `./gradlew :debugoverlay:check` |
+| Sample app UX/UI         | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
+| Documentation only       | No build, but ensure links and code snippets compile conceptually |
 
 Document all executed commands in the hand-off message. If a test is skipped, state why and note the risk. For script/config changes (Gradle `.kts`, `libs.versions.toml`, wrapper updates), run a lightweight task such as `./gradlew help` to ensure the configuration still loads.
 

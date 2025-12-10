@@ -84,8 +84,6 @@ composeCompiler {
 dependencies {
   debugImplementation(project(":debugoverlay"))
   debugImplementation(project(":debugoverlay-extension-okhttp"))
-  // if your app is using the androidx.startup library
-  // debugImplementation(project(":debugoverlay-androidx-startup"))
   implementation(libs.androidx.core)
   implementation(libs.androidx.annotation)
 

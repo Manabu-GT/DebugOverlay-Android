@@ -37,7 +37,7 @@ Tap the overlay to open a full-screen diagnostic panel with five tabs:
 
 ### v2.0.0 Highlights
 - Pure Kotlin + Jetpack Compose (no system permissions required)
-- Automatic install via ContentProvider or AndroidX Startup
+- Automatic install via AndroidX Startup
 - Dark/light theme support
 - Minimum SDK 24 / target SDK 36
 
@@ -72,29 +72,36 @@ dependencyResolutionManagement {
 
 > **Note:** Snapshot builds are unstable. For production-critical testing, consider waiting for the stable release on Maven Central.
 
-### 2. Pick the integration that fits your app
+### 2. Add the dependency
 
 ```kotlin
 dependencies {
-  // Option A: default auto-install via a lightweight ContentProvider
   debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
-
-  // Option B: integrate with AndroidX Startup if you already use it
-  // debugImplementation("com.ms-square:debugoverlay-androidx-startup:2.0.0-SNAPSHOT")
 }
 ```
 
-Use the same coordinate for instrumentation tests (e.g., `androidTestImplementation`) if you ever want overlays while running Espresso/UI Automator suites.
+Use the same coordinate for instrumentation tests (e.g., `androidTestImplementation`) if you want overlays while running Espresso/UI Automator suites.
 
 ## Usage
 
-### Auto-install (default `debugoverlay` artifact)
+### Auto-install
 
-In debug builds the overlay installs itself on app startup via `DebugOverlayInstaller`, a ContentProvider that runs before your `Application`. The overlay only attaches in the main process and ignores secondary processes.
+The overlay installs itself on app startup via AndroidX Startup's `DebugOverlayStartupInitializer`. No additional configuration required—just add the dependency and the overlay appears in debug builds. It only attaches in the main process and ignores secondary processes.
 
-### AndroidX Startup integration
+To disable auto-install (e.g., for manual initialization), remove the initializer via manifest merger:
 
-If your app already depends on `androidx.startup:startup-runtime`, include `debugoverlay-androidx-startup` instead of the default artifact. It registers `DebugOverlayStartupInitializer`, which automatically installs the overlay on app start. No additional configuration is required.
+```xml
+<provider
+  android:name="androidx.startup.InitializationProvider"
+  android:authorities="${applicationId}.androidx-startup"
+  tools:node="merge">
+  <meta-data
+    android:name="com.ms.square.debugoverlay.DebugOverlayStartupInitializer"
+    tools:node="remove" />
+</provider>
+```
+
+Then call `DebugOverlay.install(application)` manually when needed.
 
 ### Network request tracking
 

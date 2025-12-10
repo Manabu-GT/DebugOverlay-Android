@@ -71,7 +71,7 @@ private const val HTTP_SERVER_ERROR_END = 599
  * Recommended to use as a singleton via DI (e.g., Hilt) to avoid duplicate registrations as
  * creating multiple instances will cause each instance to overwrite the previous registration.
  *
- * **Initialization:** DebugOverlay is installed automatically via ContentProvider before
+ * **Initialization:** DebugOverlay is installed automatically via AndroidX Startup before
  * Application.onCreate(). This interceptor can be constructed at any point (including before
  * installation) - configuration will be applied when DebugOverlay becomes available.
  *
