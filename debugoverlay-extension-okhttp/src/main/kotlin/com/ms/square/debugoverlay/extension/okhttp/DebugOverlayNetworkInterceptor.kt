@@ -68,6 +68,8 @@ private const val HTTP_SERVER_ERROR_END = 599
 /**
  * OkHttp interceptor that captures network requests including headers and bodies for DebugOverlay.
  * **Note:** Automatically registers with [DebugOverlay] on creation.
+ * Recommended to use as a singleton via DI (e.g., Hilt) to avoid duplicate registrations as
+ * creating multiple instances will cause each instance to overwrite the previous registration.
  *
  * Usage:
  * ```kotlin
