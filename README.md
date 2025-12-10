@@ -25,14 +25,15 @@ The draggable overlay displays real-time metrics with 16-sample historical spark
 Each row shows a status dot (green/yellow/red) based on current health. Long-press to drag; the overlay snaps to the nearest edge and remembers its position across activities.
 
 ### Debug Panel
-Tap the overlay to open a full-screen diagnostic panel with four tabs:
+Tap the overlay to open a full-screen diagnostic panel with five tabs:
 
-- **Logcat** – Live logcat stream with search, tag filtering, and log level chips
-- **Network** – Upload/download stats and HTTP request history (requires [interceptor setup](#network-request-tracking))
-- **UI** – View hierarchy inspector powered by [Radiography](https://github.com/square/radiography), with refresh and copy-to-clipboard
-- **Device Info** – Hardware, OS, display, memory, and network details
+- **Logcat** – Live logcat stream with level filtering (V/D/I/W/E), search, and tap-to-expand details
+- **Network** – Upload/download totals, request list with timing/size, and full request/response inspection (requires [interceptor setup](#network-request-tracking))
+- **JankStats** – Frame timing analysis showing jank percentage, per-state breakdown, and individual janky frame details
+- **UI** – View hierarchy powered by [Radiography](https://github.com/square/radiography) with refresh and copy-to-clipboard
+- **Device** – Hardware specs, OS info, memory/storage usage, battery, and network status
 
-<img src="art/readme_debug_panel.png" width="50%" alt="Debug Panel">
+<img src="art/readme_debug_panel.gif" width="50%" alt="Debug Panel">
 
 ### v2.0.0 Highlights
 - Pure Kotlin + Jetpack Compose (no system permissions required)
@@ -41,9 +42,8 @@ Tap the overlay to open a full-screen diagnostic panel with four tabs:
 - Minimum SDK 24 / target SDK 36
 
 ### Upcoming Features
-- **JankStats tab** – Frame timing analysis using AndroidX JankStats
-- **Custom tab API** – Allow apps to register custom diagnostic tabs
 - **Bug reporting** – Export diagnostics and share bug reports
+- **Custom tab API** – Allow apps to register custom diagnostic tabs
 
 ## Requirements
 
@@ -57,7 +57,7 @@ DebugOverlay is intended for debug builds in general; keep it out of release var
 
 ### 1. Repositories
 
-`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: mid-Dec 2025). Add the repository next to `mavenCentral()`:
+`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: late-Dec 2025). Add the repository next to `mavenCentral()`:
 
 ```kotlin
 dependencyResolutionManagement {
