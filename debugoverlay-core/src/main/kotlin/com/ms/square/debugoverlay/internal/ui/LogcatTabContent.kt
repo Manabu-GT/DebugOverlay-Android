@@ -110,7 +110,6 @@ internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modif
         filteredEntries = filteredEntries,
         listState = listState,
         onEntryClick = { selectedLogEntry = it },
-        isAutoScrollEnabled = isAutoScrollEnabled,
         onFabClick = { isAutoScrollEnabled = true }
       )
     },
@@ -141,7 +140,6 @@ private fun LogcatListScreen(
   filteredEntries: List<LogcatEntry>,
   listState: LazyListState,
   onEntryClick: (LogcatEntry) -> Unit,
-  isAutoScrollEnabled: Boolean,
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -162,7 +160,7 @@ private fun LogcatListScreen(
     }
 
     ScrollToBottomFab(
-      visible = !isAutoScrollEnabled && listState.canScrollForward,
+      visible = listState.canScrollForward,
       onClick = onFabClick,
       modifier = Modifier
         .align(Alignment.BottomEnd)

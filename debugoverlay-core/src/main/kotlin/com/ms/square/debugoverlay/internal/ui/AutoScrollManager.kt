@@ -4,6 +4,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 internal fun <T> AutoScrollManager(
@@ -18,15 +19,15 @@ internal fun <T> AutoScrollManager(
   LaunchedEffect(listState) {
     snapshotFlow {
       listState.isScrollInProgress to listState.canScrollForward
-    }
+    }.distinctUntilChanged()
       .collect { (isScrollInProgress, canScrollForward) ->
         // If user is dragging/scrolling, and they are NOT at the bottom,
         // they are reading history -> Disable stickiness.
         if (isScrollInProgress && canScrollForward) {
           disableAutoScroll()
         }
-        // If they scrolled back to the bottom manually, re-enable it.
-        if (!canScrollForward && !isAutoScrollEnabled) {
+        // Only re-enable if user intentionally scrolled back to bottom
+        if (!canScrollForward && !isScrollInProgress) {
           enableAutoScroll()
         }
       }
