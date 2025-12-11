@@ -16,7 +16,7 @@ internal fun <T> AutoScrollManager(
 ) {
   // Detect if the user scrolled away from the bottom.
   // If they did, we DISABLE auto-scroll.
-  LaunchedEffect(listState) {
+  LaunchedEffect(listState, enableAutoScroll, disableAutoScroll) {
     snapshotFlow {
       listState.isScrollInProgress to listState.canScrollForward
     }.distinctUntilChanged()
