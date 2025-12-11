@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import com.ms.square.debugoverlay.core.R
 
 @Composable
-internal fun ResumeScrollFab(visible: Boolean, onResume: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ScrollToBottomFab(visible: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
   AnimatedVisibility(
     visible = visible,
     modifier = modifier,
@@ -24,7 +24,7 @@ internal fun ResumeScrollFab(visible: Boolean, onResume: () -> Unit, modifier: M
     exit = fadeOut() + scaleOut()
   ) {
     FloatingActionButton(
-      onClick = onResume,
+      onClick = onClick,
       containerColor = MaterialTheme.colorScheme.primaryContainer
     ) {
       Icon(
