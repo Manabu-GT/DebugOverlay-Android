@@ -68,10 +68,9 @@ internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modif
   val logcatEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
-  var isPaused by remember { mutableStateOf(false) }
-  var isProgrammaticScroll by remember { mutableStateOf(false) }
   var searchQuery by remember { mutableStateOf("") }
   var selectedLogEntry by remember { mutableStateOf<LogcatEntry?>(null) }
+  var isAutoScrollEnabled by remember { mutableStateOf(true) }
 
   val filteredEntries = remember(logcatEntries, selectedLevel, searchQuery) {
     logcatEntries.filter { entry ->
@@ -85,13 +84,17 @@ internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modif
 
   val listState = rememberLazyListState()
 
+  // How this works:
+  // - User scrolls away from bottom → disable auto-scroll
+  // - User scrolls back to bottom → re-enable auto-scroll
+  // - FAB click → re-enable auto-scroll
+  // - New entries + auto-scroll enabled → scroll to bottom
   AutoScrollManager(
     listState = listState,
     filteredEntries = filteredEntries,
-    isProgrammaticScroll = isProgrammaticScroll,
-    isPaused = isPaused,
-    onProgrammaticScrollChanged = { isProgrammaticScroll = it },
-    onPauseChanged = { isPaused = it }
+    isAutoScrollEnabled = isAutoScrollEnabled,
+    enableAutoScroll = { isAutoScrollEnabled = true },
+    disableAutoScroll = { isAutoScrollEnabled = false }
   )
 
   // State-based navigation with shared DetailNavigation
@@ -107,8 +110,8 @@ internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modif
         filteredEntries = filteredEntries,
         listState = listState,
         onEntryClick = { selectedLogEntry = it },
-        isPaused = isPaused,
-        onResume = { isPaused = false }
+        isAutoScrollEnabled = isAutoScrollEnabled,
+        onFabClick = { isAutoScrollEnabled = true }
       )
     },
     detailContent = { entry ->
@@ -138,8 +141,8 @@ private fun LogcatListScreen(
   filteredEntries: List<LogcatEntry>,
   listState: LazyListState,
   onEntryClick: (LogcatEntry) -> Unit,
-  isPaused: Boolean,
-  onResume: () -> Unit,
+  isAutoScrollEnabled: Boolean,
+  onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Box(modifier = modifier.fillMaxWidth()) {
@@ -158,9 +161,9 @@ private fun LogcatListScreen(
       )
     }
 
-    ResumeScrollFab(
-      visible = isPaused,
-      onResume = onResume,
+    ScrollToBottomFab(
+      visible = !isAutoScrollEnabled && listState.canScrollForward,
+      onClick = onFabClick,
       modifier = Modifier
         .align(Alignment.BottomEnd)
         .padding(16.dp)
