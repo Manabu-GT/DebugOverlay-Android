@@ -4,10 +4,12 @@ import android.app.Activity
 import android.content.Context
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.NoOpNetworkRequestTracker
+import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.NetworkStats
+import com.ms.square.debugoverlay.internal.data.source.AppExitDataSource
 import com.ms.square.debugoverlay.internal.data.source.DeviceInfoDataSource
 import com.ms.square.debugoverlay.internal.data.source.JankStatsDataSource
 import com.ms.square.debugoverlay.internal.data.source.LogcatDataSource
@@ -29,6 +31,7 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   private val netStatsDataSource = NetStatsDataSource(scope)
   private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
   private val jankStatsDataSource = JankStatsDataSource()
+  private val appExitDataSource = AppExitDataSource(context, scope)
 
   init {
     scope.launch {
@@ -47,6 +50,11 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
   val deviceInfo: Flow<DeviceInfo?> = deviceInfoDataSource.deviceInfo
   val jankStats: StateFlow<JankStatsUiState> = jankStatsDataSource.state
+
+  val isAppExitSupported: Boolean
+    get() = appExitDataSource.isSupported
+
+  val appExitInfos: Flow<List<AppExitInfo>> = appExitDataSource.appExitInfos
 
   @OptIn(ExperimentalCoroutinesApi::class)
   val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestTracker

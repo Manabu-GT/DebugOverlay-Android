@@ -42,6 +42,21 @@ Welcome! This guide defines how automation and human agents should collaborate i
     - Keep public resource prefixes (`resourcePrefix 'debugoverlay_'`).
     - For new assets, ensure they live in the correct variant directory and include mdpi/hdpi etc. when required.
 
+- **String Resources vs Hardcoded Strings**
+    - Use **String Resources** for:
+        - UI labels (Copy, Back, Refresh, section headers)
+        - Tab names
+        - Empty state messages ("No AppExit history", "No request headers")
+        - Accessibility descriptions (contentDescription)
+    - **Hardcode** is acceptable for:
+        - Technical explanations (developer-facing diagnostic guidance)
+        - Enum labels that mirror Android API names (e.g., "ANR", "Low Memory")
+        - Code/API references and stack traces
+        - Process importance labels ("Foreground", "Cached")
+        - Emojis used as visual decorations
+        - Preview-only code
+    - **Rule of thumb**: If QA/PM might see it and it reads like UI copy → StringRes. If it's technical content for developers → hardcode is acceptable.
+
 ---
 
 ## 3. Testing Expectations

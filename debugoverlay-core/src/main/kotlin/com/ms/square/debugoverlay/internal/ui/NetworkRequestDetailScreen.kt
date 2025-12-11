@@ -224,7 +224,7 @@ private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) 
               itemCount++
             }
             if (itemCount == 0) {
-              EmptyState(text = "No notable headers")
+              EmptyState(text = stringResource(R.string.debugoverlay_network_no_notable_headers))
             }
           }
         }
@@ -269,7 +269,7 @@ private fun HeadersTab(request: NetworkRequest, modifier: Modifier = Modifier) {
       ) {
         if (requestHeadersExpanded) {
           if (request.requestHeaders.isEmpty()) {
-            EmptyState(text = "No request headers")
+            EmptyState(text = stringResource(R.string.debugoverlay_network_no_request_headers))
           } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
               request.requestHeaders.forEach { (name, value) ->
@@ -301,7 +301,7 @@ private fun HeadersTab(request: NetworkRequest, modifier: Modifier = Modifier) {
       ) {
         if (responseHeadersExpanded) {
           if (request.responseHeaders.isEmpty()) {
-            EmptyState(text = "No response headers")
+            EmptyState(text = stringResource(R.string.debugoverlay_network_no_response_headers))
           } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
               request.responseHeaders.forEach { (name, value) ->
@@ -344,7 +344,7 @@ private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
             contentType = request.requestHeaders["content-type"]
           )
         } else {
-          EmptyState(text = "No request body")
+          EmptyState(text = stringResource(R.string.debugoverlay_network_no_request_body))
         }
       }
     }
@@ -365,7 +365,7 @@ private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
             contentType = request.responseHeaders["content-type"]
           )
         } else {
-          EmptyState(text = "No response body")
+          EmptyState(text = stringResource(R.string.debugoverlay_network_no_response_body))
         }
       }
     }

@@ -9,6 +9,7 @@ import java.util.Locale
 private const val BYTES_PER_KB = 1024L
 private const val BYTES_PER_MB = 1024L * 1024L
 private const val BYTES_PER_GB = 1024L * 1024L * 1024L
+private const val KB_PER_MB = 1024L
 
 private const val MILLIS_PER_SECOND = 1000L
 private const val MILLIS_PER_MINUTE = 60_000L
@@ -61,6 +62,18 @@ internal fun formatRelativeTime(timestamp: Long): String {
     else -> "${diff / MILLIS_PER_DAY}d ago" // Days
   }
 }
+
+/**
+ * Format memory in KB to MB string, returning "N/A" if value is 0 (not captured).
+ */
+internal fun formatMemoryKbToMb(valueKb: Long): String =
+  if (valueKb > 0) "${valueKb / KB_PER_MB} MB" else "N/A"
+
+/**
+ * Format timestamp as full date/time string (e.g., "Dec 11, 2025 at 3:45:30 PM").
+ */
+internal fun formatFullTimestamp(timestamp: Long): String =
+  SimpleDateFormat("MMM d, yyyy 'at' h:mm:ss a", Locale.US).format(Date(timestamp))
 
 internal fun formatJson(json: String): String = try {
   val element = Json.parseToJsonElement(json)

@@ -226,7 +226,7 @@ private fun NetworkStatsHeaderSubRow(networkStats: NetworkStats) {
       }
 
       Text(
-        text = "Avg ${networkStats.avgDuration}ms",
+        text = stringResource(R.string.debugoverlay_netstat_avg_duration, networkStats.avgDuration),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )

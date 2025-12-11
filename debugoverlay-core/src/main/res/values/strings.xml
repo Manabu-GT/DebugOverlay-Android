@@ -11,11 +11,17 @@
   <string name="debugoverlay_netstat_downloaded">DOWNLOADED</string>
   <string name="debugoverlay_netstat_uploaded">UPLOADED</string>
   <string name="debugoverlay_netstat_unavailable">Network stats not available on this device</string>
+  <string name="debugoverlay_netstat_avg_duration">Avg %1$dms</string>
+  <string name="debugoverlay_network_no_notable_headers">No notable headers</string>
+  <string name="debugoverlay_network_no_request_headers">No request headers</string>
+  <string name="debugoverlay_network_no_response_headers">No response headers</string>
+  <string name="debugoverlay_network_no_request_body">No request body</string>
+  <string name="debugoverlay_network_no_response_body">No response body</string>
   <string name="debugoverlay_tab_logcat">Logcat</string>
   <string name="debugoverlay_tab_network">Network</string>
   <string name="debugoverlay_tab_jankstats">JankStats</string>
   <string name="debugoverlay_tab_ui">UI</string>
-  <string name="debugoverlay_tab_device_info">Device Info</string>
+  <string name="debugoverlay_tab_device_info">DeviceInfo</string>
   <string name="debugoverlay_back">Back</string>
   <string name="debugoverlay_message_label">MESSAGE</string>
   <string name="debugoverlay_copy">Copy</string>
@@ -114,4 +120,21 @@
   <string name="debugoverlay_jankstats_n_janks">%1$d janks</string>
   <string name="debugoverlay_jankstats_janky_frames_list">Janky Frames</string>
   <string name="debugoverlay_jankstats_no_jank">No janky frames detected</string>
+
+  <!-- AppExits Tab -->
+  <string name="debugoverlay_tab_app_exits">AppExits</string>
+  <string name="debugoverlay_app_exits_empty_title">No AppExit History</string>
+  <string name="debugoverlay_app_exits_empty_subtitle">No previous app terminations recorded.\nThis is a good thing!</string>
+  <string name="debugoverlay_app_exits_requires_api30_title">Requires Android 11+</string>
+  <string name="debugoverlay_app_exits_requires_api30_subtitle">App exit history is only available on\nAndroid 11 (API 30) and above.\n\nCurrent: API %1$d</string>
+  <string name="debugoverlay_app_exits_item_description">AppExit event: %1$s, %2$s</string>
+  <string name="debugoverlay_app_exits_summary">Summary</string>
+  <string name="debugoverlay_app_exits_trace">Stack Trace</string>
+  <string name="debugoverlay_app_exits_anr_trace">ANR Trace</string>
+  <string name="debugoverlay_app_exits_process">Process</string>
+  <string name="debugoverlay_app_exits_description">Description</string>
+  <string name="debugoverlay_app_exits_pss">PSS</string>
+  <string name="debugoverlay_app_exits_rss">RSS</string>
+  <string name="debugoverlay_app_exits_importance">Importance</string>
+  <string name="debugoverlay_app_exits_clipboard_label">AppExit Info</string>
 </resources>
