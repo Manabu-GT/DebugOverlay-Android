@@ -64,6 +64,7 @@ This project uses the Vanniktech Maven Publish plugin to deploy artifacts to Mav
 
 7. **Verify Maven Central sync**
    After Sonatype finishes syncing (usually within a couple of hours), confirm the artifact appears at https://central.sonatype.com/artifact/com.ms-square/debugoverlay.
+   Also verify companion artifacts like `com.ms-square:debugoverlay-core` and `com.ms-square:debugoverlay-extension-okhttp` are synced.
 
 ---
 
