@@ -142,3 +142,4 @@ Use it as a reference for wiring the dependency and exercising the overlay while
 ## License
 
 DebugOverlay-Android is distributed under the [Apache License 2.0](LICENSE).
+If you use this library, please credit DebugOverlay-Android in your app's open-source acknowledgements or documentation.
