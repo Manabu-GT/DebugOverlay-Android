@@ -19,7 +19,7 @@ import timber.log.Timber
 public class TimberTreeStartupInitializer : Initializer<Unit> {
   override fun create(context: Context) {
     val application =
-      context.applicationContext as? Application ?: error("Can not cast the given context an Application")
+      context.applicationContext as? Application ?: error("Can not cast the given context to an Application")
     @OptIn(InternalDebugOverlayApi::class)
     if (!isMainProcess(application)) {
       // Just return early without any work if it's not running in the main app process

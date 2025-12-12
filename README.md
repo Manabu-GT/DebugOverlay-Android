@@ -92,14 +92,20 @@ The overlay installs itself on app startup via AndroidX Startup's `DebugOverlayS
 To disable auto-install (e.g., for manual initialization), remove the initializer via manifest merger:
 
 ```xml
-<provider
-  android:name="androidx.startup.InitializationProvider"
-  android:authorities="${applicationId}.androidx-startup"
-  tools:node="merge">
-  <meta-data
-    android:name="com.ms.square.debugoverlay.DebugOverlayStartupInitializer"
-    tools:node="remove" />
-</provider>
+<!-- In your app's AndroidManifest.xml, add xmlns:tools to the root manifest element -->
+<manifest xmlns:tools="http://schemas.android.com/tools" ...>
+  ...
+  <application>
+    <provider
+      android:name="androidx.startup.InitializationProvider"
+      android:authorities="${applicationId}.androidx-startup"
+      tools:node="merge">
+      <meta-data
+        android:name="com.ms.square.debugoverlay.DebugOverlayStartupInitializer"
+        tools:node="remove" />
+    </provider>
+  </application>
+</manifest>
 ```
 
 Then call `DebugOverlay.install(application)` manually when needed.
@@ -144,15 +150,20 @@ That's it. The extension auto-plants `DebugOverlayTimberTree` via AndroidX Start
 If your team has strict Timber wiring or you want explicit control over when the tree is planted, disable auto-plant via manifest merger and plant manually:
 
 ```xml
-<!-- AndroidManifest.xml -->
-<provider
-  android:name="androidx.startup.InitializationProvider"
-  android:authorities="${applicationId}.androidx-startup"
-  tools:node="merge">
-  <meta-data
-    android:name="com.ms.square.debugoverlay.extension.timber.TimberTreeStartupInitializer"
-    tools:node="remove" />
-</provider>
+<!-- In your app's AndroidManifest.xml, add xmlns:tools to the root manifest element -->
+<manifest xmlns:tools="http://schemas.android.com/tools" ...>
+  ...
+  <application>
+    <provider
+      android:name="androidx.startup.InitializationProvider"
+      android:authorities="${applicationId}.androidx-startup"
+      tools:node="merge">
+      <meta-data
+        android:name="com.ms.square.debugoverlay.extension.timber.TimberTreeStartupInitializer"
+        tools:node="remove" />
+    </provider>
+  </application>
+</manifest>
 ```
 
 Then plant the tree manually in your `Application.onCreate()`:

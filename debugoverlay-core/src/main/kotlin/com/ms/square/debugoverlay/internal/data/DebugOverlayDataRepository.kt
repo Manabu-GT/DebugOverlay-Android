@@ -14,6 +14,7 @@ import com.ms.square.debugoverlay.internal.data.source.DeviceInfoDataSource
 import com.ms.square.debugoverlay.internal.data.source.JankStatsDataSource
 import com.ms.square.debugoverlay.internal.data.source.LogcatDataSource
 import com.ms.square.debugoverlay.internal.data.source.NetStatsDataSource
+import com.ms.square.debugoverlay.internal.util.throttleLatest
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScope) {
 
@@ -60,7 +62,9 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   // WhileSubscribed handles lifecycle - logcat auto-restarts when switching back
   @OptIn(ExperimentalCoroutinesApi::class)
   val logs: Flow<List<LogEntry>> = currentLogTracker.flatMapLatest { tracker ->
-    tracker?.logs ?: logcatDataSource.logs
+    // Custom trackers (e.g., Timber) get throttled here since they emit on every log call.
+    // LogcatDataSource already has internal throttling, so no need to double-throttle.
+    tracker?.logs?.throttleLatest(500.milliseconds) ?: logcatDataSource.logs
   }
 
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
