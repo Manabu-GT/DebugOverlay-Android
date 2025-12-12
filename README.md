@@ -139,6 +139,28 @@ That's it. The extension auto-plants `DebugOverlayTimberTree` via AndroidX Start
 - Full stack traces when you log exceptions with `Timber.e(exception, "message")`
 - Direct in-process capture without spawning a logcat subprocess
 
+**Manual setup (opt-out of auto-plant):**
+
+If your team has strict Timber wiring or you want explicit control over when the tree is planted, disable auto-plant via manifest merger and plant manually:
+
+```xml
+<!-- AndroidManifest.xml -->
+<provider
+  android:name="androidx.startup.InitializationProvider"
+  android:authorities="${applicationId}.androidx-startup"
+  tools:node="merge">
+  <meta-data
+    android:name="com.ms.square.debugoverlay.extension.timber.TimberTreeStartupInitializer"
+    tools:node="remove" />
+</provider>
+```
+
+Then plant the tree manually in your `Application.onCreate()`:
+
+```kotlin
+Timber.plant(DebugOverlayTimberTree())
+```
+
 ## Known Limitations
 
 The debug overlay panel may appear below dialogs (AlertDialog, BottomSheetDialog, etc.)

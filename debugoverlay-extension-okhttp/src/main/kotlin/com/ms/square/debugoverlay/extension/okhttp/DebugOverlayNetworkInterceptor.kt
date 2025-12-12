@@ -85,7 +85,6 @@ private const val HTTP_SERVER_ERROR_END = 599
  *     .build()
  * ```
  */
-@OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayNetworkInterceptor(
   maxStoredRequests: Int = 100,
   private val headersNameToRedact: Set<String> = DEFAULT_HEADERS_REDACT,
@@ -94,6 +93,7 @@ public class DebugOverlayNetworkInterceptor(
 ) : Interceptor,
   NetworkRequestTracker {
 
+  @OptIn(InternalDebugOverlayApi::class)
   private val recentRequests = EvictingQueue<NetworkRequest>(maxStoredRequests)
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
@@ -432,6 +432,7 @@ public class DebugOverlayNetworkInterceptor(
       error = error
     )
 
+    @OptIn(InternalDebugOverlayApi::class)
     _requests.value = recentRequests.addAndSnapshot(newRequest)
   }
 

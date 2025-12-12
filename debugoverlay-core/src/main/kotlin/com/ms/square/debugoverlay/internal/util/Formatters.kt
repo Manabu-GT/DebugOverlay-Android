@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.util
 
+import androidx.annotation.MainThread
 import com.ms.square.debugoverlay.model.LogEntry
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -21,13 +22,9 @@ private val JSON_FORMATTER = Json {
   prettyPrint = true
 }
 
-private val TIMESTAMP_FORMATTER: ThreadLocal<SimpleDateFormat> = ThreadLocal.withInitial {
-  SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
-}
-
-private val RAW_LINE_TIMESTAMP_FORMATTER: ThreadLocal<SimpleDateFormat> = ThreadLocal.withInitial {
-  SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US)
-}
+// cache given its frequent usage on the main/UI thread
+@get:MainThread
+private val TIMESTAMP_FORMATTER = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
 
 /**
  * Format bytes to human-readable string.
@@ -53,14 +50,17 @@ internal fun formatTextSize(length: Int): String = when {
   else -> "${"%.1f".format(length / (BYTES_PER_MB.toDouble()))} MB"
 }
 
-internal fun formatTimestamp(timestamp: Long): String =
-  requireNotNull(TIMESTAMP_FORMATTER.get()).format(Date(timestamp))
+/**
+ * Should only be called on the main/UI thread as it uses a non-thread safe formatter.
+ */
+@MainThread
+internal fun formatTimestamp(timestamp: Long): String = TIMESTAMP_FORMATTER.format(Date(timestamp))
 
 /**
  * Format timestamp for clipboard copy (e.g., "12-11 14:35:22.786").
  */
 private fun formatClipboardTimestamp(timestamp: Long): String =
-  requireNotNull(RAW_LINE_TIMESTAMP_FORMATTER.get()).format(Date(timestamp))
+  SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
 
 /**
  * Format log entry for clipboard copy.

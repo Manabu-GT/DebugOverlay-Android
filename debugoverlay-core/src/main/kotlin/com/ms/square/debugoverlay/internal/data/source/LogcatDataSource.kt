@@ -63,12 +63,16 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : 
       reader = BufferedReader(InputStreamReader(process.inputStream))
 
       while (currentCoroutineContext().isActive) {
-        // readLine() returns null at end of stream
+        // readLine() returns null at end of stream, so exit early if a process dies unexpectedly..etc
         val line = reader.readLine()
-        line?.trim()?.parseLogcatEntry(id, threadNameCache)?.let {
-          entries.add(it)
-          id++
-          emit(entries)
+        if (line == null) {
+          break
+        } else {
+          line.trim().parseLogcatEntry(id, threadNameCache)?.let {
+            entries.add(it)
+            id++
+            emit(entries)
+          }
         }
       }
     } catch (e: IOException) {

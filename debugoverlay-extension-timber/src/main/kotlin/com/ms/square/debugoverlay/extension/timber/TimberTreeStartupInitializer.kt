@@ -1,7 +1,10 @@
 package com.ms.square.debugoverlay.extension.timber
 
+import android.app.Application
 import android.content.Context
 import androidx.startup.Initializer
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
+import com.ms.square.debugoverlay.internal.util.isMainProcess
 import timber.log.Timber
 
 /**
@@ -15,6 +18,13 @@ import timber.log.Timber
  */
 public class TimberTreeStartupInitializer : Initializer<Unit> {
   override fun create(context: Context) {
+    val application =
+      context.applicationContext as? Application ?: error("Can not cast the given context an Application")
+    @OptIn(InternalDebugOverlayApi::class)
+    if (!isMainProcess(application)) {
+      // Just return early without any work if it's not running in the main app process
+      return
+    }
     Timber.plant(DebugOverlayTimberTree())
   }
 

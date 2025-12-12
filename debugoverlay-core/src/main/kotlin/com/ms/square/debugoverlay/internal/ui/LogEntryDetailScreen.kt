@@ -164,7 +164,7 @@ private fun DetailActionButtons(logEntry: LogEntry, onFilterTag: (String) -> Uni
     // Copy button
     Button(
       onClick = {
-        val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label_logcat)
+        val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label_log)
         scope.copyToClipboard(clipboard, logEntry.toClipboardText(), clipboardLabel)
       },
       modifier = Modifier.weight(1f)

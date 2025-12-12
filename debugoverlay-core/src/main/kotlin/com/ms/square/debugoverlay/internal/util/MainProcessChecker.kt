@@ -4,11 +4,15 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.os.Build
+import androidx.annotation.RestrictTo
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 
 /**
  * Returns true if the current process is the main process (matches the initial application pid)
  */
-internal fun isMainProcess(application: Application): Boolean {
+@InternalDebugOverlayApi
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+public fun isMainProcess(application: Application): Boolean {
   val mainProcessName = application.packageName
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
     return mainProcessName == Application.getProcessName()

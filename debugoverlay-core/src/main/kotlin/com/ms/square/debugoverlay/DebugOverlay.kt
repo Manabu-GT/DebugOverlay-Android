@@ -3,6 +3,7 @@ package com.ms.square.debugoverlay
 import android.app.Application
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
@@ -49,6 +50,7 @@ public object DebugOverlay {
   internal val overlayDataRepository: DebugOverlayDataRepository
     get() = _overlayDataRepository ?: error("DebugOverlayDataRepository not initialized")
 
+  @InternalDebugOverlayApi
   @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
   @MainThread
   public fun install(application: Application) {

@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicLong
  * @param maxStoredLogs Maximum number of log entries to keep in memory.
  *   Older entries are evicted when this limit is reached.
  */
-@OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   Timber.Tree(),
   LogTracker {
@@ -45,6 +44,8 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   override val sourceName: String = SOURCE_NAME
 
   private val idGenerator = AtomicLong(0)
+
+  @OptIn(InternalDebugOverlayApi::class)
   private val recentLogs = EvictingQueue<LogEntry>(maxStoredLogs)
   private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
   override val logs: Flow<List<LogEntry>> = _logs.asStateFlow()
@@ -69,6 +70,7 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
       message = fullMessage
     )
 
+    @OptIn(InternalDebugOverlayApi::class)
     _logs.value = recentLogs.addAndSnapshot(entry)
   }
 
