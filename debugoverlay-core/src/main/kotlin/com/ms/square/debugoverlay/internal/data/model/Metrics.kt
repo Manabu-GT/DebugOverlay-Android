@@ -1,6 +1,9 @@
+@file:OptIn(InternalDebugOverlayApi::class)
+
 package com.ms.square.debugoverlay.internal.data.model
 
 import androidx.annotation.Size
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
 
 private const val VALUE_HISTORY_SIZE: Int = 16

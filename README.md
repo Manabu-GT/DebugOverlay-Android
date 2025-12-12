@@ -27,7 +27,7 @@ Each row shows a status dot (green/yellow/red) based on current health. Long-pre
 ### Debug Panel
 Tap the overlay to open a full-screen diagnostic panel with six tabs:
 
-- **Logcat** – Live logcat stream with level filtering (V/D/I/W/E), search, and tap-to-expand details
+- **Log** – Live log stream with level filtering (V/D/I/W/E), search, and tap-to-expand details. Supports system logcat or [Timber integration](#timber-log-capture)
 - **AppExits** – App termination history (crashes, ANRs, OOM kills, etc.) on Android 11+ with stack traces when available
 - **Network** – Upload/download totals, request list with timing/size, and full request/response inspection (requires [interceptor setup](#network-request-tracking))
 - **JankStats** – Frame timing analysis showing jank percentage, per-state breakdown, and individual janky frame details
@@ -121,6 +121,23 @@ val client = OkHttpClient.Builder()
 ```
 
 The interceptor captures request/response metadata (URL, method, status, timing, size) and displays it in the debug panel. Use `maxStoredRequests` to limit memory usage.
+
+### Timber log capture
+
+By default, the Log tab reads from system logcat (your app's logs only). If your app uses [Timber](https://github.com/JakeWharton/timber), you can capture logs directly from Timber instead—just add the dependency:
+
+```kotlin
+dependencies {
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.0.0-SNAPSHOT")
+}
+```
+
+That's it. The extension auto-plants `DebugOverlayTimberTree` via AndroidX Startup and registers it with DebugOverlay. The Log tab will show "Timber" as the source indicator and display all logs sent through Timber, including stack traces for logged exceptions.
+
+**Why use Timber capture?**
+- Cleaner logs - only your app's Timber calls, no system/framework noise
+- Full stack traces when you log exceptions with `Timber.e(exception, "message")`
+- Direct in-process capture without spawning a logcat subprocess
 
 ## Known Limitations
 

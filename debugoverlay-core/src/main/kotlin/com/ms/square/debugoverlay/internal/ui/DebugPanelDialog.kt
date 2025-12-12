@@ -34,7 +34,7 @@ import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
-  LOGCAT(R.string.debugoverlay_tab_logcat),
+  LOG(R.string.debugoverlay_tab_log),
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
@@ -99,7 +99,7 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
-  var selectedTab by remember { mutableStateOf(DebugTab.LOGCAT) }
+  var selectedTab by remember { mutableStateOf(DebugTab.LOG) }
 
   Column(
     modifier = modifier.fillMaxSize()
@@ -125,7 +125,10 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     }
     // Tab content
     when (selectedTab) {
-      DebugTab.LOGCAT -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
+      DebugTab.LOG -> LogTabContent(
+        logsFlow = DebugOverlay.overlayDataRepository.logs,
+        logSourceNameFlow = DebugOverlay.overlayDataRepository.logSourceName
+      )
       DebugTab.APP_EXITS -> AppExitTabContent(
         exitInfosFlow = DebugOverlay.overlayDataRepository.appExitInfos,
         isSupported = DebugOverlay.overlayDataRepository.isAppExitSupported

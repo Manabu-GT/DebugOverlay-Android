@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -285,7 +284,7 @@ private fun SectionHeader(text: String) {
 private fun InfoCard(title: String, content: @Composable () -> Unit) {
   Surface(
     modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerLowest,
     tonalElevation = 1.dp
   ) {

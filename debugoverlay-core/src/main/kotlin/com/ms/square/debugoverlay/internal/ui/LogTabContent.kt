@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -42,16 +43,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
-import com.ms.square.debugoverlay.internal.data.model.LogLevel
-import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
+import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.internal.util.toColor
+import com.ms.square.debugoverlay.model.LogEntry
+import com.ms.square.debugoverlay.model.LogLevel
 import kotlinx.coroutines.flow.Flow
-
-// Constants
-private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
+import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Logcat tab content displaying filtered log entries with auto-scroll behavior.
+ * Log tab content displaying filtered log entries with auto-scroll behavior.
  *
  * Features:
  * - Filter by log level (V, D, I, W, E)
@@ -59,21 +59,28 @@ private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
  * - Manual scroll pauses auto-scroll
  * - Detail screen navigation with back button
  * - FAB to resume auto-scroll when paused
+ * - Source indicator showing "System Logcat" or custom source name (e.g., "Timber")
  *
- * @param logsFlow Flow of logcat entries to collect and display.
+ * @param logsFlow Flow of log entries to collect and display.
+ * @param logSourceNameFlow Flow of current log source name (null = system logcat).
  * @param modifier Modifier to be applied to the root layout
  */
 @Composable
-internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modifier = Modifier) {
-  val logcatEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
+internal fun LogTabContent(
+  logsFlow: Flow<List<LogEntry>>,
+  logSourceNameFlow: StateFlow<String?>,
+  modifier: Modifier = Modifier,
+) {
+  val logEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
+  val logSourceName by logSourceNameFlow.collectAsStateWithLifecycle()
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
   var searchQuery by remember { mutableStateOf("") }
-  var selectedLogEntry by remember { mutableStateOf<LogcatEntry?>(null) }
+  var selectedLogEntry by remember { mutableStateOf<LogEntry?>(null) }
   var isAutoScrollEnabled by remember { mutableStateOf(true) }
 
-  val filteredEntries = remember(logcatEntries, selectedLevel, searchQuery) {
-    logcatEntries.filter { entry ->
+  val filteredEntries = remember(logEntries, selectedLevel, searchQuery) {
+    logEntries.filter { entry ->
       val levelMatch = entry.level.ordinal >= selectedLevel.ordinal
       val searchMatch = searchQuery.isBlank() ||
         entry.message.contains(searchQuery, ignoreCase = true) ||
@@ -102,7 +109,8 @@ internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modif
     selectedItem = selectedLogEntry,
     onBack = { selectedLogEntry = null },
     listContent = {
-      LogcatListScreen(
+      LogListScreen(
+        logSourceName = logSourceName,
         searchQuery = searchQuery,
         onSearchQueryChanged = { searchQuery = it },
         selectedLevel = selectedLevel,
@@ -128,31 +136,33 @@ internal fun LogcatTabContent(logsFlow: Flow<List<LogcatEntry>>, modifier: Modif
 }
 
 /**
- * Logcat list screen with filters and log entries.
+ * Log list screen with filters and log entries.
  */
 @Suppress("LongParameterList")
 @Composable
-private fun LogcatListScreen(
+private fun LogListScreen(
+  logSourceName: String?,
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   selectedLevel: LogLevel,
   onLevelSelected: (LogLevel) -> Unit,
-  filteredEntries: List<LogcatEntry>,
+  filteredEntries: List<LogEntry>,
   listState: LazyListState,
-  onEntryClick: (LogcatEntry) -> Unit,
+  onEntryClick: (LogEntry) -> Unit,
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Box(modifier = modifier.fillMaxWidth()) {
     Column(modifier = Modifier.fillMaxWidth()) {
-      LogcatFilterBar(
+      LogFilterBar(
+        logSourceName = logSourceName,
         searchQuery = searchQuery,
         onSearchQueryChanged = onSearchQueryChanged,
         selectedLevel = selectedLevel,
         onLevelSelected = onLevelSelected
       )
 
-      LogcatContent(
+      LogContent(
         filteredEntries = filteredEntries,
         listState = listState,
         onEntryClick = onEntryClick
@@ -170,7 +180,8 @@ private fun LogcatListScreen(
 }
 
 @Composable
-private fun LogcatFilterBar(
+private fun LogFilterBar(
+  logSourceName: String?,
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   selectedLevel: LogLevel,
@@ -178,21 +189,55 @@ private fun LogcatFilterBar(
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxWidth().padding(top = 8.dp)) {
-    SearchField(
-      searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
-      searchQuery = searchQuery,
-      onSearchQueryChanged = onSearchQueryChanged
-    )
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      LogSourceIndicator(sourceName = logSourceName)
+      SearchField(
+        searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
+        searchQuery = searchQuery,
+        onSearchQueryChanged = onSearchQueryChanged,
+        modifier = Modifier.weight(1f)
+      )
+    }
 
-    LogcatFilters(
+    LogLevelFilters(
       selectedLevel = selectedLevel,
       onLevelSelected = onLevelSelected
     )
   }
 }
 
+/**
+ * Badge showing the current log source (e.g., "System Logcat" or "Timber").
+ */
 @Composable
-private fun LogcatFilters(
+private fun LogSourceIndicator(sourceName: String?, modifier: Modifier = Modifier) {
+  val displayName = sourceName ?: stringResource(R.string.debugoverlay_log_source_system)
+  val sourceDescription = stringResource(R.string.debugoverlay_log_source_description, displayName)
+
+  Surface(
+    modifier = modifier.semantics {
+      contentDescription = sourceDescription
+    },
+    shape = MaterialTheme.shapes.extraSmall,
+    color = MaterialTheme.colorScheme.tertiaryContainer
+  ) {
+    Text(
+      text = displayName,
+      style = MaterialTheme.typography.labelSmall,
+      color = MaterialTheme.colorScheme.onTertiaryContainer,
+      modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+    )
+  }
+}
+
+@Composable
+private fun LogLevelFilters(
   selectedLevel: LogLevel,
   onLevelSelected: (LogLevel) -> Unit,
   modifier: Modifier = Modifier,
@@ -215,10 +260,10 @@ private fun LogcatFilters(
 }
 
 @Composable
-private fun LogcatContent(
-  filteredEntries: List<LogcatEntry>,
+private fun LogContent(
+  filteredEntries: List<LogEntry>,
   listState: androidx.compose.foundation.lazy.LazyListState,
-  onEntryClick: (LogcatEntry) -> Unit,
+  onEntryClick: (LogEntry) -> Unit,
 ) {
   if (filteredEntries.isEmpty()) {
     Box(
@@ -235,7 +280,7 @@ private fun LogcatContent(
       contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
       items(filteredEntries, key = { it.id }) { entry ->
-        LogcatEntryItem(
+        LogEntryItem(
           entry = entry,
           onClick = { onEntryClick(entry) }
         )
@@ -255,7 +300,7 @@ private fun NoLogEntryPlaceHolder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LogcatEntryItem(entry: LogcatEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun LogEntryItem(entry: LogEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
   val entryDescription = stringResource(
     R.string.debugoverlay_log_entry_description,
     entry.tag,
@@ -268,7 +313,7 @@ private fun LogcatEntryItem(entry: LogcatEntry, onClick: () -> Unit, modifier: M
       .fillMaxWidth()
       .background(
         color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(8.dp)
+        shape = MaterialTheme.shapes.small
       )
       .height(IntrinsicSize.Min) // Allow children to query intrinsic height
       .semantics(mergeDescendants = true) {
@@ -296,7 +341,7 @@ private fun LogcatEntryItem(entry: LogcatEntry, onClick: () -> Unit, modifier: M
       modifier = Modifier.weight(1f),
       verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-      LogcatEntryMetadata(entry = entry)
+      LogEntryMetadata(entry = entry)
 
       // Message
       Text(
@@ -312,7 +357,7 @@ private fun LogcatEntryItem(entry: LogcatEntry, onClick: () -> Unit, modifier: M
 }
 
 @Composable
-private fun LogcatEntryMetadata(entry: LogcatEntry, modifier: Modifier = Modifier) {
+private fun LogEntryMetadata(entry: LogEntry, modifier: Modifier = Modifier) {
   Row(
     modifier = modifier,
     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -320,7 +365,7 @@ private fun LogcatEntryMetadata(entry: LogcatEntry, modifier: Modifier = Modifie
   ) {
     // Timestamp
     Text(
-      text = entry.timestamp.takeLast(TIMESTAMP_DISPLAY_LENGTH),
+      text = formatTimestamp(entry.timestampMs),
       style = MaterialTheme.typography.labelSmall,
       fontFamily = FontFamily.Monospace,
       color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -353,7 +398,7 @@ private fun LogcatEntryMetadata(entry: LogcatEntry, modifier: Modifier = Modifie
 
     // Tag in colored chip
     Surface(
-      shape = RoundedCornerShape(4.dp),
+      shape = MaterialTheme.shapes.extraSmall,
       color = entry.level.toColor().copy(alpha = 0.2f),
       contentColor = entry.level.toColor()
     ) {
@@ -384,8 +429,9 @@ private fun FilterChip(
     modifier = modifier.semantics {
       role = Role.RadioButton
       contentDescription = chipDescription
+      this.selected = selected
     },
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = if (selected) color.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainerHigh,
     border = androidx.compose.foundation.BorderStroke(
       width = 1.dp,

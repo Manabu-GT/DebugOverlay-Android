@@ -84,6 +84,7 @@ composeCompiler {
 dependencies {
   debugImplementation(project(":debugoverlay"))
   debugImplementation(project(":debugoverlay-extension-okhttp"))
+  debugImplementation(project(":debugoverlay-extension-timber"))
   implementation(libs.androidx.core)
   implementation(libs.androidx.annotation)
 

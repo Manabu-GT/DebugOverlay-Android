@@ -27,8 +27,10 @@ public object DebugOverlay {
     set(newConfig) {
       if (field != newConfig) {
         field = newConfig
-        _overlayDataRepository?.setNetworkTracker(newConfig.networkRequestTracker)
-          ?: Logger.d("Config updated before install, will apply during install")
+        _overlayDataRepository?.apply {
+          setNetworkTracker(newConfig.networkRequestTracker)
+          setLogTracker(newConfig.logTracker)
+        } ?: Logger.d("Config updated before install, will apply during install")
       }
     }
 
@@ -60,6 +62,7 @@ public object DebugOverlay {
     overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
       _overlayDataRepository = DebugOverlayDataRepository(application, it).apply {
         setNetworkTracker(config.networkRequestTracker)
+        setLogTracker(config.logTracker)
       }
       overlayViewManager = OverlayViewManager(application, it)
     }
@@ -84,8 +87,14 @@ public object DebugOverlay {
    * @property networkRequestTracker Tracks HTTP requests for display in Network tab.
    *   Default is [NoOpNetworkRequestTracker] which disables network tracking.
    *   Use DebugOverlayNetworkInterceptor from debugoverlay-extension-okhttp for OkHttp integration.
+   * @property logTracker Custom log tracker to replace system logcat reading.
+   *   Default is null which uses the built-in system logcat reader.
+   *   Use DebugOverlayTimberTree from debugoverlay-extension-timber for Timber integration.
    *
    * @see configure
    */
-  public data class Config(val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker)
+  public data class Config(
+    val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
+    val logTracker: LogTracker? = null,
+  )
 }

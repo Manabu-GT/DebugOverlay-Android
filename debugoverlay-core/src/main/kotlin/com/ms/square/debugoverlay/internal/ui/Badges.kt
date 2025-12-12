@@ -1,7 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,7 +21,7 @@ internal fun MethodBadge(method: String, modifier: Modifier = Modifier) {
   Surface(
     modifier = modifier,
     color = method.httpMethodColor,
-    shape = RoundedCornerShape(4.dp)
+    shape = MaterialTheme.shapes.extraSmall
   ) {
     Text(
       text = method,

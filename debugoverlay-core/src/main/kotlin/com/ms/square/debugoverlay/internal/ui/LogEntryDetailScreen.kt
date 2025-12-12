@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -29,11 +28,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
-import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
+import com.ms.square.debugoverlay.internal.util.formatTimestamp
+import com.ms.square.debugoverlay.internal.util.toClipboardText
 import com.ms.square.debugoverlay.internal.util.toColor
-
-private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
+import com.ms.square.debugoverlay.model.LogEntry
 
 /**
  * Log entry detail screen with TopAppBar and comprehensive information.
@@ -41,7 +40,7 @@ private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun LogEntryDetailScreen(
-  logEntry: LogcatEntry,
+  logEntry: LogEntry,
   onBack: () -> Unit,
   onFilterTag: (String) -> Unit,
   modifier: Modifier = Modifier,
@@ -58,7 +57,7 @@ internal fun LogEntryDetailScreen(
               horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
               Surface(
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
                 color = levelColor.copy(alpha = 0.2f)
               ) {
                 Text(
@@ -80,7 +79,7 @@ internal fun LogEntryDetailScreen(
               )
             }
             Text(
-              text = logEntry.timestamp.takeLast(TIMESTAMP_DISPLAY_LENGTH),
+              text = formatTimestamp(logEntry.timestampMs),
               style = MaterialTheme.typography.bodySmall,
               fontFamily = FontFamily.Monospace,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -106,11 +105,7 @@ internal fun LogEntryDetailScreen(
 }
 
 @Composable
-private fun LogEntryDetailContent(
-  logEntry: LogcatEntry,
-  onFilterTag: (String) -> Unit,
-  modifier: Modifier = Modifier,
-) {
+private fun LogEntryDetailContent(logEntry: LogEntry, onFilterTag: (String) -> Unit, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxSize()) {
     SelectionContainer(
       modifier = Modifier
@@ -139,7 +134,7 @@ private fun DetailMessageSection(message: String, modifier: Modifier = Modifier)
       modifier = Modifier.padding(bottom = 8.dp)
     )
     Surface(
-      shape = RoundedCornerShape(8.dp),
+      shape = MaterialTheme.shapes.small,
       color = MaterialTheme.colorScheme.surfaceContainer,
       modifier = Modifier.fillMaxWidth()
     ) {
@@ -155,7 +150,7 @@ private fun DetailMessageSection(message: String, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun DetailActionButtons(logEntry: LogcatEntry, onFilterTag: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun DetailActionButtons(logEntry: LogEntry, onFilterTag: (String) -> Unit, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
@@ -170,7 +165,7 @@ private fun DetailActionButtons(logEntry: LogcatEntry, onFilterTag: (String) -> 
     Button(
       onClick = {
         val clipboardLabel = context.getString(R.string.debugoverlay_clipboard_label_logcat)
-        scope.copyToClipboard(clipboard, logEntry.rawLine, clipboardLabel)
+        scope.copyToClipboard(clipboard, logEntry.toClipboardText(), clipboardLabel)
       },
       modifier = Modifier.weight(1f)
     ) {

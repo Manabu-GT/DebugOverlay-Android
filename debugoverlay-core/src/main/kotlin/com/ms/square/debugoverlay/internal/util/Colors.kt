@@ -4,7 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.ms.square.debugoverlay.internal.data.model.AppExitReason
-import com.ms.square.debugoverlay.internal.data.model.LogLevel
+import com.ms.square.debugoverlay.model.LogLevel
 
 // HTTP method colors
 private val METHOD_COLOR_GET = Color(0xFF03DAC6) // Cyan

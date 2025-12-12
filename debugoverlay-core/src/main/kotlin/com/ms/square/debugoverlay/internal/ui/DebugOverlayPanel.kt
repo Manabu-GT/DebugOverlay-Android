@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -138,9 +137,9 @@ internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Mod
         .border(
           width = 1.dp,
           color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-          shape = RoundedCornerShape(12.dp)
+          shape = MaterialTheme.shapes.medium
         ),
-      shape = RoundedCornerShape(12.dp),
+      shape = MaterialTheme.shapes.medium,
       color = MaterialTheme.colorScheme.surfaceContainerHigh,
       tonalElevation = 3.dp
     ) {

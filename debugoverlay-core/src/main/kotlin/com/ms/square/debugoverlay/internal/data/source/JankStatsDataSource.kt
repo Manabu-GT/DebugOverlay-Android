@@ -1,3 +1,5 @@
+@file:OptIn(InternalDebugOverlayApi::class)
+
 package com.ms.square.debugoverlay.internal.data.source
 
 import android.app.Activity
@@ -9,6 +11,7 @@ import androidx.metrics.performance.FrameDataApi24
 import androidx.metrics.performance.FrameDataApi31
 import androidx.metrics.performance.JankStats
 import androidx.metrics.performance.PerformanceMetricsState
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
 import com.ms.square.debugoverlay.internal.data.Percentage

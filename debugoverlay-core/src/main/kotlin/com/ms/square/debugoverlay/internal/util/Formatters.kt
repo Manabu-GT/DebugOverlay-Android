@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.util
 
+import com.ms.square.debugoverlay.model.LogEntry
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
@@ -18,6 +19,14 @@ private const val MILLIS_PER_DAY = 86_400_000L
 
 private val JSON_FORMATTER = Json {
   prettyPrint = true
+}
+
+private val TIMESTAMP_FORMATTER: ThreadLocal<SimpleDateFormat> = ThreadLocal.withInitial {
+  SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
+}
+
+private val RAW_LINE_TIMESTAMP_FORMATTER: ThreadLocal<SimpleDateFormat> = ThreadLocal.withInitial {
+  SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US)
 }
 
 /**
@@ -45,7 +54,20 @@ internal fun formatTextSize(length: Int): String = when {
 }
 
 internal fun formatTimestamp(timestamp: Long): String =
-  SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
+  requireNotNull(TIMESTAMP_FORMATTER.get()).format(Date(timestamp))
+
+/**
+ * Format timestamp for clipboard copy (e.g., "12-11 14:35:22.786").
+ */
+private fun formatClipboardTimestamp(timestamp: Long): String =
+  requireNotNull(RAW_LINE_TIMESTAMP_FORMATTER.get()).format(Date(timestamp))
+
+/**
+ * Format log entry for clipboard copy.
+ * Output format: "MM-dd HH:mm:ss.SSS PID TID LEVEL TAG: message"
+ */
+internal fun LogEntry.toClipboardText(): String =
+  "${formatClipboardTimestamp(timestampMs)} $pid $tid ${level.name.first()} $tag: $message"
 
 /**
  * Format timestamp as relative time (e.g., "2s ago", "5m ago", "2h ago").

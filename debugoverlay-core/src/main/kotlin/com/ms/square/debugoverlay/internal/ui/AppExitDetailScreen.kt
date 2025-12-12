@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -59,7 +58,7 @@ internal fun AppExitDetailScreen(exitInfo: AppExitInfo, onBack: () -> Unit, modi
         title = {
           Column {
             Surface(
-              shape = RoundedCornerShape(12.dp),
+              shape = MaterialTheme.shapes.medium,
               color = severityColor.copy(alpha = 0.2f)
             ) {
               Text(
@@ -128,7 +127,7 @@ private fun ExplanationSection(reason: AppExitReason, modifier: Modifier = Modif
   val severityColor = reason.severity.toColor()
 
   Surface(
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = severityColor.copy(alpha = 0.1f),
     modifier = modifier.fillMaxWidth()
   ) {
@@ -153,7 +152,7 @@ private fun SummarySection(exitInfo: AppExitInfo, modifier: Modifier = Modifier)
     )
 
     Surface(
-      shape = RoundedCornerShape(12.dp),
+      shape = MaterialTheme.shapes.medium,
       color = MaterialTheme.colorScheme.surfaceContainerLowest,
       tonalElevation = 1.dp,
       modifier = Modifier.fillMaxWidth()
@@ -230,7 +229,7 @@ private fun TraceSection(trace: String, isAnr: Boolean, modifier: Modifier = Mod
     )
 
     Surface(
-      shape = RoundedCornerShape(8.dp),
+      shape = MaterialTheme.shapes.small,
       color = MaterialTheme.colorScheme.surfaceContainer,
       modifier = Modifier.fillMaxWidth()
     ) {

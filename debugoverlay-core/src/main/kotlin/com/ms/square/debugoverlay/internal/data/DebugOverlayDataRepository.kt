@@ -2,31 +2,36 @@ package com.ms.square.debugoverlay.internal.data
 
 import android.app.Activity
 import android.content.Context
+import com.ms.square.debugoverlay.LogTracker
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.NoOpNetworkRequestTracker
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
-import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.data.model.NetworkStats
 import com.ms.square.debugoverlay.internal.data.source.AppExitDataSource
 import com.ms.square.debugoverlay.internal.data.source.DeviceInfoDataSource
 import com.ms.square.debugoverlay.internal.data.source.JankStatsDataSource
 import com.ms.square.debugoverlay.internal.data.source.LogcatDataSource
 import com.ms.square.debugoverlay.internal.data.source.NetStatsDataSource
+import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScope) {
 
   private val currentNetworkRequestTracker = MutableStateFlow<NetworkRequestTracker>(NoOpNetworkRequestTracker)
+  private val currentLogTracker = MutableStateFlow<LogTracker?>(null)
   private val logcatDataSource = LogcatDataSource(scope)
   private val netStatsDataSource = NetStatsDataSource(scope)
   private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
@@ -46,7 +51,18 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
     }
   }
 
-  val logs: Flow<List<LogcatEntry>> = logcatDataSource.logs
+  // Expose current log source name for UI indicator
+  val logSourceName: StateFlow<String?> = currentLogTracker
+    .map { it?.sourceName }
+    .stateIn(scope, SharingStarted.WhileSubscribed(), null)
+
+  // IMPORTANT: Do NOT call logcatDataSource.close() explicitly when switching trackers
+  // WhileSubscribed handles lifecycle - logcat auto-restarts when switching back
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val logs: Flow<List<LogEntry>> = currentLogTracker.flatMapLatest { tracker ->
+    tracker?.logs ?: logcatDataSource.logs
+  }
+
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
   val deviceInfo: Flow<DeviceInfo?> = deviceInfoDataSource.deviceInfo
   val jankStats: StateFlow<JankStatsUiState> = jankStatsDataSource.state
@@ -62,6 +78,10 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   fun setNetworkTracker(tracker: NetworkRequestTracker) {
     currentNetworkRequestTracker.value = tracker
+  }
+
+  fun setLogTracker(tracker: LogTracker?) {
+    currentLogTracker.value = tracker
   }
 
   fun startOrResumeJankStatsTracking(activity: Activity) {
