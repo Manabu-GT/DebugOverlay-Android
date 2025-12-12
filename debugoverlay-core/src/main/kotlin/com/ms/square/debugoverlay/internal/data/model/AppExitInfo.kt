@@ -1,9 +1,6 @@
 package com.ms.square.debugoverlay.internal.data.model
 
 import android.app.ApplicationExitInfo
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 /**
  * Data class representing an app exit event from [ApplicationExitInfo].
@@ -173,25 +170,4 @@ internal enum class ProcessImportance(val value: Int, val label: String) {
   }
 }
 
-// Severity colors for light theme
-private val CRITICAL_COLOR_LIGHT = Color(0xFFF44336)
-private val WARNING_COLOR_LIGHT = Color(0xFFFF9800)
-private val INFO_COLOR_LIGHT = Color(0xFF2196F3)
 
-// Severity colors for dark theme
-private val CRITICAL_COLOR_DARK = Color(0xFFE57373)
-private val WARNING_COLOR_DARK = Color(0xFFFFB74D)
-private val INFO_COLOR_DARK = Color(0xFF64B5F6)
-
-/**
- * Get the color for this severity based on the current theme.
- */
-@Composable
-internal fun AppExitReason.Severity.toColor(): Color {
-  val isDark = isSystemInDarkTheme()
-  return when (this) {
-    AppExitReason.Severity.CRITICAL -> if (isDark) CRITICAL_COLOR_DARK else CRITICAL_COLOR_LIGHT
-    AppExitReason.Severity.WARNING -> if (isDark) WARNING_COLOR_DARK else WARNING_COLOR_LIGHT
-    AppExitReason.Severity.INFO -> if (isDark) INFO_COLOR_DARK else INFO_COLOR_LIGHT
-  }
-}

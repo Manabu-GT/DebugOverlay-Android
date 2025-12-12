@@ -39,11 +39,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
-import com.ms.square.debugoverlay.internal.data.model.toColor
+import com.ms.square.debugoverlay.internal.util.toColor
 import com.ms.square.debugoverlay.internal.util.formatMemoryKbToMb
 import com.ms.square.debugoverlay.internal.util.formatRelativeTime
+import kotlinx.coroutines.flow.Flow
 
 /**
  * App Exit tab content displaying historical app termination reasons.
@@ -57,10 +59,11 @@ import com.ms.square.debugoverlay.internal.util.formatRelativeTime
  */
 @Composable
 internal fun AppExitTabContent(
-  exitInfos: List<AppExitInfo>,
+  exitInfosFlow: Flow<List<AppExitInfo>>,
   isSupported: Boolean,
   modifier: Modifier = Modifier,
 ) {
+  val exitInfos by exitInfosFlow.collectAsStateWithLifecycle(initialValue = emptyList())
   var selectedExitInfo by remember { mutableStateOf<AppExitInfo?>(null) }
 
   DetailNavigation(

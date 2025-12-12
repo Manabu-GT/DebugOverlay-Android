@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContentCopy
@@ -146,10 +147,12 @@ private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modif
     }
 
     // Content
-    when (selectedTab) {
-      0 -> OverviewTab(request = request)
-      1 -> HeadersTab(request = request)
-      2 -> BodyTab(request = request)
+    SelectionContainer(modifier = Modifier.fillMaxSize()) {
+      when (selectedTab) {
+        0 -> OverviewTab(request = request)
+        1 -> HeadersTab(request = request)
+        2 -> BodyTab(request = request)
+      }
     }
   }
 }

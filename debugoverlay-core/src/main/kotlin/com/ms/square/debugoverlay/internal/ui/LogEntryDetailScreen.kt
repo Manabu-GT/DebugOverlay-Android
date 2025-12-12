@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,8 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
-import com.ms.square.debugoverlay.internal.data.model.toColor
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
+import com.ms.square.debugoverlay.internal.util.toColor
 
 private const val TIMESTAMP_DISPLAY_LENGTH = 12 // HH:MM:SS.mmm
 
@@ -111,13 +112,14 @@ private fun LogEntryDetailContent(
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize()) {
-    Column(
+    SelectionContainer(
       modifier = Modifier
         .weight(1f)
         .verticalScroll(rememberScrollState())
-        .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
-      DetailMessageSection(message = logEntry.message)
+      Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
+        DetailMessageSection(message = logEntry.message)
+      }
     }
 
     DetailActionButtons(
