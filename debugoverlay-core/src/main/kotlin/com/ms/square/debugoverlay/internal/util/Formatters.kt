@@ -65,9 +65,14 @@ internal fun formatRelativeTime(timestamp: Long): String {
 
 /**
  * Format memory in KB to MB string, returning "N/A" if value is 0 (not captured).
+ * Uses 1 decimal place for values under 10 MB for better precision near thresholds.
  */
-internal fun formatMemoryKbToMb(valueKb: Long): String =
-  if (valueKb > 0) "${valueKb / KB_PER_MB} MB" else "N/A"
+internal fun formatMemoryKbToMb(valueKb: Long): String {
+  if (valueKb <= 0) return "N/A"
+  val mb = valueKb / KB_PER_MB.toDouble()
+  @Suppress("MagicNumber")
+  return if (mb < 10) "%.1f MB".format(mb) else "${mb.toLong()} MB"
+}
 
 /**
  * Format timestamp as full date/time string (e.g., "Dec 11, 2025 at 3:45:30 PM").

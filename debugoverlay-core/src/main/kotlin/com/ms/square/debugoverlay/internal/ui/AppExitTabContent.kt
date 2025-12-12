@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -42,9 +43,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
-import com.ms.square.debugoverlay.internal.util.toColor
 import com.ms.square.debugoverlay.internal.util.formatMemoryKbToMb
 import com.ms.square.debugoverlay.internal.util.formatRelativeTime
+import com.ms.square.debugoverlay.internal.util.toColor
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -110,15 +111,9 @@ private fun AppExitListScreen(
 }
 
 @Composable
-private fun AppExitItem(
-  exitInfo: AppExitInfo,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
+private fun AppExitItem(exitInfo: AppExitInfo, onClick: () -> Unit, modifier: Modifier = Modifier) {
   val severityColor = exitInfo.reason.severity.toColor()
-  val timeStamp = remember(exitInfo.timestampMs) {
-    formatRelativeTime(exitInfo.timestampMs)
-  }
+  val timeStamp = remember(exitInfo.timestampMs) { formatRelativeTime(exitInfo.timestampMs) }
   val itemDescription = stringResource(
     R.string.debugoverlay_app_exits_item_description,
     exitInfo.reason.label,
@@ -143,37 +138,15 @@ private fun AppExitItem(
         .padding(vertical = 12.dp, horizontal = 16.dp),
       horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-      // Severity indicator bar
-      Box(
-        modifier = Modifier
-          .width(4.dp)
-          .fillMaxHeight()
-          .background(
-            color = severityColor,
-            shape = RoundedCornerShape(2.dp)
-          )
-      )
+      SeverityIndicator(color = severityColor)
 
       Column(modifier = Modifier.weight(1f)) {
-        // Header row: Reason + Time
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Text(
-            text = exitInfo.reason.label,
-            style = MaterialTheme.typography.titleSmall,
-            color = severityColor
-          )
-          Text(
-            text = formatRelativeTime(exitInfo.timestampMs),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-        }
+        AppExitItemHeader(
+          reasonLabel = exitInfo.reason.label,
+          severityColor = severityColor,
+          timestamp = timeStamp
+        )
 
-        // Description
         exitInfo.description?.let { description ->
           Text(
             text = description,
@@ -185,31 +158,73 @@ private fun AppExitItem(
           )
         }
 
-        // Metadata: PSS + Importance
-        Row(
-          modifier = Modifier.padding(top = 8.dp),
-          horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          Text(
-            text = "PSS: ${formatMemoryKbToMb(exitInfo.pssKb)}",
-            style = MaterialTheme.typography.labelSmall,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-          Text(
-            text = "\u00B7",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-          )
-          Text(
-            text = exitInfo.importance.label,
-            style = MaterialTheme.typography.labelSmall,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-        }
+        AppExitItemMetadata(
+          pssKb = exitInfo.pssKb,
+          importanceLabel = exitInfo.importance.label
+        )
       }
     }
+  }
+}
+
+@Composable
+private fun SeverityIndicator(color: Color, modifier: Modifier = Modifier) {
+  Box(
+    modifier = modifier
+      .width(4.dp)
+      .fillMaxHeight()
+      .background(color = color, shape = RoundedCornerShape(2.dp))
+  )
+}
+
+@Composable
+private fun AppExitItemHeader(
+  reasonLabel: String,
+  severityColor: Color,
+  timestamp: String,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    modifier = modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Text(
+      text = reasonLabel,
+      style = MaterialTheme.typography.titleSmall,
+      color = severityColor
+    )
+    Text(
+      text = timestamp,
+      style = MaterialTheme.typography.labelSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+  }
+}
+
+@Composable
+private fun AppExitItemMetadata(pssKb: Long, importanceLabel: String, modifier: Modifier = Modifier) {
+  Row(
+    modifier = modifier.padding(top = 8.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp)
+  ) {
+    Text(
+      text = "PSS: ${formatMemoryKbToMb(pssKb)}",
+      style = MaterialTheme.typography.labelSmall,
+      fontFamily = FontFamily.Monospace,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Text(
+      text = "\u00B7",
+      style = MaterialTheme.typography.labelSmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    )
+    Text(
+      text = importanceLabel,
+      style = MaterialTheme.typography.labelSmall,
+      fontFamily = FontFamily.Monospace,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
   }
 }
 

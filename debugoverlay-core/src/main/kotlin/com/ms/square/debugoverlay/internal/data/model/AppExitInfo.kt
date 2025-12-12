@@ -24,17 +24,13 @@ internal data class AppExitInfo(
  *
  * @see <a href="https://developer.android.com/reference/android/app/ApplicationExitInfo">ApplicationExitInfo</a>
  */
-internal enum class AppExitReason(
-  val value: Int,
-  val label: String,
-  val severity: Severity,
-  val explanation: String,
-) {
+internal enum class AppExitReason(val value: Int, val label: String, val severity: Severity, val explanation: String) {
   ANR(
     value = 6,
     label = "ANR",
     severity = Severity.CRITICAL,
-    explanation = "App was unresponsive. Check for main thread blocking (network calls, heavy computation, or deadlocks)."
+    explanation = "App was unresponsive. Check for main thread blocking " +
+      "(network calls, heavy computation, or deadlocks)."
   ),
   CRASH(
     value = 4,
@@ -82,7 +78,8 @@ internal enum class AppExitReason(
     value = 3,
     label = "Low Memory",
     severity = Severity.WARNING,
-    explanation = "System killed the app to reclaim memory. Consider reducing memory footprint or handling onTrimMemory()."
+    explanation = "System killed the app to reclaim memory. " +
+      "Consider reducing memory footprint or handling onTrimMemory()."
   ),
   OTHER(
     value = 13,
@@ -124,7 +121,8 @@ internal enum class AppExitReason(
     value = 11,
     label = "User Stopped",
     severity = Severity.INFO,
-    explanation = "The user profile running this app was stopped. Occurs on multi-user devices when switching users or stopping a work profile."
+    explanation = "The user profile running this app was stopped. " +
+      "Occurs on multi-user devices when switching users or stopping a work profile."
   ),
   UNKNOWN(
     value = 0,
@@ -137,8 +135,7 @@ internal enum class AppExitReason(
   enum class Severity { CRITICAL, WARNING, INFO }
 
   companion object {
-    fun fromValue(value: Int): AppExitReason =
-      entries.find { it.value == value } ?: UNKNOWN
+    fun fromValue(value: Int): AppExitReason = entries.find { it.value == value } ?: UNKNOWN
   }
 }
 
@@ -149,8 +146,9 @@ internal enum class AppExitReason(
  * Note: Android may introduce new importance values in future versions; unrecognized values
  * will be mapped to [UNKNOWN].
  *
- * @see <a href="https://developer.android.com/reference/android/app/ActivityManager.RunningAppProcessInfo#constants_1">RunningAppProcessInfo Constants</a>
+ * @see android.app.ActivityManager.RunningAppProcessInfo
  */
+@Suppress("MagicNumber") // Values are Android API constants
 internal enum class ProcessImportance(val value: Int, val label: String) {
   FOREGROUND(100, "Foreground"),
   FOREGROUND_SERVICE(125, "Foreground Service"),
@@ -165,9 +163,6 @@ internal enum class ProcessImportance(val value: Int, val label: String) {
   ;
 
   companion object {
-    fun fromValue(value: Int): ProcessImportance =
-      entries.find { it.value == value } ?: UNKNOWN
+    fun fromValue(value: Int): ProcessImportance = entries.find { it.value == value } ?: UNKNOWN
   }
 }
-
-

@@ -32,10 +32,10 @@ import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.AppExitReason
-import com.ms.square.debugoverlay.internal.util.toColor
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
 import com.ms.square.debugoverlay.internal.util.formatMemoryKbToMb
+import com.ms.square.debugoverlay.internal.util.toColor
 
 /**
  * Detail screen for a single app exit event.
@@ -49,11 +49,7 @@ import com.ms.square.debugoverlay.internal.util.formatMemoryKbToMb
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AppExitDetailScreen(
-  exitInfo: AppExitInfo,
-  onBack: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
+internal fun AppExitDetailScreen(exitInfo: AppExitInfo, onBack: () -> Unit, modifier: Modifier = Modifier) {
   val severityColor = exitInfo.reason.severity.toColor()
 
   Scaffold(
@@ -99,10 +95,7 @@ internal fun AppExitDetailScreen(
 }
 
 @Composable
-private fun AppExitDetailContent(
-  exitInfo: AppExitInfo,
-  modifier: Modifier = Modifier,
-) {
+private fun AppExitDetailContent(exitInfo: AppExitInfo, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxSize()) {
     SelectionContainer(
       modifier = Modifier
@@ -131,10 +124,7 @@ private fun AppExitDetailContent(
 }
 
 @Composable
-private fun ExplanationSection(
-  reason: AppExitReason,
-  modifier: Modifier = Modifier,
-) {
+private fun ExplanationSection(reason: AppExitReason, modifier: Modifier = Modifier) {
   val severityColor = reason.severity.toColor()
 
   Surface(
@@ -152,10 +142,7 @@ private fun ExplanationSection(
 }
 
 @Composable
-private fun SummarySection(
-  exitInfo: AppExitInfo,
-  modifier: Modifier = Modifier,
-) {
+private fun SummarySection(exitInfo: AppExitInfo, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxWidth()) {
     Text(
       text = stringResource(R.string.debugoverlay_app_exits_summary),
@@ -208,11 +195,7 @@ private fun SummarySection(
 }
 
 @Composable
-private fun SummaryRow(
-  label: String,
-  value: String,
-  modifier: Modifier = Modifier,
-) {
+private fun SummaryRow(label: String, value: String, modifier: Modifier = Modifier) {
   Row(
     modifier = modifier
       .fillMaxWidth()
@@ -234,11 +217,7 @@ private fun SummaryRow(
 }
 
 @Composable
-private fun TraceSection(
-  trace: String,
-  isAnr: Boolean,
-  modifier: Modifier = Modifier,
-) {
+private fun TraceSection(trace: String, isAnr: Boolean, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxWidth()) {
     Text(
       text = stringResource(
@@ -269,10 +248,7 @@ private fun TraceSection(
 }
 
 @Composable
-private fun CopyButton(
-  exitInfo: AppExitInfo,
-  modifier: Modifier = Modifier,
-) {
+private fun CopyButton(exitInfo: AppExitInfo, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
   val context = LocalContext.current
   val scope = rememberCoroutineScope()

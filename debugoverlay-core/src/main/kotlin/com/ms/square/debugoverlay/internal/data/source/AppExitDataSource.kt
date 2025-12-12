@@ -39,7 +39,7 @@ internal class AppExitDataSource(context: Context, scope: CoroutineScope) {
    */
   val appExitInfos: Flow<List<AppExitInfo>> = flow {
     emit(queryAppExitInfos(context))
-  }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.WhileSubscribed(), emptyList())
+  }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Lazily, emptyList())
 
   private fun queryAppExitInfos(context: Context): List<AppExitInfo> {
     if (!isSupported) {
@@ -58,7 +58,7 @@ internal class AppExitDataSource(context: Context, scope: CoroutineScope) {
 
   @Suppress("NewApi") // Checked via isSupported
   private fun ApplicationExitInfo.toAppExitInfo() = AppExitInfo(
-    id = timestamp * 31 + processName.hashCode(),
+    id = timestamp xor processName.hashCode().toLong(),
     reason = AppExitReason.fromValue(reason),
     timestampMs = timestamp,
     description = description,
@@ -71,19 +71,23 @@ internal class AppExitDataSource(context: Context, scope: CoroutineScope) {
 
   @Suppress("NewApi") // Checked via isSupported
   private fun ApplicationExitInfo.readTrace(): String? {
+    val stream = traceInputStream
     // On API 31+, native crash tombstones are returned as protobuf binary format
     // which cannot be displayed as readable text.
     if (reason == ApplicationExitInfo.REASON_CRASH_NATIVE &&
       Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     ) {
-      return if (traceInputStream != null) {
+      return if (stream != null) {
+        runCatching {
+          stream.close() // Close the stream we won't use
+        }
         NATIVE_CRASH_TOMBSTONE_MESSAGE
       } else {
         null
       }
     }
     return runCatching {
-      traceInputStream?.bufferedReader()?.use { it.readText() }
+      stream?.bufferedReader()?.use { it.readText() }
     }.getOrElse { e ->
       Logger.w("ApplicationExitInfo - readTrace() failed", e)
       null
