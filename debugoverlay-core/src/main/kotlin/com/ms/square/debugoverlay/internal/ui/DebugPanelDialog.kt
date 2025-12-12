@@ -35,6 +35,7 @@ import com.ms.square.debugoverlay.core.R
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
   LOGCAT(R.string.debugoverlay_tab_logcat),
+  APP_EXITS(R.string.debugoverlay_tab_app_exits),
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
   UI(R.string.debugoverlay_tab_ui),
@@ -125,6 +126,10 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     // Tab content
     when (selectedTab) {
       DebugTab.LOGCAT -> LogcatTabContent(logsFlow = DebugOverlay.overlayDataRepository.logs)
+      DebugTab.APP_EXITS -> AppExitTabContent(
+        exitInfosFlow = DebugOverlay.overlayDataRepository.appExitInfos,
+        isSupported = DebugOverlay.overlayDataRepository.isAppExitSupported
+      )
       DebugTab.NETWORK -> NetworkTabContent(
         netStatsFlow = DebugOverlay.overlayDataRepository.netStats,
         networkRequestsFlow = DebugOverlay.overlayDataRepository.networkRequests

@@ -44,7 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.LogLevel
 import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
-import com.ms.square.debugoverlay.internal.data.model.toColor
+import com.ms.square.debugoverlay.internal.util.toColor
 import kotlinx.coroutines.flow.Flow
 
 // Constants

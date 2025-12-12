@@ -18,29 +18,44 @@ Welcome! This guide defines how automation and human agents should collaborate i
 ## 2. Code & Build Standards
 
 - **Gradle & AGP**
-    - Project tracks tool versions via `gradle/wrapper/gradle-wrapper.properties` (Gradle) and `gradle/libs.versions.toml` (AGP, plugins, dependencies). Keep those files as the single sources of truth; any wrapper or plugin change must remain compatible with JDK 17+.
-    - When upgrading dependencies or plugins, update the catalog (`gradle/libs.versions.toml`) and keep repository definitions centralised in `settings.gradle.kts`. Avoid reintroducing deprecated repositories (e.g., JCenter).
+  - Project tracks tool versions via `gradle/wrapper/gradle-wrapper.properties` (Gradle) and `gradle/libs.versions.toml` (AGP, plugins, dependencies). Keep those files as the single sources of truth; any wrapper or plugin change must remain compatible with JDK 17+.
+  - When upgrading dependencies or plugins, update the catalog (`gradle/libs.versions.toml`) and keep repository definitions centralised in `settings.gradle.kts`. Avoid reintroducing deprecated repositories (e.g., JCenter).
 
 - **Module Conventions**
-    - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
-    - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
+  - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
+  - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
 
 - **Project Modules**
-    - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
-    - `debugoverlay` - Primary public API artifact that most apps depend on
-    - `debugoverlay-extension-okhttp` - OkHttp interceptor for network request tracking
-    - `sample` - Demo application showcasing library features
+  - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
+  - `debugoverlay` - Primary public API artifact that most apps depend on
+  - `debugoverlay-extension-okhttp` - OkHttp interceptor for network request tracking
+  - `sample` - Demo application showcasing library features
 
 - **Coding Language**
-    - All new code should be written in Kotlin.
+  - All new code should be written in Kotlin.
 
 - **Formatting & Static Analysis**
-    - Respect existing style (4-space Java/Kotlin, XML indentation).
-    - Run relevant formatters (`ktlint`, `spotless`, IDE auto-format) if part of the workflow, but do not introduce sweeping style-only diffs.
+  - Respect existing style (4-space Java/Kotlin, XML indentation).
+  - Run relevant formatters (`ktlint`, `spotless`, IDE auto-format) if part of the workflow, but do not introduce sweeping style-only diffs.
 
 - **Resource Handling**
-    - Keep public resource prefixes (`resourcePrefix 'debugoverlay_'`).
-    - For new assets, ensure they live in the correct variant directory and include mdpi/hdpi etc. when required.
+  - Keep public resource prefixes (`resourcePrefix 'debugoverlay_'`).
+  - For new assets, ensure they live in the correct variant directory and include mdpi/hdpi etc. when required.
+
+- **String Resources vs Hardcoded Strings**
+  - Use **String Resources** for:
+    - UI labels (Copy, Back, Refresh, section headers)
+    - Tab names
+    - Empty state messages ("No AppExit history", "No request headers")
+    - Accessibility descriptions (contentDescription)
+  - **Hardcode** is acceptable for:
+    - Technical explanations (developer-facing diagnostic guidance)
+    - Enum labels that mirror Android API names (e.g., "ANR", "Low Memory")
+    - Code/API references and stack traces
+    - Process importance labels ("Foreground", "Cached")
+    - Emojis used as visual decorations
+    - Preview-only code
+  - **Rule of thumb**: If QA/PM might see it and it reads like UI copy → StringRes. If it's technical content for developers → hardcode is acceptable.
 
 ---
 
@@ -75,10 +90,10 @@ Use the following structured analysis process when performing code reviews:
 - Identify the scope and impact of modifications
 - Note any breaking changes or API modifications
 - External source discovery: when you need deeper context for framework/library behaviour, consult:
-    - **Android Framework** – https://cs.android.com/android
-    - **AndroidX Libraries** – https://cs.android.com/androidx (or GitHub mirrors)
-    - **Third-party Libraries** – the project’s GitHub repository or official docs
-    - **Kotlin Standard Library** – https://github.com/JetBrains/kotlin
+  - **Android Framework** – https://cs.android.com/android
+  - **AndroidX Libraries** – https://cs.android.com/androidx (or GitHub mirrors)
+  - **Third-party Libraries** – the project's GitHub repository or official docs
+  - **Kotlin Standard Library** – https://github.com/JetBrains/kotlin
 
 
 **Step 2: Comprehensive Analysis**

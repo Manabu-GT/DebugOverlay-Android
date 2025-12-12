@@ -212,21 +212,21 @@ private fun NetworkStatsHeaderSubRow(networkStats: NetworkStats) {
       horizontalArrangement = Arrangement.SpaceBetween
     ) {
       Text(
-        text = "${networkStats.totalRequests} requests",
+        text = stringResource(R.string.debugoverlay_netstat_requests, networkStats.totalRequests),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
 
       if (networkStats.errorCount > 0) {
         Text(
-          text = "${networkStats.errorCount} errors",
+          text = stringResource(R.string.debugoverlay_netstat_errors, networkStats.errorCount),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.error
         )
       }
 
       Text(
-        text = "Avg ${networkStats.avgDuration}ms",
+        text = stringResource(R.string.debugoverlay_netstat_avg_duration, networkStats.avgDuration),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
