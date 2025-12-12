@@ -45,7 +45,7 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   override val sourceName: String = SOURCE_NAME
 
   private val idGenerator = AtomicLong(0)
-  private val entries = EvictingQueue<LogEntry>(maxStoredLogs)
+  private val recentLogs = EvictingQueue<LogEntry>(maxStoredLogs)
   private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
   override val logs: Flow<List<LogEntry>> = _logs.asStateFlow()
 
@@ -69,8 +69,7 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
       message = fullMessage
     )
 
-    entries.add(entry)
-    _logs.value = entries.toList()
+    _logs.value = recentLogs.addAndSnapshot(entry)
   }
 
   private companion object {

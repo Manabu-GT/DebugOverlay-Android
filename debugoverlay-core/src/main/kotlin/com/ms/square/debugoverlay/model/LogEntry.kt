@@ -30,7 +30,7 @@ public enum class LogLevel {
       "D" -> DEBUG
       "I" -> INFO
       "W" -> WARN
-      "E", "F" -> ERROR
+      "E", "F" -> ERROR // F = FATAL, mapped to ERROR
       else -> DEBUG
     }
 

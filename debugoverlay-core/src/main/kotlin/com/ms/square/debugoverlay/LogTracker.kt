@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
 public interface LogTracker {
   /**
    * Display name for UI source indicator (e.g., "Timber", "Custom Logger").
-   * This is shown in the Logcat tab to indicate the current log source.
+   * This is shown in the Log tab to indicate the current log source.
    */
   public val sourceName: String
 

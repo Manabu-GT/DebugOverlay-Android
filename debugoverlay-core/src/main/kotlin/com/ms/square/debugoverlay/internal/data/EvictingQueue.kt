@@ -37,6 +37,15 @@ public class EvictingQueue<T>(private val capacity: Int) {
   }
 
   /**
+   * Adds an element to the queue and returns a defensive copy of the queue as a list.
+   */
+  @Synchronized
+  public fun addAndSnapshot(item: T): List<T> {
+    add(item)
+    return queue.toList()
+  }
+
+  /**
    * Returns the current size of the queue.
    */
   public val size: Int

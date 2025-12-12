@@ -94,7 +94,7 @@ public class DebugOverlayNetworkInterceptor(
 ) : Interceptor,
   NetworkRequestTracker {
 
-  private val entries = EvictingQueue<NetworkRequest>(maxStoredRequests)
+  private val recentRequests = EvictingQueue<NetworkRequest>(maxStoredRequests)
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
   init {
@@ -432,8 +432,7 @@ public class DebugOverlayNetworkInterceptor(
       error = error
     )
 
-    entries.add(newRequest)
-    _requests.value = entries.toList()
+    _requests.value = recentRequests.addAndSnapshot(newRequest)
   }
 
   private fun redactUrl(url: HttpUrl): HttpUrl {
