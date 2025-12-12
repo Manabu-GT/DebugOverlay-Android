@@ -25,9 +25,10 @@ The draggable overlay displays real-time metrics with 16-sample historical spark
 Each row shows a status dot (green/yellow/red) based on current health. Long-press to drag; the overlay snaps to the nearest edge and remembers its position across activities.
 
 ### Debug Panel
-Tap the overlay to open a full-screen diagnostic panel with five tabs:
+Tap the overlay to open a full-screen diagnostic panel with six tabs:
 
 - **Logcat** – Live logcat stream with level filtering (V/D/I/W/E), search, and tap-to-expand details
+- **AppExits** – App termination history (crashes, ANRs, OOM kills, etc.) on Android 11+ with stack traces when available
 - **Network** – Upload/download totals, request list with timing/size, and full request/response inspection (requires [interceptor setup](#network-request-tracking))
 - **JankStats** – Frame timing analysis showing jank percentage, per-state breakdown, and individual janky frame details
 - **UI** – View hierarchy powered by [Radiography](https://github.com/square/radiography) with refresh and copy-to-clipboard
