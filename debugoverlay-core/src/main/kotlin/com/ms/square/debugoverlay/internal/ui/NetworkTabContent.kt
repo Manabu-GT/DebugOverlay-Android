@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.North
 import androidx.compose.material.icons.filled.South
@@ -165,7 +164,7 @@ private fun NetworkStatsHeader(networkStats: NetworkStats, modifier: Modifier = 
     modifier = modifier
       .fillMaxWidth()
       .padding(16.dp),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerHighest,
     tonalElevation = 2.dp
   ) {
@@ -277,7 +276,7 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
   Surface(
     onClick = onClick,
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(8.dp),
+    shape = MaterialTheme.shapes.small,
     color = MaterialTheme.colorScheme.surfaceContainerHighest
   ) {
     Row(

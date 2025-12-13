@@ -3,6 +3,8 @@ package com.ms.square.debugoverlay.extension.okhttp
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.NetworkRequestTracker
 import com.ms.square.debugoverlay.extension.okhttp.internal.isProbablyUtf8
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
+import com.ms.square.debugoverlay.internal.data.EvictingQueue
 import com.ms.square.debugoverlay.model.NetworkError
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.flow.Flow
@@ -84,14 +86,16 @@ private const val HTTP_SERVER_ERROR_END = 599
  *     .build()
  * ```
  */
+@OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayNetworkInterceptor(
-  private val maxStoredRequests: Int = 100,
+  maxStoredRequests: Int = 100,
   private val headersNameToRedact: Set<String> = DEFAULT_HEADERS_REDACT,
   private val queryParamsNameToRedact: Set<String> = DEFAULT_QUERY_PARAMS_REDACT,
   private val maxBodySize: Long = DEFAULT_MAX_BODY_SIZE,
 ) : Interceptor,
   NetworkRequestTracker {
 
+  private val recentRequests = EvictingQueue<NetworkRequest>(maxStoredRequests)
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
   init {
@@ -429,13 +433,9 @@ public class DebugOverlayNetworkInterceptor(
       error = error
     )
 
-    // Keep only the last N requests
-    _requests.update { currentList ->
-      if (currentList.size >= maxStoredRequests) {
-        currentList.drop(1) + newRequest
-      } else {
-        currentList + newRequest
-      }
+    recentRequests.add(newRequest)
+    _requests.update {
+      recentRequests.toList()
     }
   }
 

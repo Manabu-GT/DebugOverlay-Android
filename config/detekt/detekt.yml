@@ -9,6 +9,13 @@ processors:
 
 # Tweak common Android/Kotlin rules
 style:
+  ForbiddenComment:
+    active: true
+    comments:
+      - reason: 'FIXME comments should be resolved before merging'
+        value: 'FIXME'
+      - reason: 'STOPSHIP comments must be resolved before release'
+        value: 'STOPSHIP'
   MagicNumber:
     active: true
     ignorePropertyDeclaration: true

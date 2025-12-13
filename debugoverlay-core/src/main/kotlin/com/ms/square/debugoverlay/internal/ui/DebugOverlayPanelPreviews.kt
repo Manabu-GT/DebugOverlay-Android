@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -110,7 +109,7 @@ private fun DebugOverlayPreviewLight() {
             modifier = Modifier
               .fillMaxWidth()
               .padding(bottom = 12.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 1.dp
           ) {
@@ -163,7 +162,7 @@ private fun DebugOverlayPreviewDark() {
             modifier = Modifier
               .fillMaxWidth()
               .padding(bottom = 12.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surfaceVariant,
             tonalElevation = 1.dp
           ) {

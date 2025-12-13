@@ -29,6 +29,7 @@ Welcome! This guide defines how automation and human agents should collaborate i
   - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
   - `debugoverlay` - Primary public API artifact that most apps depend on
   - `debugoverlay-extension-okhttp` - OkHttp interceptor for network request tracking
+  - `debugoverlay-extension-timber` - Timber tree for capturing logs directly from Timber
   - `sample` - Demo application showcasing library features
 
 - **Coding Language**
@@ -66,6 +67,7 @@ Welcome! This guide defines how automation and human agents should collaborate i
 | Gradle/build logic       | `./gradlew help`; run the smallest assemble task that exercises your change when artifact wiring is affected |
 | Core runtime code        | `./gradlew :debugoverlay-core:check` (or targeted tests) |
 | Auto Installer w AndroidX Startup        | `./gradlew :debugoverlay:check` |
+| Extension modules        | `./gradlew :debugoverlay-extension-okhttp:check` or `./gradlew :debugoverlay-extension-timber:check` |
 | Sample app UX/UI         | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
 | Documentation only       | No build, but ensure links and code snippets compile conceptually |
 

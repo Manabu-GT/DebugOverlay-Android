@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
@@ -70,7 +69,7 @@ private fun TextViewTextPreview(text: String, modifier: Modifier = Modifier) {
 
   Surface(
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerLowest,
     tonalElevation = 1.dp
   ) {
@@ -105,7 +104,7 @@ private fun TextViewTextPreview(text: String, modifier: Modifier = Modifier) {
 internal fun CompactTextPreview(body: String, modifier: Modifier = Modifier) {
   Surface(
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerLowest,
     tonalElevation = 1.dp
   ) {
@@ -131,7 +130,7 @@ internal fun TruncatedTextPreview(text: String, modifier: Modifier = Modifier) {
     // Warning message
     Surface(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(8.dp),
+      shape = MaterialTheme.shapes.small,
       color = MaterialTheme.colorScheme.tertiaryContainer
     ) {
       Row(

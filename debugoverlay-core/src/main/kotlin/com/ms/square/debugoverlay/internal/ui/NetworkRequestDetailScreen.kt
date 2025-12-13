@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -455,7 +454,7 @@ private fun DetailSection(
 private fun InfoCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
   Surface(
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerHighest,
     tonalElevation = 2.dp
   ) {
@@ -521,7 +520,7 @@ private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
 
   Surface(
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerHighest,
     tonalElevation = 2.dp
   ) {
@@ -559,7 +558,7 @@ private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
 private fun HeaderItem(name: String, value: String, modifier: Modifier = Modifier) {
   Surface(
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(8.dp),
+    shape = MaterialTheme.shapes.small,
     color = MaterialTheme.colorScheme.surfaceContainerHighest
   ) {
     Column(modifier = Modifier.padding(12.dp)) {
@@ -598,7 +597,7 @@ private fun BodyPreview(body: String, contentType: String?) {
 private fun ErrorSection(error: com.ms.square.debugoverlay.model.NetworkError, modifier: Modifier = Modifier) {
   Surface(
     modifier = modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
     tonalElevation = 2.dp
   ) {
@@ -632,7 +631,7 @@ private fun ErrorSection(error: com.ms.square.debugoverlay.model.NetworkError, m
           modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp),
-          shape = RoundedCornerShape(8.dp),
+          shape = MaterialTheme.shapes.small,
           color = MaterialTheme.colorScheme.surfaceContainerLowest
         ) {
           // No verticalScroll - LazyColumn parent handles vertical scrolling

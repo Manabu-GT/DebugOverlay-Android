@@ -128,7 +128,7 @@ private fun AppExitItem(exitInfo: AppExitInfo, onClick: () -> Unit, modifier: Mo
         role = Role.Button
       }
       .clickable { onClick() },
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainerLowest,
     tonalElevation = 1.dp
   ) {

@@ -1,0 +1,51 @@
+package com.ms.square.debugoverlay.model
+
+import android.util.Log
+
+/**
+ * Data class representing a single log entry.
+ *
+ * **Security considerations:** The [message] field is displayed directly in the
+ * debug overlay UI. Callers should sanitize or redact sensitive data (PII,
+ * credentials, tokens, etc.) before constructing LogEntry instances, especially
+ * in builds that may be shared with testers or captured in screen recordings.
+ */
+public data class LogEntry(
+  val id: Long,
+  val timestampMs: Long,
+  val level: LogLevel,
+  val tag: String,
+  val pid: Int,
+  val tid: Int,
+  val threadName: String,
+  val message: String,
+)
+
+public enum class LogLevel {
+  VERBOSE,
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR,
+  ;
+
+  public companion object {
+    public fun fromString(string: String): LogLevel = when (string.uppercase()) {
+      "V" -> VERBOSE
+      "D" -> DEBUG
+      "I" -> INFO
+      "W" -> WARN
+      "E", "F" -> ERROR // F = FATAL, mapped to ERROR
+      else -> DEBUG
+    }
+
+    public fun fromInt(priority: Int): LogLevel = when (priority) {
+      Log.VERBOSE -> VERBOSE
+      Log.DEBUG -> DEBUG
+      Log.INFO -> INFO
+      Log.WARN -> WARN
+      Log.ERROR, Log.ASSERT -> ERROR
+      else -> DEBUG
+    }
+  }
+}

@@ -2,13 +2,14 @@ package com.ms.square.debugoverlay.internal.data.source
 
 import android.os.Build
 import androidx.annotation.GuardedBy
-import androidx.annotation.Nullable
 import androidx.collection.LruCache
+import com.ms.square.debugoverlay.LogTracker
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
-import com.ms.square.debugoverlay.internal.data.model.LogLevel
-import com.ms.square.debugoverlay.internal.data.model.LogcatEntry
 import com.ms.square.debugoverlay.internal.util.throttleLatest
+import com.ms.square.debugoverlay.model.LogEntry
+import com.ms.square.debugoverlay.model.LogLevel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -26,16 +27,23 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
-private val THREADTIME_FORMAT_REGEX =
-  """(\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s+(\d+)\s+([VDIWEF])\s+([^:]+):\s+(.+)""".toRegex()
+// Matches epoch logcat format: "1733921286.215 11744 11744 D Tag: message"
+private val LOGCAT_FORMAT_REGEX =
+  """(\d+\.\d{3})\s+(\d+)\s+(\d+)\s+([VDIWEF])\s+([^:]+):\s+(.+)""".toRegex()
 
 private const val THREADNAME_CACHE_SIZE = 100
 
 /**
  * This only reads current app logs, not other apps (such requires a signature-level permission -> READ_LOGS).
  */
-internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : Closeable {
+@OptIn(InternalDebugOverlayApi::class)
+internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
+  LogTracker,
+  Closeable {
+
+  override val sourceName: String = "Logcat"
 
   private val processLock = Object()
 
@@ -45,13 +53,17 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : 
   /**
    * Stream logcat entries. Keeps last N entries in memory.
    */
-  val logs: Flow<List<LogcatEntry>> = flow {
+  override val logs: Flow<List<LogEntry>> = flow {
     var id = 1L
-    val entries = EvictingQueue<LogcatEntry>(maxEntries)
+    val entries = EvictingQueue<LogEntry>(maxEntries)
     val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
     var reader: BufferedReader? = null
     try {
-      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable -T $maxEntries").also {
+      /**
+       * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
+       * for new logs (-t option fetches once and exists immediately).
+       */
+      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T $maxEntries").also {
         synchronized(processLock) {
           currentProcess = it
         }
@@ -59,12 +71,16 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : 
       reader = BufferedReader(InputStreamReader(process.inputStream))
 
       while (currentCoroutineContext().isActive) {
-        @Nullable
+        // readLine() returns null at end of stream, so exit early if a process dies unexpectedly..etc
         val line = reader.readLine()
-        line?.parseLogcatEntry(id, threadNameCache)?.let {
-          entries.add(it)
-          id++
-          emit(entries)
+        if (line == null) {
+          break
+        } else {
+          line.trim().parseLogcatEntry(id, threadNameCache)?.let {
+            entries.add(it)
+            id++
+            emit(entries)
+          }
         }
       }
     } catch (e: IOException) {
@@ -86,23 +102,28 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : 
     )
 
   @Suppress("DestructuringDeclarationWithTooManyEntries")
-  private fun String.parseLogcatEntry(id: Long, threadNameCache: LruCache<Int, String>): LogcatEntry? {
-    // Format with -v threadtime: "11-17 12:05:41.810 11744 11744 D [DebugOverlay]: onPause() called for MainActivity"
-    // Pattern: MM-DD HH:MM:SS.mmm PID TID LEVEL TAG: MESSAGE
-    return THREADTIME_FORMAT_REGEX.matchEntire(this)?.let { match ->
-      val (timestamp, pid, tid, level, tag, message) = match.destructured
+  private fun String.parseLogcatEntry(id: Long, threadNameCache: LruCache<Int, String>): LogEntry? {
+    // Format with -v threadtime,printable,epoch: "1733921286.215 11744 11744 D Tag: message"
+    // Pattern: EPOCH_SECONDS.mmm PID TID LEVEL TAG: MESSAGE
+    return LOGCAT_FORMAT_REGEX.matchEntire(this)?.let { match ->
+      val (epochStr, pid, tid, level, tag, message) = match.destructured
       val pidInt = pid.trim().toInt()
       val tidInt = tid.trim().toInt()
-      LogcatEntry(
+      val timestampMs = try {
+        epochStr.toDouble().seconds.inWholeMilliseconds
+      } catch (_: NumberFormatException) {
+        // fallback to current time so that this log at least shows up
+        System.currentTimeMillis()
+      }
+      LogEntry(
         id = id,
-        timestamp = timestamp.trim(),
+        timestampMs = timestampMs,
         level = LogLevel.fromString(level),
         tag = tag.trim(),
         pid = pidInt,
         tid = tidInt,
         threadName = threadNameCache.getThreadName(pidInt, tidInt),
-        message = message.trim(),
-        rawLine = this
+        message = message.trim()
       )
     }
   }

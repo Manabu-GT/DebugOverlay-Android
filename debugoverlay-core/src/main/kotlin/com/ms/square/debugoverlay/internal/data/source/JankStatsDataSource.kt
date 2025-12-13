@@ -9,6 +9,7 @@ import androidx.metrics.performance.FrameDataApi24
 import androidx.metrics.performance.FrameDataApi31
 import androidx.metrics.performance.JankStats
 import androidx.metrics.performance.PerformanceMetricsState
+import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
 import com.ms.square.debugoverlay.internal.data.Percentage
@@ -28,6 +29,7 @@ private const val RECENT_FRAMES_COUNT = 50
 private const val TOP_STATES_COUNT = 5
 private const val MAX_JANKY_FRAMES_DISPLAY = 20
 
+@OptIn(InternalDebugOverlayApi::class)
 internal class JankStatsDataSource {
 
   private val lock = Object()

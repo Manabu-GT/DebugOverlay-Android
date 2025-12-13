@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
-    Timber.d("onCreate() called")
+    Timber.tag("MainActivity").d("onCreate() called")
 
     setContent {
       AppTheme {
@@ -35,6 +35,6 @@ class MainActivity : ComponentActivity() {
 
   override fun onResume() {
     super.onResume()
-    Timber.d("onResume() called")
+    Timber.tag("MainActivity").d("onResume() called")
   }
 }

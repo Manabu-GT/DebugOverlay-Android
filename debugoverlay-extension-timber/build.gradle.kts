@@ -16,7 +16,7 @@ kotlin {
 }
 
 android {
-  namespace = "com.ms.square.debugoverlay.extension.okhttp"
+  namespace = "com.ms.square.debugoverlay.extension.timber"
 
   compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
@@ -41,7 +41,8 @@ android {
 
 dependencies {
   implementation(projects.debugoverlayCore)
+  implementation(libs.androidx.startup.runtime)
   implementation(libs.kotlinx.coroutines.core)
-  implementation(libs.okhttp)
+  implementation(libs.timber)
   testImplementation(libs.junit4)
 }

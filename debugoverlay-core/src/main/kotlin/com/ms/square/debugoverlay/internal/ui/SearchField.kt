@@ -2,7 +2,6 @@ package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
@@ -61,7 +60,7 @@ internal fun SearchField(
       }
     },
     singleLine = true,
-    shape = RoundedCornerShape(12.dp),
+    shape = MaterialTheme.shapes.medium,
     colors = TextFieldDefaults.colors(
       focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
       unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,

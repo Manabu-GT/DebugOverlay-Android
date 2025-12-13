@@ -27,7 +27,7 @@ Each row shows a status dot (green/yellow/red) based on current health. Long-pre
 ### Debug Panel
 Tap the overlay to open a full-screen diagnostic panel with six tabs:
 
-- **Logcat** – Live logcat stream with level filtering (V/D/I/W/E), search, and tap-to-expand details
+- **Log** – Live log stream with level filtering (V/D/I/W/E), search, and tap-to-expand details. Supports system logcat or [Timber integration](#timber-log-capture)
 - **AppExits** – App termination history (crashes, ANRs, OOM kills, etc.) on Android 11+ with stack traces when available
 - **Network** – Upload/download totals, request list with timing/size, and full request/response inspection (requires [interceptor setup](#network-request-tracking))
 - **JankStats** – Frame timing analysis showing jank percentage, per-state breakdown, and individual janky frame details
@@ -92,24 +92,31 @@ The overlay installs itself on app startup via AndroidX Startup's `DebugOverlayS
 To disable auto-install (e.g., for manual initialization), remove the initializer via manifest merger:
 
 ```xml
-<provider
-  android:name="androidx.startup.InitializationProvider"
-  android:authorities="${applicationId}.androidx-startup"
-  tools:node="merge">
-  <meta-data
-    android:name="com.ms.square.debugoverlay.DebugOverlayStartupInitializer"
-    tools:node="remove" />
-</provider>
+<!-- In your app's AndroidManifest.xml, add xmlns:tools to the root manifest element -->
+<manifest xmlns:tools="http://schemas.android.com/tools" ...>
+  ...
+  <application>
+    <provider
+      android:name="androidx.startup.InitializationProvider"
+      android:authorities="${applicationId}.androidx-startup"
+      tools:node="merge">
+      <meta-data
+        android:name="com.ms.square.debugoverlay.DebugOverlayStartupInitializer"
+        tools:node="remove" />
+    </provider>
+  </application>
+</manifest>
 ```
 
 Then call `DebugOverlay.install(application)` manually when needed.
 
 ### Network request tracking
 
-To see HTTP requests in the Network tab, add the OkHttp extension and attach the interceptor:
+To see HTTP requests in the Network tab, add the OkHttp extension alongside the base dependency and attach the interceptor:
 
 ```kotlin
 dependencies {
+  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
   debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.0.0-SNAPSHOT")
 }
 ```
@@ -121,6 +128,51 @@ val client = OkHttpClient.Builder()
 ```
 
 The interceptor captures request/response metadata (URL, method, status, timing, size) and displays it in the debug panel. Use `maxStoredRequests` to limit memory usage.
+
+### Timber log capture
+
+By default, the Log tab reads from system logcat (your app's logs only). If your app uses [Timber](https://github.com/JakeWharton/timber), you can capture logs directly from Timber instead—add the extension alongside the base dependency:
+
+```kotlin
+dependencies {
+  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.0.0-SNAPSHOT")
+}
+```
+
+That's it. The extension auto-plants `DebugOverlayTimberTree` via AndroidX Startup and registers it with DebugOverlay. The Log tab will show "Timber" as the source indicator and display all logs sent through Timber, including stack traces for logged exceptions.
+
+**Why use Timber capture?**
+- Cleaner logs - only your app's Timber calls, no system/framework noise
+- Full stack traces when you log exceptions with `Timber.e(exception, "message")`
+- Direct in-process capture without spawning a logcat subprocess
+
+**Manual setup (opt-out of auto-plant):**
+
+If your team has strict Timber wiring or you want explicit control over when the tree is planted, disable auto-plant via manifest merger and plant manually:
+
+```xml
+<!-- In your app's AndroidManifest.xml, add xmlns:tools to the root manifest element -->
+<manifest xmlns:tools="http://schemas.android.com/tools" ...>
+  ...
+  <application>
+    <provider
+      android:name="androidx.startup.InitializationProvider"
+      android:authorities="${applicationId}.androidx-startup"
+      tools:node="merge">
+      <meta-data
+        android:name="com.ms.square.debugoverlay.extension.timber.TimberTreeStartupInitializer"
+        tools:node="remove" />
+    </provider>
+  </application>
+</manifest>
+```
+
+Then plant the tree manually in your `Application.onCreate()`:
+
+```kotlin
+Timber.plant(DebugOverlayTimberTree())
+```
 
 ## Known Limitations
 
