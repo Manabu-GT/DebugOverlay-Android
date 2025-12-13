@@ -40,7 +40,7 @@ android {
 }
 
 dependencies {
-  api(projects.debugoverlayCore)
+  implementation(projects.debugoverlayCore)
   implementation(libs.androidx.startup.runtime)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.timber)

@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.Flow
  * instead of the default system logcat. When a LogTracker is set via
  * [DebugOverlay.configure], the default logcat reading will be stopped.
  *
+ * **Security considerations:** Logs emitted through this interface are displayed
+ * directly in the debug overlay UI. Implementations should filter or redact
+ * sensitive data (PII, credentials, tokens, etc.) before emitting through the
+ * [logs] Flow, especially in builds that may be shared with testers or captured
+ * in screen recordings.
+ *
  * Example usage with Timber extension:
  * ```kotlin
  * Timber.plant(DebugOverlayTimberTree())  // Auto-registers with DebugOverlay

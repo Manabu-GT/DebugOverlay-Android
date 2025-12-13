@@ -59,6 +59,10 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
     val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
     var reader: BufferedReader? = null
     try {
+      /**
+       * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
+       * for new logs (-t option fetches once and exists immediately).
+       */
       val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T $maxEntries").also {
         synchronized(processLock) {
           currentProcess = it

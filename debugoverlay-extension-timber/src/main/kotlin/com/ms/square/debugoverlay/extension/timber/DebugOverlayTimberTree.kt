@@ -10,6 +10,7 @@ import com.ms.square.debugoverlay.model.LogLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicLong
 
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicLong
  * @param maxStoredLogs Maximum number of log entries to keep in memory.
  *   Older entries are evicted when this limit is reached.
  */
+@OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   Timber.Tree(),
   LogTracker {
@@ -45,7 +47,6 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
   private val idGenerator = AtomicLong(0)
 
-  @OptIn(InternalDebugOverlayApi::class)
   private val recentLogs = EvictingQueue<LogEntry>(maxStoredLogs)
   private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
   override val logs: Flow<List<LogEntry>> = _logs.asStateFlow()
@@ -57,6 +58,8 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
   override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
     val now = System.currentTimeMillis()
+    // TODO: Consider truncating large messages (e.g., 8KB limit) to bound memory usage.
+    //  Stack traces can be very large and 300 entries with huge traces exceeds the KDoc estimate.
     val fullMessage = if (t != null) "$message\n${t.stackTraceToString()}" else message
 
     val entry = LogEntry(
@@ -70,8 +73,8 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
       message = fullMessage
     )
 
-    @OptIn(InternalDebugOverlayApi::class)
-    _logs.value = recentLogs.addAndSnapshot(entry)
+    recentLogs.add(entry)
+    _logs.update { recentLogs.toList() }
   }
 
   private companion object {

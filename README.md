@@ -112,10 +112,11 @@ Then call `DebugOverlay.install(application)` manually when needed.
 
 ### Network request tracking
 
-To see HTTP requests in the Network tab, add the OkHttp extension and attach the interceptor:
+To see HTTP requests in the Network tab, add the OkHttp extension alongside the base dependency and attach the interceptor:
 
 ```kotlin
 dependencies {
+  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
   debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.0.0-SNAPSHOT")
 }
 ```
@@ -130,10 +131,11 @@ The interceptor captures request/response metadata (URL, method, status, timing,
 
 ### Timber log capture
 
-By default, the Log tab reads from system logcat (your app's logs only). If your app uses [Timber](https://github.com/JakeWharton/timber), you can capture logs directly from Timber instead—just add the dependency:
+By default, the Log tab reads from system logcat (your app's logs only). If your app uses [Timber](https://github.com/JakeWharton/timber), you can capture logs directly from Timber instead—add the extension alongside the base dependency:
 
 ```kotlin
 dependencies {
+  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
   debugImplementation("com.ms-square:debugoverlay-extension-timber:2.0.0-SNAPSHOT")
 }
 ```

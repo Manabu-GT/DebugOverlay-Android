@@ -10,6 +10,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -85,6 +86,7 @@ private const val HTTP_SERVER_ERROR_END = 599
  *     .build()
  * ```
  */
+@OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayNetworkInterceptor(
   maxStoredRequests: Int = 100,
   private val headersNameToRedact: Set<String> = DEFAULT_HEADERS_REDACT,
@@ -93,7 +95,6 @@ public class DebugOverlayNetworkInterceptor(
 ) : Interceptor,
   NetworkRequestTracker {
 
-  @OptIn(InternalDebugOverlayApi::class)
   private val recentRequests = EvictingQueue<NetworkRequest>(maxStoredRequests)
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
@@ -432,8 +433,10 @@ public class DebugOverlayNetworkInterceptor(
       error = error
     )
 
-    @OptIn(InternalDebugOverlayApi::class)
-    _requests.value = recentRequests.addAndSnapshot(newRequest)
+    recentRequests.add(newRequest)
+    _requests.update {
+      recentRequests.toList()
+    }
   }
 
   private fun redactUrl(url: HttpUrl): HttpUrl {

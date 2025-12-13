@@ -4,6 +4,11 @@ import android.util.Log
 
 /**
  * Data class representing a single log entry.
+ *
+ * **Security considerations:** The [message] field is displayed directly in the
+ * debug overlay UI. Callers should sanitize or redact sensitive data (PII,
+ * credentials, tokens, etc.) before constructing LogEntry instances, especially
+ * in builds that may be shared with testers or captured in screen recordings.
  */
 public data class LogEntry(
   val id: Long,
