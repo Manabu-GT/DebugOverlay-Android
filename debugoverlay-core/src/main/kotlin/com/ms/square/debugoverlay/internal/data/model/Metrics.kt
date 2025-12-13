@@ -1,5 +1,3 @@
-@file:OptIn(InternalDebugOverlayApi::class)
-
 package com.ms.square.debugoverlay.internal.data.model
 
 import androidx.annotation.Size
@@ -14,11 +12,9 @@ internal data class Metrics(val value: Float, @field:Size(VALUE_HISTORY_SIZE.toL
  * Accumulates metric values into a circular buffer and produces [Metrics] snapshots.
  * Used in DebugOverlayPanelDataSourceImpl to persist history across flow collection restarts.
  */
+@OptIn(InternalDebugOverlayApi::class)
 internal class MetricsAccumulator {
   private val queue = EvictingQueue<Float>(VALUE_HISTORY_SIZE)
 
-  fun accumulate(value: Float): Metrics {
-    queue.add(value)
-    return Metrics(value, queue.toList())
-  }
+  fun accumulate(value: Float): Metrics = Metrics(value, queue.addAndSnapshot(value))
 }

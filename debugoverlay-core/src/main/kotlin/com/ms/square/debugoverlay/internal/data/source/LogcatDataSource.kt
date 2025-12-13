@@ -1,10 +1,9 @@
-@file:OptIn(InternalDebugOverlayApi::class)
-
 package com.ms.square.debugoverlay.internal.data.source
 
 import android.os.Build
 import androidx.annotation.GuardedBy
 import androidx.collection.LruCache
+import com.ms.square.debugoverlay.LogTracker
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
@@ -39,7 +38,12 @@ private const val THREADNAME_CACHE_SIZE = 100
 /**
  * This only reads current app logs, not other apps (such requires a signature-level permission -> READ_LOGS).
  */
-internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : Closeable {
+@OptIn(InternalDebugOverlayApi::class)
+internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
+  LogTracker,
+  Closeable {
+
+  override val sourceName: String = "Logcat"
 
   private val processLock = Object()
 
@@ -49,7 +53,7 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) : 
   /**
    * Stream logcat entries. Keeps last N entries in memory.
    */
-  val logs: Flow<List<LogEntry>> = flow {
+  override val logs: Flow<List<LogEntry>> = flow {
     var id = 1L
     val entries = EvictingQueue<LogEntry>(maxEntries)
     val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)

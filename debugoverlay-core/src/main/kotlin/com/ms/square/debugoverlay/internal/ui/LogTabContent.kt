@@ -48,7 +48,6 @@ import com.ms.square.debugoverlay.internal.util.toColor
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.LogLevel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Log tab content displaying filtered log entries with auto-scroll behavior.
@@ -62,17 +61,17 @@ import kotlinx.coroutines.flow.StateFlow
  * - Source indicator showing "System Logcat" or custom source name (e.g., "Timber")
  *
  * @param logsFlow Flow of log entries to collect and display.
- * @param logSourceNameFlow Flow of current log source name (null = system logcat).
+ * @param logSourceNameFlow Flow of current log source name.
  * @param modifier Modifier to be applied to the root layout
  */
 @Composable
 internal fun LogTabContent(
   logsFlow: Flow<List<LogEntry>>,
-  logSourceNameFlow: StateFlow<String?>,
+  logSourceNameFlow: Flow<String>,
   modifier: Modifier = Modifier,
 ) {
   val logEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
-  val logSourceName by logSourceNameFlow.collectAsStateWithLifecycle()
+  val logSourceName by logSourceNameFlow.collectAsStateWithLifecycle("")
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
   var searchQuery by remember { mutableStateOf("") }
@@ -141,7 +140,7 @@ internal fun LogTabContent(
 @Suppress("LongParameterList")
 @Composable
 private fun LogListScreen(
-  logSourceName: String?,
+  logSourceName: String,
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   selectedLevel: LogLevel,
@@ -181,7 +180,7 @@ private fun LogListScreen(
 
 @Composable
 private fun LogFilterBar(
-  logSourceName: String?,
+  logSourceName: String,
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   selectedLevel: LogLevel,
@@ -216,8 +215,8 @@ private fun LogFilterBar(
  * Badge showing the current log source (e.g., "System Logcat" or "Timber").
  */
 @Composable
-private fun LogSourceIndicator(sourceName: String?, modifier: Modifier = Modifier) {
-  val displayName = sourceName ?: stringResource(R.string.debugoverlay_log_source_system)
+private fun LogSourceIndicator(sourceName: String, modifier: Modifier = Modifier) {
+  val displayName = sourceName.ifEmpty { stringResource(R.string.debugoverlay_log_source_logcat) }
   val sourceDescription = stringResource(R.string.debugoverlay_log_source_description, displayName)
 
   Surface(
@@ -260,11 +259,7 @@ private fun LogLevelFilters(
 }
 
 @Composable
-private fun LogContent(
-  filteredEntries: List<LogEntry>,
-  listState: androidx.compose.foundation.lazy.LazyListState,
-  onEntryClick: (LogEntry) -> Unit,
-) {
+private fun LogContent(filteredEntries: List<LogEntry>, listState: LazyListState, onEntryClick: (LogEntry) -> Unit) {
   if (filteredEntries.isEmpty()) {
     Box(
       modifier = Modifier.fillMaxSize(),

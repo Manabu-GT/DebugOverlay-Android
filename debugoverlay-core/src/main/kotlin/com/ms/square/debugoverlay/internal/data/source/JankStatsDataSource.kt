@@ -1,5 +1,3 @@
-@file:OptIn(InternalDebugOverlayApi::class)
-
 package com.ms.square.debugoverlay.internal.data.source
 
 import android.app.Activity
@@ -31,6 +29,7 @@ private const val RECENT_FRAMES_COUNT = 50
 private const val TOP_STATES_COUNT = 5
 private const val MAX_JANKY_FRAMES_DISPLAY = 20
 
+@OptIn(InternalDebugOverlayApi::class)
 internal class JankStatsDataSource {
 
   private val lock = Object()
