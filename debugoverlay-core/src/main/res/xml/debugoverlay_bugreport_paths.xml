@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider paths for bug report sharing.
+  Bug reports are stored in the app's cache directory under "debugoverlay_bugreports/".
+-->
+<paths>
+  <cache-path
+    name="debugoverlay_bugreports"
+    path="debugoverlay_bugreports/" />
+</paths>
