@@ -9,6 +9,22 @@
       android:theme="@style/debugoverlay_Theme.Transparent"
       android:exported="false"
       android:excludeFromRecents="true" />
+
+    <!--
+      FileProvider for sharing bug reports via Intent.
+      Required since Android 7.0 (API 24) - file:// URIs throw FileUriExposedException
+      when shared with other apps. FileProvider creates content:// URIs that grant
+      temporary read access to the receiving app.
+    -->
+    <provider
+      android:name="androidx.core.content.FileProvider"
+      android:authorities="${applicationId}.debugoverlay.bugreport.provider"
+      android:exported="false"
+      android:grantUriPermissions="true">
+      <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/debugoverlay_bugreport_paths" />
+    </provider>
   </application>
 
 

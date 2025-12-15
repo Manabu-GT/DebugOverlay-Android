@@ -11,7 +11,7 @@ internal object Logger {
     Log.e(TAG, message, throwable)
   }
 
-  fun w(message: String, throwable: Throwable) {
+  fun w(message: String, throwable: Throwable? = null) {
     Log.w(TAG, message, throwable)
   }
 

@@ -28,6 +28,7 @@ import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.CoroutineScope
+import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
 internal class OverlayViewManager(private val application: Application, private val overlayScope: CoroutineScope) {
@@ -39,6 +40,20 @@ internal class OverlayViewManager(private val application: Application, private 
   // Shared position state across all activities
   private var savedX: Int = 0
   private var savedY: Int = 0
+
+  /**
+   * The last app activity (excluding DebugPanelActivity) that was resumed.
+   * Used for screenshot capture in bug reports.
+   *
+   * Uses WeakReference to avoid memory leaks if the activity is destroyed while referenced.
+   * Cleared only on activity destroy, not on pause, so it remains available when
+   * DebugPanelActivity is shown over the app activity.
+   */
+  @Volatile
+  private var _lastAppActivity: WeakReference<Activity>? = null
+
+  val lastAppActivity: Activity?
+    get() = _lastAppActivity?.get()
 
   init {
     application.registerActivityLifecycleCallbacks(ActivityLifecycleHandler())
@@ -130,6 +145,7 @@ internal class OverlayViewManager(private val application: Application, private 
     override fun onActivityResumed(activity: Activity) {
       Logger.d("onResume() called for ${activity.javaClass.simpleName}")
       if (activity !is DebugPanelActivity) {
+        _lastAppActivity = WeakReference(activity)
         attachStateChangeListeners[activity]?.onActivityResumed()
         DebugOverlay.overlayDataRepository.startOrResumeJankStatsTracking(activity)
       }
@@ -157,6 +173,9 @@ internal class OverlayViewManager(private val application: Application, private 
     override fun onActivityDestroyed(activity: Activity) {
       Logger.d("onDestroy() called for ${activity.javaClass.simpleName}")
       if (activity !is DebugPanelActivity) {
+        if (_lastAppActivity?.get() === activity) {
+          _lastAppActivity = null
+        }
         attachStateChangeListeners.remove(activity)
         DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
       }
