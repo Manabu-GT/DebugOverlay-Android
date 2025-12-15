@@ -15,7 +15,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * Utility for capturing screenshots of app activities.
@@ -28,7 +27,7 @@ import kotlin.coroutines.resumeWithException
  */
 internal object ScreenshotCapture {
 
-  private const val MAX_WIDTH = 1920
+  private const val MAX_DIMENSION = 1920
   private const val PIXEL_COPY_TIMEOUT_MS = 5000L
   private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -39,6 +38,11 @@ internal object ScreenshotCapture {
    * @return The captured bitmap, or null if capture failed
    */
   suspend fun capture(activity: Activity): Bitmap? {
+    if (activity.isFinishing || activity.isDestroyed) {
+      Logger.w("Cannot capture screenshot: activity is finishing or destroyed")
+      return null
+    }
+
     return runCatching {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         captureWithPixelCopy(activity.window)
@@ -88,7 +92,7 @@ internal object ScreenshotCapture {
             } else {
               Logger.w("PixelCopy failed with result code: $copyResult")
               bitmap.recycle()
-              cont.resume(Result.failure(RuntimeException("PixelCopy error: $copyResult")))
+              cont.resume(Result.failure(RuntimeException("PixelCopy failed: $copyResult")))
             }
           },
           mainHandler
@@ -96,10 +100,13 @@ internal object ScreenshotCapture {
       }
     }
 
-    if (result == null) {
-      Logger.w("PixelCopy timed out after ${PIXEL_COPY_TIMEOUT_MS}ms")
+    return when {
+      result == null -> {
+        Logger.w("PixelCopy timed out after ${PIXEL_COPY_TIMEOUT_MS}ms")
+        null
+      }
+      else -> result.getOrNull() // Failure already logged in callback
     }
-    return result?.getOrNull()
   }
 
   /**
@@ -114,11 +121,14 @@ internal object ScreenshotCapture {
     return suspendCancellableCoroutine { cont ->
       mainHandler.post {
         if (!cont.isActive) return@post
-        try {
-          cont.resume(captureWithCanvas(window))
-        } catch (t: Throwable) {
-          cont.resumeWithException(t)
+        val bitmap = runCatching {
+          captureWithCanvas(window)
+        }.getOrElse { e ->
+          Logger.w("Canvas capture failed", e)
+          null
         }
+        // resume() is ignored if cancelled between isActive check and here
+        cont.resume(bitmap)
       }
     }
   }
@@ -153,9 +163,12 @@ internal object ScreenshotCapture {
   }
 
   private fun calculateScaledDimensions(width: Int, height: Int): Pair<Int, Int> {
-    val scale = if (width > MAX_WIDTH) MAX_WIDTH.toFloat() / width else 1f
+    val scale = minOf(
+      if (width > MAX_DIMENSION) MAX_DIMENSION.toFloat() / width else 1f,
+      if (height > MAX_DIMENSION) MAX_DIMENSION.toFloat() / height else 1f
+    )
     val scaledWidth = (width * scale).toInt().coerceAtLeast(1)
     val scaledHeight = (height * scale).toInt().coerceAtLeast(1)
-    return Pair(scaledWidth, scaledHeight)
+    return scaledWidth to scaledHeight
   }
 }
