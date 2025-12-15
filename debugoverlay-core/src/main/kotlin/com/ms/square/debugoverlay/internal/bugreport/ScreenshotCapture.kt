@@ -11,6 +11,7 @@ import android.view.Window
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.util.isMainThread
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
@@ -114,7 +115,7 @@ internal object ScreenshotCapture {
    * View.draw() must run on the main thread to avoid crashes or inconsistent output.
    */
   private suspend fun captureWithCanvasOnMain(window: Window): Bitmap? {
-    if (Looper.myLooper() == Looper.getMainLooper()) {
+    if (isMainThread) {
       return captureWithCanvas(window)
     }
 
