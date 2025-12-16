@@ -1,10 +1,14 @@
 package com.ms.square.debugoverlay.model
 
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 /**
  * Data class for network request.
+ *
+ * This class supports kotlinx.serialization for export and custom integrations.
  */
+@Serializable
 public data class NetworkRequest(
   // Base NetworkRequest fields
   val id: String = UUID.randomUUID().toString(),
@@ -26,5 +30,8 @@ public data class NetworkRequest(
 
 /**
  * Error information for failed requests.
+ *
+ * This class supports kotlinx.serialization for export and custom integrations.
  */
+@Serializable
 public data class NetworkError(val title: String, val message: String, val stackTrace: String? = null)

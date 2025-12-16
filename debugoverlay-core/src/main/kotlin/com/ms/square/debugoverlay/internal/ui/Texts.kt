@@ -28,11 +28,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
-import com.ms.square.debugoverlay.internal.util.formatJson
 import com.ms.square.debugoverlay.internal.util.formatTextSize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 private const val COMPOSE_TEXT_MAX_SIZE = 10_000 // Use Compose Text
 private const val TEXT_VIEW_MAX_SIZE = 500_000 // Use TextView, above this truncate
+
+private val jsonFormatter = Json { prettyPrint = true }
+
+private fun formatJson(json: String): String = try {
+  val element = Json.parseToJsonElement(json)
+  jsonFormatter.encodeToString(JsonElement.serializer(), element)
+} catch (_: Exception) {
+  json
+}
 
 /**
  * Text preview with three-tier performance optimization for large texts.

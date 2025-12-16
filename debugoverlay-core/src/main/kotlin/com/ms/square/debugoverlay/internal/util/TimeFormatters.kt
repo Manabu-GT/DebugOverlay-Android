@@ -2,53 +2,18 @@ package com.ms.square.debugoverlay.internal.util
 
 import androidx.annotation.MainThread
 import com.ms.square.debugoverlay.model.LogEntry
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private const val BYTES_PER_KB = 1024L
-private const val BYTES_PER_MB = 1024L * 1024L
-private const val BYTES_PER_GB = 1024L * 1024L * 1024L
-private const val KB_PER_MB = 1024L
 
 private const val MILLIS_PER_SECOND = 1000L
 private const val MILLIS_PER_MINUTE = 60_000L
 private const val MILLIS_PER_HOUR = 3_600_000L
 private const val MILLIS_PER_DAY = 86_400_000L
 
-private val JSON_FORMATTER = Json {
-  prettyPrint = true
-}
-
 // cache given its frequent usage on the main/UI thread
 @get:MainThread
 private val TIMESTAMP_FORMATTER = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
-
-/**
- * Format bytes to human-readable string.
- */
-internal fun formatBytes(bytes: Long?): String = when {
-  bytes == null || bytes < 0 -> "—"
-  bytes < BYTES_PER_KB -> "$bytes B"
-  bytes < BYTES_PER_MB -> {
-    val kb = bytes / BYTES_PER_KB.toDouble()
-    @Suppress("MagicNumber")
-    if (kb < 10) "%.2f KB".format(kb) else "%.1f KB".format(kb)
-  }
-  bytes < BYTES_PER_GB -> "%.1f MB".format(bytes / BYTES_PER_MB.toDouble())
-  else -> "%.1f GB".format(bytes / BYTES_PER_GB.toDouble())
-}
-
-/**
- * Format text size to human-readable string.
- */
-internal fun formatTextSize(length: Int): String = when {
-  length < BYTES_PER_KB -> "$length chars"
-  length < BYTES_PER_MB -> "${length / BYTES_PER_KB} KB"
-  else -> "${"%.1f".format(length / (BYTES_PER_MB.toDouble()))} MB"
-}
 
 /**
  * Should only be called on the main/UI thread as it uses a non-thread safe formatter.
@@ -86,25 +51,14 @@ internal fun formatRelativeTime(timestamp: Long): String {
 }
 
 /**
- * Format memory in KB to MB string, returning "N/A" if value is 0 (not captured).
- * Uses 1 decimal place for values under 10 MB for better precision near thresholds.
- */
-internal fun formatMemoryKbToMb(valueKb: Long): String {
-  if (valueKb <= 0) return "N/A"
-  val mb = valueKb / KB_PER_MB.toDouble()
-  @Suppress("MagicNumber")
-  return if (mb < 10) "%.1f MB".format(mb) else "${mb.toLong()} MB"
-}
-
-/**
  * Format timestamp as full date/time string (e.g., "Dec 11, 2025 at 3:45:30 PM").
  */
 internal fun formatFullTimestamp(timestamp: Long): String =
   SimpleDateFormat("MMM d, yyyy 'at' h:mm:ss a", Locale.US).format(Date(timestamp))
 
-internal fun formatJson(json: String): String = try {
-  val element = Json.parseToJsonElement(json)
-  JSON_FORMATTER.encodeToString(JsonElement.serializer(), element)
-} catch (_: Exception) {
-  json
-}
+/**
+ * Format timestamp for filenames (e.g., "20251215_143045").
+ * Safe for use in filenames on all platforms.
+ */
+internal fun formatFilenameTimestamp(timestampMs: Long): String =
+  SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date(timestampMs))
