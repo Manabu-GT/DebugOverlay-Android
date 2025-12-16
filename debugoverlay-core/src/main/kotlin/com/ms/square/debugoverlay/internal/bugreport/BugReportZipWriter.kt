@@ -11,7 +11,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 private const val CACHE_SUBDIR = "debugoverlay_bugreports"
-internal const val SCREENSHOT_QUALITY = 100 // PNG is lossless, quality is ignored
+internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignored
 
 /**
  * Creates ZIP archives containing bug report data.
@@ -89,7 +89,7 @@ internal class BugReportZipWriter(context: Context) {
 
   private fun writeScreenshot(zip: ZipOutputStream, bitmap: Bitmap) {
     zip.putNextEntry(ZipEntry("screenshot.png"))
-    bitmap.compress(Bitmap.CompressFormat.PNG, SCREENSHOT_QUALITY, zip)
+    bitmap.compress(Bitmap.CompressFormat.PNG, UNUSED_PNG_QUALITY, zip)
     zip.closeEntry()
   }
 

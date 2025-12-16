@@ -328,7 +328,7 @@ internal object HtmlReportBuilder {
 
   private fun encodeScreenshotToBase64(bitmap: Bitmap): String {
     val outputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.PNG, SCREENSHOT_QUALITY, outputStream)
+    bitmap.compress(Bitmap.CompressFormat.PNG, UNUSED_PNG_QUALITY, outputStream)
     val bytes = outputStream.toByteArray()
     return Base64.encodeToString(bytes, Base64.NO_WRAP)
   }
