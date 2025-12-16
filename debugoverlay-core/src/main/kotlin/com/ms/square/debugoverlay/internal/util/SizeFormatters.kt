@@ -1,5 +1,8 @@
 package com.ms.square.debugoverlay.internal.util
 
+import java.util.Locale
+import kotlin.math.roundToLong
+
 private const val BYTES_PER_KB = 1024L
 private const val BYTES_PER_MB = 1024L * 1024L
 private const val BYTES_PER_GB = 1024L * 1024L * 1024L
@@ -14,10 +17,10 @@ internal fun formatBytes(bytes: Long?): String = when {
   bytes < BYTES_PER_MB -> {
     val kb = bytes / BYTES_PER_KB.toDouble()
     @Suppress("MagicNumber")
-    if (kb < 10) "%.2f KB".format(kb) else "%.1f KB".format(kb)
+    if (kb < 10) "%.2f KB".format(Locale.US, kb) else "%.1f KB".format(Locale.US, kb)
   }
   bytes < BYTES_PER_GB -> "%.1f MB".format(bytes / BYTES_PER_MB.toDouble())
-  else -> "%.1f GB".format(bytes / BYTES_PER_GB.toDouble())
+  else -> "%.1f GB".format(Locale.US, bytes / BYTES_PER_GB.toDouble())
 }
 
 /**
@@ -31,7 +34,7 @@ internal fun formatBytesFromKb(kb: Long?): String = formatBytes(kb?.times(BYTES_
 internal fun formatTextSize(length: Int): String = when {
   length < BYTES_PER_KB -> "$length chars"
   length < BYTES_PER_MB -> "${length / BYTES_PER_KB} KB"
-  else -> "${"%.1f".format(length / (BYTES_PER_MB.toDouble()))} MB"
+  else -> "${"%.1f".format(Locale.US, length / (BYTES_PER_MB.toDouble()))} MB"
 }
 
 /**
@@ -42,5 +45,5 @@ internal fun formatMemoryKbToMb(valueKb: Long): String {
   if (valueKb <= 0) return "N/A"
   val mb = valueKb / KB_PER_MB.toDouble()
   @Suppress("MagicNumber")
-  return if (mb < 10) "%.1f MB".format(mb) else "${mb.toLong()} MB"
+  return if (mb < 10) "%.1f MB".format(Locale.US, mb) else "${mb.roundToLong()} MB"
 }

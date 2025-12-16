@@ -150,4 +150,8 @@
   <!-- Device Info Tab - Format Strings -->
   <string name="debugoverlay_device_info_percentage_value">%d%% free</string>
   <string name="debugoverlay_device_info_hz_value">%.0f Hz/%.0f Hz</string>
+
+  <!-- Bug Report -->
+  <string name="debugoverlay_bug_report_subject">Bug Report - %1$s</string>
+  <string name="debugoverlay_share_bug_report">Share Bug Report</string>
 </resources>

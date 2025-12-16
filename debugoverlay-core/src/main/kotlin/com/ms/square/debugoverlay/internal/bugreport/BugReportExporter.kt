@@ -1,10 +1,11 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
+import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.Logger
 import java.io.File
 
 /**
@@ -41,25 +42,31 @@ private const val PROVIDER_AUTHORITY_SUFFIX = ".debugoverlay.bugreport.provider"
  */
 internal class IntentShareExporter(private val context: Context) : BugReportExporter {
 
-  override suspend fun export(zipFile: File): Boolean = try {
+  override suspend fun export(zipFile: File): Boolean {
     val authority = "${context.packageName}$PROVIDER_AUTHORITY_SUFFIX"
     val uri = FileProvider.getUriForFile(context, authority, zipFile)
+
+    val subject = context.getString(R.string.debugoverlay_bug_report_subject, zipFile.nameWithoutExtension)
+    val chooserTitle = context.getString(R.string.debugoverlay_share_bug_report)
 
     val intent = Intent(Intent.ACTION_SEND).apply {
       type = "application/zip"
       clipData = ClipData.newRawUri(null, uri)
       putExtra(Intent.EXTRA_STREAM, uri)
-      putExtra(Intent.EXTRA_SUBJECT, "Bug Report - ${zipFile.nameWithoutExtension}")
+      putExtra(Intent.EXTRA_SUBJECT, subject)
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
-    context.startActivity(
-      Intent.createChooser(intent, "Share Bug Report").apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      }
-    )
-    true
-  } catch (_: ActivityNotFoundException) {
-    false
+    return runCatching {
+      context.startActivity(
+        Intent.createChooser(intent, chooserTitle).apply {
+          addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+      )
+      true
+    }.getOrElse { e ->
+      Logger.w("Failed to share bug report", e)
+      false
+    }
   }
 }

@@ -122,7 +122,7 @@ internal object BugReportFileWriters {
    */
   fun writeJankStats(jankStats: JankStatsUiState?, file: File) {
     if (jankStats == null) {
-      file.writeText("JankStats not available.\n")
+      file.writeText("{}")
       return
     }
     val jsonObj = buildJsonObject {
