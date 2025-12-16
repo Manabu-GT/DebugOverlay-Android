@@ -1,32 +1,45 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
 import android.graphics.Bitmap
+import android.util.Base64
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
 import com.ms.square.debugoverlay.internal.util.HTTP_SUCCESS_END
 import com.ms.square.debugoverlay.internal.util.HTTP_SUCCESS_START
+import com.ms.square.debugoverlay.internal.util.escapeHtml
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
+import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.model.LogEntry
-import com.ms.square.debugoverlay.model.LogLevel
 import com.ms.square.debugoverlay.model.NetworkRequest
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 /**
- * Builds an HTML bug report with screenshot and diagnostic data.
+ * Builds an HTML bug report with embedded screenshot and diagnostic data.
  *
  * Features:
  * - Material Design 3 inspired dark theme
  * - Collapsible sections for logs, network requests, etc.
- * - Screenshot referenced as separate PNG file (extract ZIP to view)
+ * - Screenshot embedded as base64 data URI for self-contained viewing
  * - Responsive design
+ *
+ * Note: The screenshot is embedded as base64 rather than referencing a separate file because
+ * when opening HTML from a ZIP via content:// URIs (e.g., on Android), the FileProvider only
+ * grants permission to the specific file being opened. Relative path references like
+ * "screenshot.png" cannot be resolved since the viewer has no permission to access sibling
+ * files in the ZIP.
  */
 @Suppress("TooManyFunctions", "LongMethod")
 internal object HtmlReportBuilder {
 
   /**
    * Builds a complete HTML report and writes it to the given file.
+   *
+   * Note: This writes directly without atomic operations (temp file + rename).
+   * The caller ([BugReportZipWriter]) passes a temp file and catches exceptions,
+   * skipping failed entries to produce a partial report rather than failing entirely.
    */
   fun build(data: BugReportData, file: File) {
     file.bufferedWriter().use { writer ->
@@ -302,13 +315,22 @@ internal object HtmlReportBuilder {
     append("      <div class=\"section-content screenshot-container\">\n")
 
     if (screenshot != null) {
-      append("        <img class=\"screenshot\" src=\"screenshot.png\" alt=\"App Screenshot\">\n")
+      // Embed as base64 data URI - see class KDoc for why this is necessary
+      val base64Data = encodeScreenshotToBase64(screenshot)
+      append("        <img class=\"screenshot\" src=\"data:image/png;base64,$base64Data\" alt=\"App Screenshot\">\n")
     } else {
       append("        <div class=\"empty-state\">Screenshot not available</div>\n")
     }
 
     append("      </div>\n")
     append("    </div>\n")
+  }
+
+  private fun encodeScreenshotToBase64(bitmap: Bitmap): String {
+    val outputStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.PNG, SCREENSHOT_QUALITY, outputStream)
+    val bytes = outputStream.toByteArray()
+    return Base64.encodeToString(bytes, Base64.NO_WRAP)
   }
 
   private fun StringBuilder.appendDeviceInfoSection(deviceInfo: DeviceInfo?) {
@@ -371,7 +393,7 @@ internal object HtmlReportBuilder {
       logs.forEach { log ->
         val levelClass = log.level.name.lowercase()
         val levelChar = log.level.name.first()
-        val time = formatLogTime(log.timestampMs)
+        val time = formatTimestamp(log.timestampMs)
         append("        <div class=\"log-entry\">\n")
         append("          <span class=\"log-time\">${time.escapeHtml()}</span>\n")
         append("          <span class=\"log-level $levelClass\">$levelChar</span>\n")
@@ -613,20 +635,13 @@ internal object HtmlReportBuilder {
     )
   }
 
-  private fun formatLogTime(timestampMs: Long): String {
-    val date = java.util.Date(timestampMs)
-    return java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.US).format(date)
+  private fun String.truncateBody(maxLength: Int = MAX_BODY_LENGTH): String = if (length <= maxLength) {
+    this
+  } else {
+    val shownSize = formatBytes(maxLength.toLong())
+    val totalSize = formatBytes(length.toLong())
+    "${take(maxLength)}...\n\n[truncated: showing $shownSize of $totalSize]"
   }
-
-  private fun String.escapeHtml(): String = this
-    .replace("&", "&amp;")
-    .replace("<", "&lt;")
-    .replace(">", "&gt;")
-    .replace("\"", "&quot;")
-    .replace("'", "&#39;")
-
-  private fun String.truncateBody(maxLength: Int = MAX_BODY_LENGTH): String =
-    if (length <= maxLength) this else "${take(maxLength)}... [truncated, ${length - maxLength} more chars]"
 
   private const val MAX_BODY_LENGTH = 2048
   private const val MAX_TRACE_LENGTH = 8192

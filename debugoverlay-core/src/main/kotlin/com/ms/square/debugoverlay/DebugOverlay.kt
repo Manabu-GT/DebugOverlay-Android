@@ -49,7 +49,6 @@ public object DebugOverlay {
   private val isInstalled: Boolean
     get() = overlayScope != null
 
-  @get:MainThread
   internal val overlayDataRepository: DebugOverlayDataRepository
     get() = _overlayDataRepository ?: error("DebugOverlayDataRepository not initialized")
 

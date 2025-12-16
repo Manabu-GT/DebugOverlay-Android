@@ -80,4 +80,6 @@ dependencies {
   implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.savedstate)
+
+  testImplementation(libs.junit4)
 }

@@ -128,7 +128,11 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
             try {
               when (val result = DebugOverlay.bugReportGenerator.generate()) {
                 is BugReportResult.Success -> {
-                  IntentShareExporter(context).export(result.zipFile)
+                  if (!IntentShareExporter(context).export(result.zipFile)) {
+                    snackBarHostState.showSnackbar(
+                      context.getString(R.string.debugoverlay_share_bug_report_error)
+                    )
+                  }
                 }
                 is BugReportResult.Error.IoError -> {
                   snackBarHostState.showSnackbar(

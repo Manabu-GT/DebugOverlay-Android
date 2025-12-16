@@ -6,6 +6,7 @@ import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -18,7 +19,7 @@ internal const val SCREENSHOT_QUALITY = 100 // PNG is lossless, quality is ignor
  * Output filename format: `bug_report_YYYYMMDD_HHmmss.zip`
  *
  * Contents:
- * - bug_report.html (human-readable report with screenshot)
+ * - bug_report.html (human-readable report with embedded screenshot)
  * - screenshot.png (if available)
  * - logs.json
  * - network_requests.json
@@ -45,7 +46,7 @@ internal class BugReportZipWriter(context: Context) {
     val zipFile = File(cacheDir, "bug_report_$timestamp.zip")
 
     ZipOutputStream(FileOutputStream(zipFile).buffered()).use { zip ->
-      // HTML report (human-readable with screenshot)
+      // HTML report (human-readable with embedded screenshot)
       writeFileEntry(zip, "bug_report.html") { file ->
         HtmlReportBuilder.build(data, file)
       }
@@ -102,6 +103,9 @@ internal class BugReportZipWriter(context: Context) {
         input.copyTo(zip)
       }
       zip.closeEntry()
+    } catch (e: IOException) {
+      // Skip failed entries - partial report is better than none
+      Logger.w("Failed to write '$filename' to bug report, skipping: ${e.message}")
     } finally {
       if (!tempFile.delete()) {
         Logger.w("Failed to delete temp file: ${tempFile.absolutePath}")
