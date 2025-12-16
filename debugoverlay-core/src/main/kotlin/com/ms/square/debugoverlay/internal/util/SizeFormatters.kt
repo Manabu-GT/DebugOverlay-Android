@@ -19,7 +19,7 @@ internal fun formatBytes(bytes: Long?): String = when {
     @Suppress("MagicNumber")
     if (kb < 10) "%.2f KB".format(Locale.US, kb) else "%.1f KB".format(Locale.US, kb)
   }
-  bytes < BYTES_PER_GB -> "%.1f MB".format(bytes / BYTES_PER_MB.toDouble())
+  bytes < BYTES_PER_GB -> "%.1f MB".format(Locale.US, bytes / BYTES_PER_MB.toDouble())
   else -> "%.1f GB".format(Locale.US, bytes / BYTES_PER_GB.toDouble())
 }
 
