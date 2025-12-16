@@ -44,9 +44,9 @@ internal class BugReportGenerator(
           }
           val logsDeferred = async { repository.logs.first() }
           val networkRequestsDeferred = async { repository.networkRequests.first() }
-          val deviceInfoDeferred = async { repository.deviceInfo.first() }
+          val deviceInfoDeferred = async { repository.queryDeviceInfoSnapshot() }
           val jankStatsDeferred = async { repository.jankStats.first() }
-          val appExitInfosDeferred = async { repository.appExitInfos.first() }
+          val appExitInfosDeferred = async { repository.queryAppExitInfosSnapshot() }
           val uiHierarchyDeferred = async { captureUiHierarchy() }
 
           // Await with individual error handling - partial failures don't abort report
@@ -59,7 +59,7 @@ internal class BugReportGenerator(
             networkRequests = runCatching { networkRequestsDeferred.await() }.getOrElse { emptyList() },
             deviceInfo = runCatching { deviceInfoDeferred.await() }.getOrNull(),
             jankStats = runCatching { jankStatsDeferred.await() }.getOrNull(),
-            appExitInfos = runCatching { appExitInfosDeferred.await() }.getOrElse { emptyList() },
+            appExitInfos = runCatching { appExitInfosDeferred.await() }.getOrDefault(emptyList()),
             uiHierarchy = runCatching { uiHierarchyDeferred.await() }.getOrNull()
           )
         }
