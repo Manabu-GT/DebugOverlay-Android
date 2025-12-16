@@ -6,6 +6,8 @@ import androidx.annotation.RestrictTo
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
+import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
+import com.ms.square.debugoverlay.internal.bugreport.BugReportZipWriter
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
 import com.ms.square.debugoverlay.internal.util.isMainProcess
@@ -41,14 +43,18 @@ public object DebugOverlay {
 
   private var overlayScope: CoroutineScope? = null
   private var overlayViewManager: OverlayViewManager? = null
+  private var _bugReportGenerator: BugReportGenerator? = null
 
   @get:MainThread
   private val isInstalled: Boolean
     get() = overlayScope != null
 
-  @get:MainThread
   internal val overlayDataRepository: DebugOverlayDataRepository
     get() = _overlayDataRepository ?: error("DebugOverlayDataRepository not initialized")
+
+  @get:MainThread
+  internal val bugReportGenerator: BugReportGenerator
+    get() = _bugReportGenerator ?: error("BugReportGenerator not initialized")
 
   @InternalDebugOverlayApi
   @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
@@ -61,12 +67,21 @@ public object DebugOverlay {
     checkMainThread()
     check(!isInstalled) { "DebugOverlay already installed" }
 
-    overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also {
-      _overlayDataRepository = DebugOverlayDataRepository(application, it).apply {
+    overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also { scope ->
+      val repository = DebugOverlayDataRepository(application, scope).apply {
         setNetworkTracker(config.networkRequestTracker)
         setLogTracker(config.logTracker)
       }
-      overlayViewManager = OverlayViewManager(application, it)
+      _overlayDataRepository = repository
+
+      val viewManager = OverlayViewManager(application, scope)
+      overlayViewManager = viewManager
+
+      _bugReportGenerator = BugReportGenerator(
+        zipWriter = BugReportZipWriter(application),
+        repository = repository,
+        activityProvider = viewManager
+      )
     }
   }
 

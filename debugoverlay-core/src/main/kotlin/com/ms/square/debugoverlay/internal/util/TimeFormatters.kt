@@ -1,6 +1,5 @@
 package com.ms.square.debugoverlay.internal.util
 
-import androidx.annotation.MainThread
 import com.ms.square.debugoverlay.model.LogEntry
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -11,15 +10,14 @@ private const val MILLIS_PER_MINUTE = 60_000L
 private const val MILLIS_PER_HOUR = 3_600_000L
 private const val MILLIS_PER_DAY = 86_400_000L
 
-// cache given its frequent usage on the main/UI thread
-@get:MainThread
-private val TIMESTAMP_FORMATTER = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
-
 /**
- * Should only be called on the main/UI thread as it uses a non-thread safe formatter.
+ * Format timestamp as time with milliseconds (e.g., "14:35:22.786").
+ * Thread-safe: creates a new SimpleDateFormat instance per call.
+ * Using java.time.DateTimeFormatter would be cleaner/more performant but requires API 26+ or desugaring.
+ * Can revisit if this ever causes an actual perf issue.
  */
-@MainThread
-internal fun formatTimestamp(timestamp: Long): String = TIMESTAMP_FORMATTER.format(Date(timestamp))
+internal fun formatTimestamp(timestamp: Long): String =
+  SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
 
 /**
  * Format timestamp for clipboard copy (e.g., "12-11 14:35:22.786").

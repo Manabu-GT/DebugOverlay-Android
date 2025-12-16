@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 
 private const val MAX_EXIT_RESULTS = 15
 
@@ -24,7 +25,7 @@ private const val MAX_EXIT_RESULTS = 15
  *
  * Requires Android 11 (API 30) or above. Returns empty list on older devices.
  */
-internal class AppExitDataSource(context: Context, scope: CoroutineScope) {
+internal class AppExitDataSource(private val context: Context, scope: CoroutineScope) {
 
   /**
    * Returns true if the device supports the ApplicationExitInfo API.
@@ -38,10 +39,18 @@ internal class AppExitDataSource(context: Context, scope: CoroutineScope) {
    * Runs on IO dispatcher to avoid blocking main thread during trace reading.
    */
   val appExitInfos: Flow<List<AppExitInfo>> = flow {
-    emit(queryAppExitInfos(context))
+    emit(queryAppExitInfos())
   }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Lazily, emptyList())
 
-  private fun queryAppExitInfos(context: Context): List<AppExitInfo> {
+  /**
+   * Returns a snapshot of app exit history for bug reports.
+   * Always queries directly to ensure fresh data.
+   */
+  suspend fun queryAppExitInfosSnapshot(): List<AppExitInfo> = withContext(Dispatchers.IO) {
+    queryAppExitInfos()
+  }
+
+  private fun queryAppExitInfos(): List<AppExitInfo> {
     if (!isSupported) {
       return emptyList()
     }

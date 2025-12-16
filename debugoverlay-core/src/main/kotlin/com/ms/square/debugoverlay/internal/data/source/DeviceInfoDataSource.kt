@@ -30,10 +30,12 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.time.Duration.Companion.seconds
@@ -85,12 +87,23 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
     defaultDisplay.maxSupportedFps
   }
 
-  val deviceInfo: Flow<DeviceInfo?> = flow {
+  val deviceInfo: StateFlow<DeviceInfo?> = flow {
     while (currentCoroutineContext().isActive) {
       emit(collectDeviceInfo())
       delay(3.seconds)
     }
   }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.WhileSubscribed(), null)
+
+  /**
+   * Returns a snapshot of device info for bug reports.
+   * Uses cached value if available, otherwise queries directly.
+   */
+  suspend fun queryDeviceInfoSnapshot(): DeviceInfo {
+    // Use cached value if already loaded (UI was viewed)
+    deviceInfo.value?.let { return it }
+    // Otherwise query directly
+    return withContext(Dispatchers.IO) { collectDeviceInfo() }
+  }
 
   private fun collectDeviceInfo(): DeviceInfo = DeviceInfo(
     hardware = HardwareInfo(

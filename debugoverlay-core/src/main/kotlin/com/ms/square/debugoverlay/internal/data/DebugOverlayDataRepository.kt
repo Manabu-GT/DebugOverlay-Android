@@ -71,6 +71,10 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   val appExitInfos: Flow<List<AppExitInfo>> = appExitDataSource.appExitInfos
 
+  // Snapshot methods for bug reports (use cached value if available, otherwise query directly)
+  suspend fun queryDeviceInfoSnapshot(): DeviceInfo = deviceInfoDataSource.queryDeviceInfoSnapshot()
+  suspend fun queryAppExitInfosSnapshot(): List<AppExitInfo> = appExitDataSource.queryAppExitInfosSnapshot()
+
   @OptIn(ExperimentalCoroutinesApi::class)
   val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestTracker
     .flatMapLatest { tracker -> tracker.requests }

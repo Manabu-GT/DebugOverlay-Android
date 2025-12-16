@@ -6,11 +6,12 @@ import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 private const val CACHE_SUBDIR = "debugoverlay_bugreports"
-private const val SCREENSHOT_QUALITY = 100 // PNG is lossless, quality is ignored
+internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignored
 
 /**
  * Creates ZIP archives containing bug report data.
@@ -18,6 +19,7 @@ private const val SCREENSHOT_QUALITY = 100 // PNG is lossless, quality is ignore
  * Output filename format: `bug_report_YYYYMMDD_HHmmss.zip`
  *
  * Contents:
+ * - bug_report.html (human-readable report with embedded screenshot)
  * - screenshot.png (if available)
  * - logs.json
  * - network_requests.json
@@ -44,6 +46,11 @@ internal class BugReportZipWriter(context: Context) {
     val zipFile = File(cacheDir, "bug_report_$timestamp.zip")
 
     ZipOutputStream(FileOutputStream(zipFile).buffered()).use { zip ->
+      // HTML report (human-readable with embedded screenshot)
+      writeFileEntry(zip, "bug_report.html") { file ->
+        HtmlReportBuilder.build(data, file)
+      }
+
       // Screenshot (PNG)
       data.screenshot?.let { bitmap ->
         writeScreenshot(zip, bitmap)
@@ -82,7 +89,7 @@ internal class BugReportZipWriter(context: Context) {
 
   private fun writeScreenshot(zip: ZipOutputStream, bitmap: Bitmap) {
     zip.putNextEntry(ZipEntry("screenshot.png"))
-    bitmap.compress(Bitmap.CompressFormat.PNG, SCREENSHOT_QUALITY, zip)
+    bitmap.compress(Bitmap.CompressFormat.PNG, UNUSED_PNG_QUALITY, zip)
     zip.closeEntry()
   }
 
@@ -96,6 +103,9 @@ internal class BugReportZipWriter(context: Context) {
         input.copyTo(zip)
       }
       zip.closeEntry()
+    } catch (e: IOException) {
+      // Skip failed entries - partial report is better than none
+      Logger.w("Failed to write '$filename' to bug report, skipping: ${e.message}")
     } finally {
       if (!tempFile.delete()) {
         Logger.w("Failed to delete temp file: ${tempFile.absolutePath}")
