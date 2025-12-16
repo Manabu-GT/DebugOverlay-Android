@@ -1,15 +1,19 @@
 package com.ms.square.debugoverlay.model
 
 import android.util.Log
+import kotlinx.serialization.Serializable
 
 /**
  * Data class representing a single log entry.
+ *
+ * This class supports kotlinx.serialization for export and custom integrations.
  *
  * **Security considerations:** The [message] field is displayed directly in the
  * debug overlay UI. Callers should sanitize or redact sensitive data (PII,
  * credentials, tokens, etc.) before constructing LogEntry instances, especially
  * in builds that may be shared with testers or captured in screen recordings.
  */
+@Serializable
 public data class LogEntry(
   val id: Long,
   val timestampMs: Long,
@@ -21,6 +25,7 @@ public data class LogEntry(
   val message: String,
 )
 
+@Serializable
 public enum class LogLevel {
   VERBOSE,
   DEBUG,

@@ -34,15 +34,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import radiography.Radiography
-import radiography.ScanScopes.AllWindowsScope
-import radiography.ScannableView
-import radiography.ViewStateRenderers.DefaultsNoPii
 
 /**
  * UI tab showing the current view hierarchy using Radiography.
@@ -65,17 +59,7 @@ internal fun UiTabContent(modifier: Modifier = Modifier) {
   fun refresh() {
     scope.launch {
       isLoading = true
-      hierarchyOutput = runCatching {
-        withContext(Dispatchers.Default) {
-          Radiography.scan(
-            viewStateRenderers = DefaultsNoPii,
-            scanScope = excludeDebugPanelActivityScope
-          )
-        }
-      }.getOrElse { e ->
-        if (e is CancellationException) throw e
-        "Failed to scan view hierarchy: ${e.message}"
-      }
+      hierarchyOutput = captureUiHierarchy() ?: "Failed to scan view hierarchy"
       isLoading = false
     }
   }
@@ -158,17 +142,4 @@ private fun HierarchyOutputDisplay(hierarchyOutput: String, modifier: Modifier =
         .padding(start = 2.dp, end = 2.dp, bottom = 2.dp)
     )
   }
-}
-
-/**
- * A ScanScope that excludes windows marked with [R.id.debugoverlay_window_marker].
- */
-private val excludeDebugPanelActivityScope = {
-  AllWindowsScope.findRoots()
-    .filter { scannableView ->
-      val view = (scannableView as? ScannableView.AndroidView)?.view
-      // only include if the view is not marked with the debug overlay window tag
-      view?.getTag(R.id.debugoverlay_window_marker) != true
-    }
-    .toList()
 }

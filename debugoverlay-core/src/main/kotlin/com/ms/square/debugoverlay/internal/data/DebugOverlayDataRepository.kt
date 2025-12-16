@@ -22,7 +22,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -65,7 +64,7 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   val netStats: Flow<NetworkStats> = netStatsDataSource.stats
   val deviceInfo: Flow<DeviceInfo?> = deviceInfoDataSource.deviceInfo
-  val jankStats: StateFlow<JankStatsUiState> = jankStatsDataSource.state
+  val jankStats: Flow<JankStatsUiState> = jankStatsDataSource.state
 
   val isAppExitSupported: Boolean
     get() = appExitDataSource.isSupported
