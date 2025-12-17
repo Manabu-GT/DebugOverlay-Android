@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicLong
 
+private const val DEFAULT_MAX_LOGS = 300
+private const val SOURCE_NAME = "Timber"
+private const val DEFAULT_TAG = "Timber"
+
 /**
  * Timber.Tree that captures logs for DebugOverlay.
  *
@@ -75,11 +79,5 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
     recentLogs.add(entry)
     _logs.update { recentLogs.toList() }
-  }
-
-  private companion object {
-    const val DEFAULT_MAX_LOGS = 300
-    const val SOURCE_NAME = "Timber"
-    const val DEFAULT_TAG = "Timber"
   }
 }
