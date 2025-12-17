@@ -62,7 +62,10 @@ internal object HtmlReportBuilder {
     append("  <div class=\"container\">\n")
 
     // Header
-    appendHeader(timestamp)
+    appendHeader(timestamp, data.userMetadata?.title)
+
+    // User input section (if provided)
+    appendUserInputSection(data.userMetadata)
 
     // Screenshot section
     appendScreenshotSection(data.screenshot)
@@ -299,11 +302,32 @@ internal object HtmlReportBuilder {
     )
   }
 
-  private fun StringBuilder.appendHeader(timestamp: String) {
+  private fun StringBuilder.appendHeader(timestamp: String, title: String?) {
     append("    <header>\n")
-    append("      <h1>Bug Report</h1>\n")
+    if (title != null) {
+      append("      <h1>${title.escapeHtml()}</h1>\n")
+    } else {
+      append("      <h1>Bug Report</h1>\n")
+    }
     append("      <div class=\"timestamp\">Generated: ${timestamp.escapeHtml()}</div>\n")
     append("    </header>\n")
+  }
+
+  private fun StringBuilder.appendUserInputSection(metadata: BugReportMetadata?) {
+    // Only show section if there's a non-blank description (title is shown in header).
+    // Note: BugReportMetadataDialog trims whitespace before creating metadata,
+    // so blank descriptions won't reach here.
+    if (metadata?.description.isNullOrBlank()) return
+
+    append("    <div class=\"section\">\n")
+    append("      <div class=\"section-header\" onclick=\"toggleSection(this)\">\n")
+    append("        <h2>Description</h2>\n")
+    append("        <span class=\"chevron\">&#9660;</span>\n")
+    append("      </div>\n")
+    append("      <div class=\"section-content\">\n")
+    append("        <div class=\"pre-content\">${metadata.description.escapeHtml()}</div>\n")
+    append("      </div>\n")
+    append("    </div>\n")
   }
 
   private fun StringBuilder.appendScreenshotSection(screenshot: Bitmap?) {

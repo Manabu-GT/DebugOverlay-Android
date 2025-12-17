@@ -11,6 +11,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  * Data class containing all diagnostic information for a bug report.
  *
  * @param timestampMs The time when the bug report was generated (epoch millis)
+ * @param userMetadata User-provided title and description (null if skipped)
  * @param screenshot Screenshot of the app at the time of report generation (may be null if capture failed)
  * @param deviceInfo Device hardware, system, battery, and network information
  * @param logs Recent log entries
@@ -21,6 +22,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  */
 internal data class BugReportData(
   val timestampMs: Long,
+  val userMetadata: BugReportMetadata?,
   val screenshot: Bitmap?,
   val deviceInfo: DeviceInfo?,
   val logs: List<LogEntry>,

@@ -111,6 +111,37 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var isGeneratingReport by remember { mutableStateOf(false) }
+  var showMetadataDialog by remember { mutableStateOf(false) }
+
+  if (showMetadataDialog) {
+    BugReportMetadataDialog(
+      onConfirm = { metadata ->
+        showMetadataDialog = false
+        scope.launch {
+          isGeneratingReport = true
+          try {
+            when (val result = DebugOverlay.bugReportGenerator.generate(metadata)) {
+              is BugReportResult.Success -> {
+                if (!IntentShareExporter(context).export(result.zipFile)) {
+                  snackBarHostState.showSnackbar(
+                    context.getString(R.string.debugoverlay_share_bug_report_error)
+                  )
+                }
+              }
+              is BugReportResult.Error.IoError -> {
+                snackBarHostState.showSnackbar(
+                  context.getString(R.string.debugoverlay_bug_report_error)
+                )
+              }
+            }
+          } finally {
+            isGeneratingReport = false
+          }
+        }
+      },
+      onDismiss = { showMetadataDialog = false }
+    )
+  }
 
   TopAppBar(
     title = {
@@ -122,29 +153,7 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
     actions = {
       BugReportButton(
         isGenerating = isGeneratingReport,
-        onGenerateReport = {
-          scope.launch {
-            isGeneratingReport = true
-            try {
-              when (val result = DebugOverlay.bugReportGenerator.generate()) {
-                is BugReportResult.Success -> {
-                  if (!IntentShareExporter(context).export(result.zipFile)) {
-                    snackBarHostState.showSnackbar(
-                      context.getString(R.string.debugoverlay_share_bug_report_error)
-                    )
-                  }
-                }
-                is BugReportResult.Error.IoError -> {
-                  snackBarHostState.showSnackbar(
-                    context.getString(R.string.debugoverlay_bug_report_error)
-                  )
-                }
-              }
-            } finally {
-              isGeneratingReport = false
-            }
-          }
-        }
+        onGenerateReport = { showMetadataDialog = true }
       )
       IconButton(onClick = onDismiss) {
         Icon(

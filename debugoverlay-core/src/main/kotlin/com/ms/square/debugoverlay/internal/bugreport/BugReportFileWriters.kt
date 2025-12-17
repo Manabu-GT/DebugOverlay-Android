@@ -21,7 +21,7 @@ private const val SEPARATOR_WIDTH = 80
  * Utility functions for writing bug report data to files.
  *
  * File format strategy:
- * - JSON for structured data: logs, network requests, device info, jank stats
+ * - JSON for structured data: user metadata, logs, network requests, device info, jank stats
  * - Plain text for narrative data: app exits, UI hierarchy
  */
 internal object BugReportFileWriters {
@@ -32,6 +32,13 @@ internal object BugReportFileWriters {
   // ============================================================================
   // JSON Writers (structured data)
   // ============================================================================
+
+  /**
+   * Writes user-provided metadata (title/description) to a JSON file.
+   */
+  fun writeUserMetadata(metadata: BugReportMetadata, file: File) {
+    file.writeText(json.encodeToString(metadata))
+  }
 
   /**
    * Writes log entries to a JSON file.
@@ -51,12 +58,7 @@ internal object BugReportFileWriters {
    * Writes device information to a JSON file using buildJsonObject.
    */
   @Suppress("LongMethod") // Length is from data fields, not complexity
-  fun writeDeviceInfo(deviceInfo: DeviceInfo?, file: File) {
-    if (deviceInfo == null) {
-      file.writeText("{}")
-      return
-    }
-
+  fun writeDeviceInfo(deviceInfo: DeviceInfo, file: File) {
     val jsonObj = buildJsonObject {
       putJsonObject("hardware") {
         put("manufacturer", deviceInfo.hardware.manufacturer)
@@ -120,11 +122,7 @@ internal object BugReportFileWriters {
   /**
    * Writes JankStats data to a JSON file using buildJsonObject.
    */
-  fun writeJankStats(jankStats: JankStatsUiState?, file: File) {
-    if (jankStats == null) {
-      file.writeText("{}")
-      return
-    }
+  fun writeJankStats(jankStats: JankStatsUiState, file: File) {
     val jsonObj = buildJsonObject {
       put("totalFrames", jankStats.totalFrames)
       put("jankyFrames", jankStats.jankyFrames)
@@ -210,7 +208,7 @@ internal object BugReportFileWriters {
    * Writes UI hierarchy dump to a plain text file.
    * Format: Raw Radiography output (already formatted as a tree).
    */
-  fun writeUiHierarchy(uiHierarchy: String?, file: File) {
-    file.writeText(uiHierarchy ?: "UI hierarchy not available.\n")
+  fun writeUiHierarchy(uiHierarchy: String, file: File) {
+    file.writeText(uiHierarchy)
   }
 }

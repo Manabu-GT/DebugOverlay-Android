@@ -157,4 +157,16 @@
   <string name="debugoverlay_bug_report_subject">Bug Report - %1$s</string>
   <string name="debugoverlay_share_bug_report">Share Bug Report</string>
   <string name="debugoverlay_share_bug_report_error">Failed to share report</string>
+
+  <!-- Bug Report Metadata Dialog -->
+  <string name="debugoverlay_bug_report_metadata_title">Report a Bug</string>
+  <string name="debugoverlay_bug_report_metadata_subtitle">Add a title and description to help identify this issue.</string>
+  <string name="debugoverlay_bug_report_title_label">Title</string>
+  <string name="debugoverlay_bug_report_title_hint">Brief summary of the issue</string>
+  <string name="debugoverlay_bug_report_title_supporting">Optional — defaults to \"Bug Report\" if blank</string>
+  <string name="debugoverlay_bug_report_description_label">Description (optional)</string>
+  <string name="debugoverlay_bug_report_description_hint">Steps to reproduce, expected behavior, etc.</string>
+  <string name="debugoverlay_bug_report_default_title">Bug Report</string>
+  <string name="debugoverlay_bug_report_submit">Generate</string>
+  <string name="debugoverlay_cancel">Cancel</string>
 </resources>
