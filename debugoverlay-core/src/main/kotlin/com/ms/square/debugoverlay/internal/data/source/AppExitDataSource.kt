@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 
 private const val MAX_EXIT_RESULTS = 15
+private const val NATIVE_CRASH_TOMBSTONE_MESSAGE =
+  "Native crash tombstone (binary protobuf format). Check logcat for stack trace details."
 
 /**
  * Data source for retrieving app exit history using [ApplicationExitInfo] API.
@@ -101,10 +103,5 @@ internal class AppExitDataSource(private val context: Context, scope: CoroutineS
       Logger.w("ApplicationExitInfo - readTrace() failed", e)
       null
     }
-  }
-
-  companion object {
-    private const val NATIVE_CRASH_TOMBSTONE_MESSAGE =
-      "Native crash tombstone (binary protobuf format). Check logcat for stack trace details."
   }
 }
