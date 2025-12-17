@@ -27,9 +27,10 @@ internal class BugReportGenerator(
    * Note: The UI should disable the trigger button during generation to prevent
    * concurrent calls. This method does not enforce single-generation internally.
    *
+   * @param metadata Optional user-provided title and description
    * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
    */
-  suspend fun generate(): BugReportResult {
+  suspend fun generate(metadata: BugReportMetadata? = null): BugReportResult {
     val timestampMs = System.currentTimeMillis()
     var screenshot: Bitmap? = null
 
@@ -54,6 +55,7 @@ internal class BugReportGenerator(
 
           BugReportData(
             timestampMs = timestampMs,
+            userMetadata = metadata,
             screenshot = screenshot,
             logs = runCatching { logsDeferred.await() }.getOrElse { emptyList() },
             networkRequests = runCatching { networkRequestsDeferred.await() }.getOrElse { emptyList() },

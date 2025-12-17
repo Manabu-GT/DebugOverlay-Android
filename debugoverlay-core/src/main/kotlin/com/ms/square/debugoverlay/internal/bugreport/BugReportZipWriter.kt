@@ -56,6 +56,13 @@ internal class BugReportZipWriter(context: Context) {
         writeScreenshot(zip, bitmap)
       }
 
+      // User-provided metadata (optional)
+      data.userMetadata?.let { metadata ->
+        writeFileEntry(zip, "user_input.json") { file ->
+          BugReportFileWriters.writeUserMetadata(metadata, file)
+        }
+      }
+
       // JSON files
       writeFileEntry(zip, "logs.json") { file ->
         BugReportFileWriters.writeLogs(data.logs, file)
@@ -65,12 +72,16 @@ internal class BugReportZipWriter(context: Context) {
         BugReportFileWriters.writeNetworkRequests(data.networkRequests, file)
       }
 
-      writeFileEntry(zip, "device_info.json") { file ->
-        BugReportFileWriters.writeDeviceInfo(data.deviceInfo, file)
+      data.deviceInfo?.let {
+        writeFileEntry(zip, "device_info.json") { file ->
+          BugReportFileWriters.writeDeviceInfo(it, file)
+        }
       }
 
-      writeFileEntry(zip, "jank_stats.json") { file ->
-        BugReportFileWriters.writeJankStats(data.jankStats, file)
+      data.jankStats?.let {
+        writeFileEntry(zip, "jank_stats.json") { file ->
+          BugReportFileWriters.writeJankStats(it, file)
+        }
       }
 
       // Plain text files
@@ -78,8 +89,10 @@ internal class BugReportZipWriter(context: Context) {
         BugReportFileWriters.writeAppExits(data.appExitInfos, file)
       }
 
-      writeFileEntry(zip, "ui_hierarchy.txt") { file ->
-        BugReportFileWriters.writeUiHierarchy(data.uiHierarchy, file)
+      data.uiHierarchy?.let {
+        writeFileEntry(zip, "ui_hierarchy.txt") { file ->
+          BugReportFileWriters.writeUiHierarchy(it, file)
+        }
       }
     }
 
