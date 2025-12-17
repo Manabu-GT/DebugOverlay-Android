@@ -4,65 +4,68 @@ DebugOverlay-Android
 [![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**DebugOverlay** gives you always-on visibility into CPU, memory, FPS, logs, network, and UI hierarchy—right inside your app, no permissions required.
+**Zero-configuration runtime diagnostics for debug builds—always on, always available.**
 
-Drop it into your debug build and get a draggable overlay with real-time metrics plus a full diagnostic panel. Ideal for development, QA testing, or instrumentation runs where you need runtime insight without attaching profilers.
+DebugOverlay gives you a lightweight, always-on look into your app's performance so you can spot regressions *before* you need heavy profilers. Use it during development, QA testing, CI runs, or customer repro investigations.
+
+**What makes it different:**
+- **Proactive** – Catch issues passively while developing, not after a QA report
+- **Self-contained** – No companion app, no adb, no cloud account
+- **No dangerous permissions** – No `SYSTEM_ALERT_WINDOW` required
+- **Developer-first** – Low-friction access to runtime state
+
+> **Not a replacement for:** Deep profiling (Android Profiler), leak detection (LeakCanary), or crash reporting (Crashlytics). DebugOverlay is your **"check engine light"**—it tells you *when* to look deeper.
 
 > v2.0.0 is a complete Kotlin + Compose rewrite of the original 1.x Java implementation.
 
-<img src="art/readme_simple_demo.gif" width="50%" alt="DebugOverlay Simple Demo">
+## Quick Start
+
+```kotlin
+// 1. Add snapshot repository (settings.gradle.kts → repositories block)
+maven(url = "https://central.sonatype.com/repository/maven-snapshots")
+
+// 2. Add dependency (app/build.gradle.kts)
+debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
+
+// That's it! Overlay appears automatically on app launch.
+// Tap to open debug panel. Long-press to drag.
+```
+
+See [Installation](#installation) for full `settings.gradle.kts` context.
+
+<img src="../../../art/readme_simple_demo.gif" width="50%" alt="DebugOverlay Demo">
 
 ## Features
 
 ### Overlay Metrics
-The draggable overlay displays real-time metrics with 16-sample historical sparklines:
-
-- **CPU** – App CPU usage sampled from `/proc/self/stat` every second
-- **Heap** – JVM heap usage percentage relative to max heap, refreshed every second
-- **PSS** – Process Proportional Set Size in MB, sampled every 3 seconds
-- **FPS** – Current frame rate vs. target frame rate, refreshed every second
-
-Each row shows a status dot (green/yellow/red) based on current health. Long-press to drag; the overlay snaps to the nearest edge and remembers its position across activities.
+Draggable overlay with real-time metrics and sparklines:
+- **CPU** – App CPU usage from `/proc/self/stat`
+- **Heap** – JVM heap percentage
+- **PSS** – Process memory in MB
+- **FPS** – Frame rate vs. target
 
 ### Debug Panel
-Tap the overlay to open a full-screen diagnostic panel with six tabs:
+Tap the overlay to open a full-screen diagnostic panel:
 
-- **Log** – Live log stream with level filtering (V/D/I/W/E), search, and tap-to-expand details. Supports system logcat or [Timber integration](#timber-log-capture)
-- **AppExits** – App termination history (crashes, ANRs, OOM kills, etc.) on Android 11+ with stack traces when available
-- **Network** – Upload/download totals, request list with timing/size, and full request/response inspection (requires [interceptor setup](#network-request-tracking))
-- **JankStats** – Frame timing analysis showing jank percentage, per-state breakdown, and individual janky frame details
-- **UI** – View hierarchy powered by [Radiography](https://github.com/square/radiography) with refresh and copy-to-clipboard
-- **Device** – Hardware specs, OS info, memory/storage usage, battery, and network status
+- **Log** – Live log stream with filtering and search. Supports [Timber](#timber-log-capture)
+- **AppExits** – Crash/ANR history on Android 11+ with stack traces
+- **Network** – Request list with timing and inspection ([setup required](#network-request-tracking))
+- **JankStats** – Frame timing analysis and jank breakdown
+- **UI** – View hierarchy via [Radiography](https://github.com/square/radiography)
+- **Device** – Hardware specs, OS info, battery, network status
+- **Bug Report** – One-tap HTML report with screenshot and diagnostics
 
-<img src="art/readme_debug_panel.gif" width="50%" alt="Debug Panel">
-
-### v2.0.0 Highlights
-- Pure Kotlin + Jetpack Compose (no system permissions required)
-- Automatic install via AndroidX Startup
-- Dark/light theme support
-- Minimum SDK 24 / target SDK 36
-
-### Upcoming Features
-- **Bug reporting** – Export diagnostics and share bug reports
-- **Custom tab API** – Allow apps to register custom diagnostic tabs
-
-## Requirements
-
-- Android 7.0 (API level 24) or higher
-
-The library itself is implemented with Kotlin + Compose but ships as a regular AAR. You do **not** need to enable the Compose compiler plugin or migrate your app to Kotlin—pure Java/XML apps can consume the dependency via `debugImplementation`.
-
-DebugOverlay is intended for debug builds in general; keep it out of release variants by using `debugImplementation` (shown below).
+<img src="../../../art/readme_debug_panel.gif" width="50%" alt="Debug Panel">
 
 ## Installation
 
-### 1. Repositories
+**Requirements:** Android 7.0+ (API 24). Pure Java/XML apps work fine—no Compose setup needed in your app.
 
-`2.0.0-SNAPSHOT` is published to Sonatype snapshots while I prep a stable release (target: late-Dec 2025). Add the repository next to `mavenCentral()`:
+### 1. Add snapshot repository
 
 ```kotlin
+// settings.gradle.kts
 dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     google()
     mavenCentral()
@@ -71,9 +74,9 @@ dependencyResolutionManagement {
 }
 ```
 
-> **Note:** Snapshot builds are unstable. For production-critical testing, consider waiting for the stable release on Maven Central.
+> Remove this repository once 2.0.0 stable is released on Maven Central.
 
-### 2. Add the dependency
+### 2. Add dependency
 
 ```kotlin
 dependencies {
@@ -81,20 +84,16 @@ dependencies {
 }
 ```
 
-Use the same coordinate for instrumentation tests (e.g., `androidTestImplementation`) if you want overlays while running Espresso/UI Automator suites.
-
 ## Usage
 
 ### Auto-install
 
-The overlay installs itself on app startup via AndroidX Startup's `DebugOverlayStartupInitializer`. No additional configuration required—just add the dependency and the overlay appears in debug builds. It only attaches in the main process and ignores secondary processes.
+The overlay installs automatically via AndroidX Startup. No code required—just add the dependency.
 
-To disable auto-install (e.g., for manual initialization), remove the initializer via manifest merger:
-
+To disable auto-install (e.g., for specific build flavors), add this to your `AndroidManifest.xml`:
 ```xml
-<!-- In your app's AndroidManifest.xml, add xmlns:tools to the root manifest element -->
-<manifest xmlns:tools="http://schemas.android.com/tools" ...>
-  ...
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
   <application>
     <provider
       android:name="androidx.startup.InitializationProvider"
@@ -108,11 +107,9 @@ To disable auto-install (e.g., for manual initialization), remove the initialize
 </manifest>
 ```
 
-Then call `DebugOverlay.install(application)` manually when needed.
+> **Note:** Manual lifecycle control is not supported in v2.0.0 at the moment. Disabling auto-install means the overlay won't appear.
 
 ### Network request tracking
-
-To see HTTP requests in the Network tab, add the OkHttp extension alongside the base dependency and attach the interceptor:
 
 ```kotlin
 dependencies {
@@ -123,15 +120,11 @@ dependencies {
 
 ```kotlin
 val client = OkHttpClient.Builder()
-  .addNetworkInterceptor(DebugOverlayNetworkInterceptor(maxStoredRequests = 100))
+  .addNetworkInterceptor(DebugOverlayNetworkInterceptor())
   .build()
 ```
 
-The interceptor captures request/response metadata (URL, method, status, timing, size) and displays it in the debug panel. Use `maxStoredRequests` to limit memory usage.
-
 ### Timber log capture
-
-By default, the Log tab reads from system logcat (your app's logs only). If your app uses [Timber](https://github.com/JakeWharton/timber), you can capture logs directly from Timber instead—add the extension alongside the base dependency:
 
 ```kotlin
 dependencies {
@@ -140,59 +133,58 @@ dependencies {
 }
 ```
 
-That's it. The extension auto-plants `DebugOverlayTimberTree` via AndroidX Startup and registers it with DebugOverlay. The Log tab will show "Timber" as the source indicator and display all logs sent through Timber, including stack traces for logged exceptions.
+Auto-plants via AndroidX Startup. The Log tab shows "Timber" as the source with full stack traces.
 
-**Why use Timber capture?**
-- Cleaner logs - only your app's Timber calls, no system/framework noise
-- Full stack traces when you log exceptions with `Timber.e(exception, "message")`
-- Direct in-process capture without spawning a logcat subprocess
+To disable auto-plant, remove `TimberTreeStartupInitializer` via manifest merger and call `Timber.plant(DebugOverlayTimberTree())` manually.
 
-**Manual setup (opt-out of auto-plant):**
+### Bug Reporting
 
-If your team has strict Timber wiring or you want explicit control over when the tree is planted, disable auto-plant via manifest merger and plant manually:
+Tap the bug icon in the debug panel toolbar. Generates a ZIP with:
+- Interactive HTML dashboard
+- Embedded screenshot
+- Device info, logs, network history, UI hierarchy
 
-```xml
-<!-- In your app's AndroidManifest.xml, add xmlns:tools to the root manifest element -->
-<manifest xmlns:tools="http://schemas.android.com/tools" ...>
-  ...
-  <application>
-    <provider
-      android:name="androidx.startup.InitializationProvider"
-      android:authorities="${applicationId}.androidx-startup"
-      tools:node="merge">
-      <meta-data
-        android:name="com.ms.square.debugoverlay.extension.timber.TimberTreeStartupInitializer"
-        tools:node="remove" />
-    </provider>
-  </application>
-</manifest>
-```
+> **Privacy:** Reports contain raw logs and network data. Review before sharing externally. The OkHttp extension supports header redaction and body size limits to minimize sensitive data capture.
 
-Then plant the tree manually in your `Application.onCreate()`:
+## Advanced Setup
+
+### Release builds with overlay
+
+Test R8-optimized builds while keeping diagnostics:
 
 ```kotlin
-Timber.plant(DebugOverlayTimberTree())
+android {
+  buildTypes {
+    create("releaseWithOverlay") {
+      initWith(getByName("release"))
+      matchingFallbacks += "release"
+      applicationIdSuffix = ".internal"
+    }
+  }
+}
+
+dependencies {
+  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
+}
+```
+
+```bash
+./gradlew installReleaseWithOverlay
 ```
 
 ## Known Limitations
 
-The debug overlay panel may appear below dialogs (AlertDialog, BottomSheetDialog, etc.)
-due to Android window z-ordering. This is a trade-off to avoid requiring the
-SYSTEM_ALERT_WINDOW permission. Will revisit this before the official v2.0.0 release, though.
+- The debug panel may appear below dialogs due to Android window z-ordering (trade-off to avoid `SYSTEM_ALERT_WINDOW` permission)
+- Data is stored locally only—no cloud sync or team collaboration features
 
-## Sample app
-
-`sample/` is a Jetpack Compose demo that consumes the Android Weekly feed and runs DebugOverlay during development. Build it with:
+## Sample App
 
 ```shell
 ./gradlew :sample:assembleDebug
 ```
 
-Use it as a reference for wiring the dependency and exercising the overlay while navigating multiple screens.
-
-<img src="art/readme_sample_app_demo.gif" width="50%" alt="DebugOverlay Sample App Demo">
+<img src="../../../art/readme_sample_app_demo.gif" width="50%" alt="Sample App Demo">
 
 ## License
 
-DebugOverlay-Android is distributed under the [Apache License 2.0](LICENSE).
-If you use this library, please credit DebugOverlay-Android in your app's open-source acknowledgements or documentation.
+[Apache License 2.0](../../../LICENSE)
