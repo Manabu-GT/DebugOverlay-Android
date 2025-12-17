@@ -314,7 +314,9 @@ internal object HtmlReportBuilder {
   }
 
   private fun StringBuilder.appendUserInputSection(metadata: BugReportMetadata?) {
-    // Only show section if there's a description (title is shown in header)
+    // Only show section if there's a non-blank description (title is shown in header).
+    // Note: BugReportMetadataDialog trims whitespace before creating metadata,
+    // so blank descriptions won't reach here.
     if (metadata?.description.isNullOrBlank()) return
 
     append("    <div class=\"section\">\n")

@@ -81,6 +81,7 @@ private fun MetadataFormContent(
       onValueChange = onTitleChange,
       label = { Text(stringResource(R.string.debugoverlay_bug_report_title_label)) },
       placeholder = { Text(stringResource(R.string.debugoverlay_bug_report_title_hint)) },
+      supportingText = { Text(stringResource(R.string.debugoverlay_bug_report_title_supporting)) },
       singleLine = true,
       modifier = Modifier.fillMaxWidth()
     )

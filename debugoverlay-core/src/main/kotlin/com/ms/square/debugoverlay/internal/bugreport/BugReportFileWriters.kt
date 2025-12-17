@@ -21,7 +21,7 @@ private const val SEPARATOR_WIDTH = 80
  * Utility functions for writing bug report data to files.
  *
  * File format strategy:
- * - JSON for structured data: logs, network requests, device info, jank stats
+ * - JSON for structured data: user metadata, logs, network requests, device info, jank stats
  * - Plain text for narrative data: app exits, UI hierarchy
  */
 internal object BugReportFileWriters {

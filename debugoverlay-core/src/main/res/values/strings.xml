@@ -163,6 +163,7 @@
   <string name="debugoverlay_bug_report_metadata_subtitle">Add a title and description to help identify this issue.</string>
   <string name="debugoverlay_bug_report_title_label">Title</string>
   <string name="debugoverlay_bug_report_title_hint">Brief summary of the issue</string>
+  <string name="debugoverlay_bug_report_title_supporting">Optional — defaults to \"Bug Report\" if blank</string>
   <string name="debugoverlay_bug_report_description_label">Description (optional)</string>
   <string name="debugoverlay_bug_report_description_hint">Steps to reproduce, expected behavior, etc.</string>
   <string name="debugoverlay_bug_report_default_title">Bug Report</string>
