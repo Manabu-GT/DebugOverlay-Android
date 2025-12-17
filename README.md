@@ -40,7 +40,7 @@ See [Installation](#installation) for full `settings.gradle.kts` context.
 ### Overlay Metrics
 Draggable overlay with real-time metrics and sparklines:
 - **CPU** – App CPU usage from `/proc/self/stat`
-- **Heap** – JVM heap percentage
+- **Heap** – JVM heap usage percentage
 - **PSS** – Proportional Set Size in MB
 - **FPS** – Real-time frame rate
 
@@ -74,7 +74,7 @@ dependencyResolutionManagement {
 }
 ```
 
-> Remove this repository once 2.0.0 stable is released on Maven Central.
+> Stable release expected before end of 2025. Remove this repository once 2.0.0 is released on Maven Central.
 
 ### 2. Add dependency
 
