@@ -33,7 +33,7 @@ debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
 
 See [Installation](#installation) for full `settings.gradle.kts` context.
 
-<img src="../../../art/readme_simple_demo.gif" width="50%" alt="DebugOverlay Demo">
+<img src="art/readme_simple_demo.gif" alt="DebugOverlay Demo">
 
 ## Features
 
@@ -55,7 +55,7 @@ Tap the overlay to open a full-screen diagnostic panel:
 - **Device** – Hardware specs, OS info, battery, network status
 - **Bug Report** – One-tap HTML report with screenshot and diagnostics
 
-<img src="art/readme_debug_panel.gif" width="50%" alt="Debug Panel">
+<img src="art/readme_debug_panel.gif" alt="Debug Panel">
 
 ## Installation
 
@@ -146,6 +146,8 @@ Tap the bug icon in the debug panel toolbar. Generates a ZIP with:
 
 > **Privacy:** Reports contain raw logs and network data. Review before sharing externally. The OkHttp extension supports header redaction and body size limits to minimize sensitive data capture.
 
+<img src="art/readme_bug_report_demo.gif" alt="Sample Bug Report">
+
 ## Advanced Setup
 
 ### Release builds with overlay
@@ -183,7 +185,7 @@ dependencies {
 ./gradlew :sample:assembleDebug
 ```
 
-<img src="art/readme_sample_app_demo.gif" width="50%" alt="Sample App Demo">
+<img src="art/readme_sample_app_demo.gif" alt="Sample App Demo">
 
 ## License
 
