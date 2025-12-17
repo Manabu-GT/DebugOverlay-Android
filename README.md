@@ -15,7 +15,7 @@ DebugOverlay gives you a lightweight, always-on look into your app's performance
 - **Developer-first** – Low-friction access to runtime state
 
 > **Not a replacement for:** Deep profiling (Android Profiler), leak detection (LeakCanary), or crash reporting (Crashlytics). DebugOverlay is your **"check engine light"**—it tells you *when* to look deeper.
-
+>
 > v2.0.0 is a complete Kotlin + Compose rewrite of the original 1.x Java implementation.
 
 ## Quick Start
