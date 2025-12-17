@@ -41,21 +41,21 @@ See [Installation](#installation) for full `settings.gradle.kts` context.
 Draggable overlay with real-time metrics and sparklines:
 - **CPU** – App CPU usage from `/proc/self/stat`
 - **Heap** – JVM heap percentage
-- **PSS** – Process memory in MB
-- **FPS** – Frame rate vs. target
+- **PSS** – Proportional Set Size in MB
+- **FPS** – Real-time frame rate
 
 ### Debug Panel
 Tap the overlay to open a full-screen diagnostic panel:
 
 - **Log** – Live log stream with filtering and search. Supports [Timber](#timber-log-capture)
-- **AppExits** – Crash/ANR history on Android 11+ with stack traces
+- **AppExits** – App exit (e.g., Crash/ANR) history on Android 11+ with stack traces
 - **Network** – Request list with timing and inspection ([setup required](#network-request-tracking))
 - **JankStats** – Frame timing analysis and jank breakdown
 - **UI** – View hierarchy via [Radiography](https://github.com/square/radiography)
 - **Device** – Hardware specs, OS info, battery, network status
 - **Bug Report** – One-tap HTML report with screenshot and diagnostics
 
-<img src="../../../art/readme_debug_panel.gif" width="50%" alt="Debug Panel">
+<img src="art/readme_debug_panel.gif" width="50%" alt="Debug Panel">
 
 ## Installation
 
@@ -183,8 +183,8 @@ dependencies {
 ./gradlew :sample:assembleDebug
 ```
 
-<img src="../../../art/readme_sample_app_demo.gif" width="50%" alt="Sample App Demo">
+<img src="art/readme_sample_app_demo.gif" width="50%" alt="Sample App Demo">
 
 ## License
 
-[Apache License 2.0](../../../LICENSE)
+[Apache License 2.0](LICENSE)
