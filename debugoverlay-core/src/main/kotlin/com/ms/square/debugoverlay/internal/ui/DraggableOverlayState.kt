@@ -8,12 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.IntSize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlin.math.roundToInt
 
 /**
  * State holder for draggable overlay components (FAB, Panel, etc.).
@@ -23,14 +18,9 @@ import kotlin.math.roundToInt
  *
  * @param initialOffsetX Initial X offset from right edge
  * @param initialOffsetY Initial Y offset from top
- * @param onPositionChanged Callback when position changes (for persistence)
  */
 @Stable
-internal class DraggableOverlayState(
-  initialOffsetX: Float,
-  initialOffsetY: Float,
-  private val onPositionChanged: (x: Int, y: Int) -> Unit,
-) {
+internal class DraggableOverlayState(initialOffsetX: Float, initialOffsetY: Float) {
   val offsetX = Animatable(initialOffsetX)
   val offsetY = Animatable(initialOffsetY)
 
@@ -82,23 +72,10 @@ internal class DraggableOverlayState(
       if (offsetY.value != clampedY) offsetY.snapTo(clampedY)
     }
   }
-
-  /**
-   * Observes position changes and reports them via callback.
-   * Should be called from a LaunchedEffect.
-   */
-  internal fun observePositionChanges(scope: CoroutineScope) {
-    snapshotFlow { offsetX.value to offsetY.value }
-      .onEach { (x, y) -> onPositionChanged(x.roundToInt(), y.roundToInt()) }
-      .launchIn(scope)
-  }
 }
 
 @Composable
-internal fun rememberDraggableOverlayState(
-  initialOffsetX: Float,
-  initialOffsetY: Float,
-  onPositionChanged: (x: Int, y: Int) -> Unit,
-): DraggableOverlayState = remember {
-  DraggableOverlayState(initialOffsetX, initialOffsetY, onPositionChanged)
-}
+internal fun rememberDraggableOverlayState(initialOffsetX: Float, initialOffsetY: Float): DraggableOverlayState =
+  remember {
+    DraggableOverlayState(initialOffsetX, initialOffsetY)
+  }

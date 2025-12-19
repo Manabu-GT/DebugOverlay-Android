@@ -4,7 +4,10 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -37,6 +40,7 @@ internal fun DraggableBugReporterFab(
   val windowInfo = LocalWindowInfo.current
   val view = LocalView.current
   val scope = rememberCoroutineScope()
+  val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
   val fabSizePx = with(LocalDensity.current) { FAB_SIZE.toPx().roundToInt() }
   val contentSize = IntSize(fabSizePx, fabSizePx)
@@ -44,8 +48,7 @@ internal fun DraggableBugReporterFab(
 
   val state = rememberDraggableOverlayState(
     initialOffsetX = initialOffsetX,
-    initialOffsetY = initialOffsetY,
-    onPositionChanged = onPositionChanged
+    initialOffsetY = initialOffsetY
   )
 
   // Clamp position when screen size changes (e.g., rotation)
@@ -55,7 +58,8 @@ internal fun DraggableBugReporterFab(
 
   // Report position changes for WindowManager updates
   LaunchedEffect(Unit) {
-    state.observePositionChanges(this)
+    snapshotFlow { state.offsetX.value to state.offsetY.value }
+      .collect { (x, y) -> currentOnPositionChanged(x.roundToInt(), y.roundToInt()) }
   }
 
   Box(

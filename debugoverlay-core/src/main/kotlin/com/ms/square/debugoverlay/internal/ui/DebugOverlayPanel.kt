@@ -18,7 +18,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -47,14 +49,14 @@ internal fun DraggableOverlayPanel(
   val windowInfo = LocalWindowInfo.current
   val view = LocalView.current
   val scope = rememberCoroutineScope()
+  val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
   var panelSize by remember { mutableStateOf(IntSize.Zero) }
   val screenSize = IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
 
   val state = rememberDraggableOverlayState(
     initialOffsetX = initialOffsetX,
-    initialOffsetY = initialOffsetY,
-    onPositionChanged = onPositionChanged
+    initialOffsetY = initialOffsetY
   )
 
   // Clamp position when screen size changes (e.g., rotation)
@@ -64,7 +66,8 @@ internal fun DraggableOverlayPanel(
 
   // Report position changes for WindowManager updates
   LaunchedEffect(Unit) {
-    state.observePositionChanges(this)
+    snapshotFlow { state.offsetX.value to state.offsetY.value }
+      .collect { (x, y) -> currentOnPositionChanged(x.roundToInt(), y.roundToInt()) }
   }
 
   Box(

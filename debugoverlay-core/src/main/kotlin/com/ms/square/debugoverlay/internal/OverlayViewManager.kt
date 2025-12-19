@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,14 +39,21 @@ import kotlinx.coroutines.CoroutineScope
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
-internal class OverlayViewManager(private val application: Application, private val overlayScope: CoroutineScope) :
-  ActivityProvider {
+internal class OverlayViewManager(
+  private val application: Application,
+  private val overlayScope: CoroutineScope,
+  initialOverlayMode: OverlayMode,
+) : ActivityProvider {
+
   private val windowManager: WindowManager =
     application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
   private val overlayPreferences: OverlayPreferences = SharedPreferencesOverlayPreferences(application)
 
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
+
+  /** Observable overlay mode that triggers recomposition when changed. */
+  var overlayMode: OverlayMode by mutableStateOf(initialOverlayMode)
 
   /**
    * The last app activity (excluding DebugPanelActivity) that was resumed.
@@ -109,7 +118,7 @@ internal class OverlayViewManager(private val application: Application, private 
             lightColorScheme()
           }
         ) {
-          when (DebugOverlay.overlayMode) {
+          when (overlayMode) {
             OverlayMode.FullMetrics -> {
               val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(
                 initialValue = null

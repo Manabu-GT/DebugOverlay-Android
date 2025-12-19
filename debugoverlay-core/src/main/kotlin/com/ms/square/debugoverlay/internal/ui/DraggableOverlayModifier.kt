@@ -38,19 +38,19 @@ internal fun Modifier.draggableOverlay(
 ): Modifier = this
   .alpha(if (state.isDragging) visualFeedback.draggingAlpha else 1f)
   .scale(if (state.isDragging) visualFeedback.draggingScale else 1f)
-  .pointerInput(Unit) {
+  .pointerInput(screenSize, contentSize) {
     detectDragGesturesAfterLongPress(
       onDragStart = {
         state.isDragging = true
         onHapticFeedback()
       },
       onDragEnd = {
-        if (snapToEdge) {
-          scope.launch {
+        scope.launch {
+          if (snapToEdge) {
             state.snapToEdge(screenSize.width.toFloat(), contentSize.width.toFloat())
           }
+          state.isDragging = false
         }
-        state.isDragging = false
       },
       onDragCancel = {
         state.isDragging = false

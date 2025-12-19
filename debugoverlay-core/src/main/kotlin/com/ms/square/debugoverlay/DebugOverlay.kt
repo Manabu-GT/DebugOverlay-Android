@@ -34,6 +34,7 @@ public object DebugOverlay {
           setNetworkTracker(newConfig.networkRequestTracker)
           setLogTracker(newConfig.logTracker)
         } ?: Logger.d("Config updated before install, will apply during install")
+        overlayViewManager?.overlayMode = newConfig.overlayMode
       }
     }
 
@@ -51,9 +52,6 @@ public object DebugOverlay {
 
   internal val overlayDataRepository: DebugOverlayDataRepository
     get() = _overlayDataRepository ?: error("DebugOverlayDataRepository not initialized")
-
-  internal val overlayMode: OverlayMode
-    get() = config.overlayMode
 
   @get:MainThread
   internal val bugReportGenerator: BugReportGenerator
@@ -77,7 +75,7 @@ public object DebugOverlay {
       }
       _overlayDataRepository = repository
 
-      val viewManager = OverlayViewManager(application, scope)
+      val viewManager = OverlayViewManager(application, scope, config.overlayMode)
       overlayViewManager = viewManager
 
       _bugReportGenerator = BugReportGenerator(
