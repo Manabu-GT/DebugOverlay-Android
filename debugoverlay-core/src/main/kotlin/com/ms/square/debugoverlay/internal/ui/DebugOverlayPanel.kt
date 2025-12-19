@@ -2,10 +2,8 @@
 
 package com.ms.square.debugoverlay.internal.ui
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,27 +19,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private val STATUS_COLOR_NORMAL = Color(0xFF4CAF50)
 private val STATUS_COLOR_WARNING = Color(0xFFFF9800)
 private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
 
-@Suppress("LongMethod")
 @Composable
 internal fun DraggableOverlayPanel(
   metrics: DebugOverlayPanelMetrics?,
@@ -55,67 +48,40 @@ internal fun DraggableOverlayPanel(
   val view = LocalView.current
   val scope = rememberCoroutineScope()
 
-  val screenWidth = windowInfo.containerSize.width.toFloat()
-  val screenHeight = windowInfo.containerSize.height.toFloat()
+  var panelSize by remember { mutableStateOf(IntSize.Zero) }
+  val screenSize = IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
 
-  val offsetX = remember { Animatable(initialOffsetX) }
-  val offsetY = remember { Animatable(initialOffsetY) }
-  var isDragging by remember { mutableStateOf(false) }
+  val state = rememberDraggableOverlayState(
+    initialOffsetX = initialOffsetX,
+    initialOffsetY = initialOffsetY,
+    onPositionChanged = onPositionChanged
+  )
 
-  // Continuously update WindowManager position whenever animated values change
+  // Clamp position when screen size changes (e.g., rotation)
+  LaunchedEffect(screenSize, panelSize) {
+    state.clampToBounds(panelSize, screenSize)
+  }
+
+  // Report position changes for WindowManager updates
   LaunchedEffect(Unit) {
-    snapshotFlow { offsetX.value to offsetY.value }
-      .onEach { (x, y) ->
-        onPositionChanged(x.roundToInt(), y.roundToInt())
-      }
-      .launchIn(this)
+    state.observePositionChanges(this)
   }
 
   Box(
     modifier = modifier
-      .alpha(if (isDragging) 0.7f else 1f) // Transparency while dragging
-      .scale(if (isDragging) 1.05f else 1f) // Slightly larger while dragging
-      .pointerInput(Unit) {
-        detectDragGesturesAfterLongPress(
-          onDragStart = {
-            isDragging = true
-            // Trigger haptic feedback
-            view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
-          },
-          onDragEnd = {
-            // Snap to nearest edge with animation
-            val snapX = when {
-              offsetX.value < (screenWidth - size.width) / 2 -> 0f // Snap to END (right)
-              else -> (screenWidth - size.width) // Snap to START (left)
-            }
-            scope.launch {
-              offsetX.animateTo(
-                targetValue = snapX,
-                animationSpec = tween()
-              )
-            }
-            isDragging = false
-          },
-          onDragCancel = {
-            isDragging = false
-          },
-          onDrag = { change, dragAmount ->
-            change.consume()
-
-            scope.launch {
-              // LEFT is positive (flip sign because gravity is END, where x=0 is at right edge)
-              offsetX.snapTo((offsetX.value - dragAmount.x).coerceIn(0f, screenWidth - size.width))
-              // DOWN is positive since gravity is TOP
-              offsetY.snapTo((offsetY.value + dragAmount.y).coerceIn(0f, screenHeight - size.height))
-            }
-          }
-        )
-      }
+      .onSizeChanged { panelSize = it }
+      .draggableOverlay(
+        state = state,
+        screenSize = screenSize,
+        contentSize = panelSize,
+        scope = scope,
+        onHapticFeedback = { view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
+      )
       .pointerInput(Unit) {
         // Tap detection (separate from drag)
         detectTapGestures(
           onTap = {
-            if (!isDragging) {
+            if (!state.isDragging) {
               onClick()
             }
           }

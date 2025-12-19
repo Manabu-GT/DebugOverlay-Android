@@ -42,6 +42,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportResult
+import com.ms.square.debugoverlay.internal.bugreport.BugReportSnapshot
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
 import kotlinx.coroutines.launch
 
@@ -105,22 +106,26 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
   }
 }
 
+@Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss: () -> Unit) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
-  var isGeneratingReport by remember { mutableStateOf(false) }
-  var showMetadataDialog by remember { mutableStateOf(false) }
+  var isCapturing by remember { mutableStateOf(false) }
+  var isWritingReport by remember { mutableStateOf(false) }
+  var currentSnapshot by remember { mutableStateOf<BugReportSnapshot?>(null) }
 
-  if (showMetadataDialog) {
+  // Show metadata dialog when snapshot is available
+  currentSnapshot?.let { snapshot ->
     BugReportMetadataDialog(
+      screenshot = snapshot.screenshot,
+      isSubmitting = isWritingReport,
       onConfirm = { metadata ->
-        showMetadataDialog = false
         scope.launch {
-          isGeneratingReport = true
+          isWritingReport = true
           try {
-            when (val result = DebugOverlay.bugReportGenerator.generate(metadata)) {
+            when (val result = DebugOverlay.bugReportGenerator.writeReport(snapshot, metadata)) {
               is BugReportResult.Success -> {
                 if (!IntentShareExporter(context).export(result.zipFile)) {
                   snackBarHostState.showSnackbar(
@@ -135,11 +140,14 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
               }
             }
           } finally {
-            isGeneratingReport = false
+            isWritingReport = false
+            currentSnapshot = null
           }
         }
       },
-      onDismiss = { showMetadataDialog = false }
+      onDismiss = {
+        currentSnapshot = null
+      }
     )
   }
 
@@ -152,8 +160,24 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
     },
     actions = {
       BugReportButton(
-        isGenerating = isGeneratingReport,
-        onGenerateReport = { showMetadataDialog = true }
+        isGenerating = isCapturing || isWritingReport,
+        onGenerateReport = {
+          scope.launch {
+            isCapturing = true
+            try {
+              val result = DebugOverlay.bugReportGenerator.captureSnapshot()
+              result.onSuccess { snapshot ->
+                currentSnapshot = snapshot
+              }.onFailure {
+                snackBarHostState.showSnackbar(
+                  context.getString(R.string.debugoverlay_bug_report_error)
+                )
+              }
+            } finally {
+              isCapturing = false
+            }
+          }
+        }
       )
       IconButton(onClick = onDismiss) {
         Icon(

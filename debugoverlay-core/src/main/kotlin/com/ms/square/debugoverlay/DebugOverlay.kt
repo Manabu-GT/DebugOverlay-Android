@@ -52,6 +52,9 @@ public object DebugOverlay {
   internal val overlayDataRepository: DebugOverlayDataRepository
     get() = _overlayDataRepository ?: error("DebugOverlayDataRepository not initialized")
 
+  internal val overlayMode: OverlayMode
+    get() = config.overlayMode
+
   @get:MainThread
   internal val bugReportGenerator: BugReportGenerator
     get() = _bugReportGenerator ?: error("BugReportGenerator not initialized")
@@ -101,6 +104,9 @@ public object DebugOverlay {
   /**
    * DebugOverlay configuration.
    *
+   * @property overlayMode The overlay display mode.
+   *   [OverlayMode.FullMetrics] (default) shows real-time metrics panel.
+   *   [OverlayMode.BugReporterOnly] shows a minimal FAB for quick bug reporting.
    * @property networkRequestTracker Tracks HTTP requests for display in Network tab.
    *   Default is [NoOpNetworkRequestTracker] which disables network tracking.
    *   Use DebugOverlayNetworkInterceptor from debugoverlay-extension-okhttp for OkHttp integration.
@@ -111,6 +117,7 @@ public object DebugOverlay {
    * @see configure
    */
   public data class Config(
+    val overlayMode: OverlayMode = OverlayMode.FullMetrics,
     val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
     val logTracker: LogTracker? = null,
   )

@@ -51,7 +51,7 @@ Tap the overlay to open a full-screen diagnostic panel:
 - **JankStats** – Frame timing analysis and jank breakdown
 - **UI** – View hierarchy via [Radiography](https://github.com/square/radiography)
 - **Device** – Hardware specs, OS info, battery, network status
-- **Bug Report** – One-tap HTML report with screenshot and diagnostics
+- **Bug Report** – Quick HTML report with screenshot and diagnostics via FAB or menu
 
 <img src="art/readme_debug_panel.gif" alt="Debug Panel">
 

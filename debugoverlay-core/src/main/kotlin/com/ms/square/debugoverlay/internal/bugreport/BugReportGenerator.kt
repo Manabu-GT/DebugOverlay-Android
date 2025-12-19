@@ -1,9 +1,9 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
-import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -14,6 +14,10 @@ import java.io.IOException
 /**
  * Orchestrates bug report generation by collecting diagnostic data,
  * capturing screenshots, and packaging everything into a ZIP file.
+ *
+ * Uses a capture-first flow:
+ * 1. [captureSnapshot] - Captures all diagnostic data immediately
+ * 2. [writeReport] - Writes ZIP from snapshot after user provides metadata
  */
 internal class BugReportGenerator(
   private val zipWriter: BugReportZipWriter,
@@ -22,23 +26,22 @@ internal class BugReportGenerator(
 ) {
 
   /**
-   * Generates a bug report containing all available diagnostic data.
+   * Captures a snapshot of all diagnostic data at the current moment.
    *
-   * Note: The UI should disable the trigger button during generation to prevent
-   * concurrent calls. This method does not enforce single-generation internally.
+   * Use this for "capture-first" flows where the data should be captured
+   * immediately on button tap, before showing a metadata dialog.
    *
-   * @param metadata Optional user-provided title and description
-   * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
+   * The screenshot bitmap will be garbage collected when the snapshot is no
+   * longer referenced. Simply set the reference to null when done.
+   *
+   * @return [Result.success] with the snapshot, or [Result.failure] on error
    */
-  suspend fun generate(metadata: BugReportMetadata? = null): BugReportResult {
+  @Suppress("TooGenericExceptionCaught")
+  suspend fun captureSnapshot(): Result<BugReportSnapshot> {
     val timestampMs = System.currentTimeMillis()
-    var screenshot: Bitmap? = null
 
     return try {
-      // Collect data in parallel on Default dispatcher (CPU-bound work)
-      // This ensures data is captured close to button tap time and handles both
-      // warm (instant) and cold (waiting for first emission) flows efficiently
-      val data = withContext(Dispatchers.Default) {
+      val snapshot = withContext(Dispatchers.Default) {
         supervisorScope {
           val screenshotDeferred = async {
             activityProvider.activity?.let { ScreenshotCapture.capture(it) }
@@ -50,35 +53,55 @@ internal class BugReportGenerator(
           val appExitInfosDeferred = async { repository.queryAppExitInfosSnapshot() }
           val uiHierarchyDeferred = async { captureUiHierarchy() }
 
-          // Await with individual error handling - partial failures don't abort report
-          screenshot = runCatching { screenshotDeferred.await() }.getOrNull()
-
-          BugReportData(
+          BugReportSnapshot(
             timestampMs = timestampMs,
-            userMetadata = metadata,
-            screenshot = screenshot,
-            logs = runCatching { logsDeferred.await() }.getOrElse { emptyList() },
-            networkRequests = runCatching { networkRequestsDeferred.await() }.getOrElse { emptyList() },
-            deviceInfo = runCatching { deviceInfoDeferred.await() }.getOrNull(),
-            jankStats = runCatching { jankStatsDeferred.await() }.getOrNull(),
-            appExitInfos = runCatching { appExitInfosDeferred.await() }.getOrDefault(emptyList()),
-            uiHierarchy = runCatching { uiHierarchyDeferred.await() }.getOrNull()
+            screenshot = runCatchingNonCancellation { screenshotDeferred.await() }.getOrNull(),
+            logs = runCatchingNonCancellation { logsDeferred.await() }.getOrElse { emptyList() },
+            networkRequests = runCatchingNonCancellation { networkRequestsDeferred.await() }.getOrElse { emptyList() },
+            deviceInfo = runCatchingNonCancellation { deviceInfoDeferred.await() }.getOrNull(),
+            jankStats = runCatchingNonCancellation { jankStatsDeferred.await() }.getOrNull(),
+            appExitInfos = runCatchingNonCancellation { appExitInfosDeferred.await() }.getOrDefault(emptyList()),
+            uiHierarchy = runCatchingNonCancellation { uiHierarchyDeferred.await() }.getOrNull()
           )
         }
       }
-
-      // Write ZIP on IO dispatcher (blocking file I/O)
-      val zipFile = withContext(Dispatchers.IO) {
-        zipWriter.write(data)
-      }
-
-      BugReportResult.Success(zipFile)
-    } catch (e: IOException) {
-      Logger.e("Bug report generation failed", e)
-      BugReportResult.Error.IoError(e)
-    } finally {
-      // Always recycle bitmap regardless of success/failure
-      screenshot?.recycle()
+      Result.success(snapshot)
+    } catch (e: CancellationException) {
+      throw e // Preserve structured concurrency
+    } catch (e: Exception) {
+      Logger.e("Snapshot capture failed", e)
+      Result.failure(e)
     }
   }
+
+  /**
+   * Writes a bug report ZIP from a previously captured snapshot.
+   *
+   * @param snapshot The captured diagnostic data
+   * @param metadata Optional user-provided title and description
+   * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
+   */
+  suspend fun writeReport(snapshot: BugReportSnapshot, metadata: BugReportMetadata? = null): BugReportResult = try {
+    val data = snapshot.toReportData(metadata)
+    val zipFile = withContext(Dispatchers.IO) {
+      zipWriter.write(data)
+    }
+    BugReportResult.Success(zipFile)
+  } catch (e: IOException) {
+    Logger.e("Bug report write failed", e)
+    BugReportResult.Error.IoError(e)
+  }
+}
+
+/**
+ * Runs [block] catching all exceptions except [CancellationException].
+ * This preserves structured concurrency while allowing graceful degradation.
+ */
+@Suppress("TooGenericExceptionCaught")
+private inline fun <T> runCatchingNonCancellation(block: () -> T): Result<T> = try {
+  Result.success(block())
+} catch (e: CancellationException) {
+  throw e
+} catch (e: Exception) {
+  Result.failure(e)
 }
