@@ -4,19 +4,17 @@ DebugOverlay-Android
 [![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**Zero-configuration runtime diagnostics for debug builds—always on, always available.**
+**Zero-configuration runtime diagnostics for debug/internal builds—available instantly when you need it.**
 
-DebugOverlay gives you a lightweight, always-on look into your app's performance so you can spot regressions *before* you need heavy profilers. Use it during development, QA testing, CI runs, or customer repro investigations.
+DebugOverlay gives you a lightweight, always-available look into your app's runtime state so you can spot regressions *before* you reach for heavy profilers. Use it during development, QA testing, CI runs, or customer repro investigations.
 
 **What makes it different:**
-- **Proactive** – Catch issues passively while developing, not after a QA report
+- **Proactive** – Catch issues while developing, not after a QA report
 - **Self-contained** – No companion app, no adb, no cloud account
-- **No dangerous permissions** – No `SYSTEM_ALERT_WINDOW` required
+- **No special permissions** – No `SYSTEM_ALERT_WINDOW` required
 - **Developer-first** – Low-friction access to runtime state
 
 > **Not a replacement for:** Deep profiling (Android Profiler), leak detection (LeakCanary), or crash reporting (Crashlytics). DebugOverlay is your **"check engine light"**—it tells you *when* to look deeper.
->
-> v2.0.0 is a complete Kotlin + Compose rewrite of the original 1.x Java implementation.
 
 ## Quick Start
 
@@ -74,7 +72,7 @@ dependencyResolutionManagement {
 }
 ```
 
-> Stable release expected before end of 2025. Remove this repository once 2.0.0 is released on Maven Central.
+> Stable release planned mid January 2026. Remove this repository once 2.0.0 is released on Maven Central.
 
 ### 2. Add dependency
 
