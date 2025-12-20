@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -174,13 +173,7 @@ private fun ScreenshotPreview(bitmap: Bitmap, onClick: () -> Unit, modifier: Mod
         onClickLabel = viewFullScreenshotLabel,
         onClick = onClick
       )
-      .semantics {
-        role = Role.Button
-        onClick(label = viewFullScreenshotLabel) {
-          onClick()
-          true
-        }
-      },
+      .semantics { role = Role.Button },
     color = MaterialTheme.colorScheme.surfaceContainerHigh,
     shape = MaterialTheme.shapes.medium
   ) {

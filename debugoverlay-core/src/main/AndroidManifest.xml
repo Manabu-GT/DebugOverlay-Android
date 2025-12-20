@@ -10,6 +10,12 @@
       android:exported="false"
       android:excludeFromRecents="true" />
 
+    <activity
+      android:name="com.ms.square.debugoverlay.internal.ui.BugReportActivity"
+      android:theme="@style/debugoverlay_Theme.Transparent"
+      android:exported="false"
+      android:excludeFromRecents="true" />
+
     <!--
       FileProvider for sharing bug reports via Intent.
       Required since Android 7.0 (API 24) - file:// URIs throw FileUriExposedException

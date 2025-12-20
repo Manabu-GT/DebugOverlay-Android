@@ -106,6 +106,80 @@ internal class BugReportZipWriter(context: Context) {
     zip.closeEntry()
   }
 
+  /**
+   * Creates a ZIP file from a capture folder containing pre-saved bug report files.
+   *
+   * @param folder The capture folder containing screenshot.png, bug_report.html, etc.
+   * @param metadata Optional user-provided title and description
+   * @return The created ZIP file
+   * @throws IOException if writing fails
+   */
+  fun writeFromFolder(folder: File, metadata: BugReportMetadata?): File {
+    val timestamp = folder.name.removePrefix(TEMP_FOLDER_PREFIX)
+    val zipFile = File(cacheDir, "bug_report_$timestamp.zip")
+
+    ZipOutputStream(FileOutputStream(zipFile).buffered()).use { zip ->
+      // Copy all files from capture folder, injecting metadata into HTML
+      val files = folder.listFiles()
+        ?: throw IOException("Cannot list files in folder: ${folder.absolutePath} (may not exist or lack permissions)")
+
+      files.filter { it.isFile }
+        .forEach { file -> copyOrTransformFile(zip, file, metadata) }
+
+      // Add user metadata as JSON for machine readability
+      if (metadata != null) {
+        writeFileEntry(zip, "user_input.json") { tempFile ->
+          BugReportFileWriters.writeUserMetadata(metadata, tempFile)
+        }
+      }
+    }
+
+    Logger.d("Bug report ZIP created from folder: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
+    return zipFile
+  }
+
+  private fun copyOrTransformFile(zip: ZipOutputStream, file: File, metadata: BugReportMetadata?) {
+    if (file.name == "bug_report.html") {
+      writeHtmlWithMetadata(zip, file, metadata)
+    } else {
+      copyFileToZip(zip, file, file.name)
+    }
+  }
+
+  /**
+   * Writes HTML file to ZIP with placeholders replaced.
+   * If metadata is provided, uses user values; otherwise injects defaults.
+   */
+  private fun writeHtmlWithMetadata(zip: ZipOutputStream, htmlFile: File, metadata: BugReportMetadata?) {
+    try {
+      val originalHtml = htmlFile.readText()
+      val modifiedHtml = if (metadata != null) {
+        HtmlReportBuilder.injectMetadata(originalHtml, metadata)
+      } else {
+        HtmlReportBuilder.injectDefaults(originalHtml)
+      }
+
+      zip.putNextEntry(ZipEntry("bug_report.html"))
+      zip.write(modifiedHtml.toByteArray(Charsets.UTF_8))
+      zip.closeEntry()
+    } catch (e: IOException) {
+      Logger.w("Failed to write HTML with metadata, copying original: ${e.message}")
+      copyFileToZip(zip, htmlFile, "bug_report.html")
+    }
+  }
+
+  private fun copyFileToZip(zip: ZipOutputStream, file: File, entryName: String) {
+    try {
+      zip.putNextEntry(ZipEntry(entryName))
+      file.inputStream().buffered().use { input ->
+        input.copyTo(zip)
+      }
+      zip.closeEntry()
+    } catch (e: IOException) {
+      Logger.w("Failed to copy '$entryName' to ZIP, skipping: ${e.message}")
+    }
+  }
+
   private inline fun writeFileEntry(zip: ZipOutputStream, filename: String, writeContent: (File) -> Unit) {
     // Write to temp file first, then add to ZIP
     val tempFile = File.createTempFile("bugreport_", ".tmp", cacheDir)

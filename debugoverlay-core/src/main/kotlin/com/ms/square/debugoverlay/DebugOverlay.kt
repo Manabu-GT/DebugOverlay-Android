@@ -7,7 +7,6 @@ import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
-import com.ms.square.debugoverlay.internal.bugreport.BugReportZipWriter
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
 import com.ms.square.debugoverlay.internal.util.isMainProcess
@@ -79,7 +78,7 @@ public object DebugOverlay {
       overlayViewManager = viewManager
 
       _bugReportGenerator = BugReportGenerator(
-        zipWriter = BugReportZipWriter(application),
+        context = application,
         repository = repository,
         activityProvider = viewManager
       )
@@ -115,7 +114,7 @@ public object DebugOverlay {
    * @see configure
    */
   public data class Config(
-    val overlayMode: OverlayMode = OverlayMode.FullMetrics,
+    val overlayMode: OverlayMode = OverlayMode.BugReporterOnly,
     val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
     val logTracker: LogTracker? = null,
   )

@@ -1,5 +1,7 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
+import android.content.Context
+import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
@@ -9,35 +11,38 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 /**
  * Orchestrates bug report generation by collecting diagnostic data,
  * capturing screenshots, and packaging everything into a ZIP file.
  *
- * Uses a capture-first flow:
- * 1. [captureSnapshot] - Captures all diagnostic data immediately
- * 2. [writeReport] - Writes ZIP from snapshot after user provides metadata
+ * Uses a folder-based flow (unified for both FAB and Debug Panel):
+ * 1. [captureToFolder] - Captures all data and saves to temp folder
+ * 2. [loadScreenshotPreview] - Loads screenshot for dialog preview
+ * 3. [createReportFromFolder] - Creates ZIP after user provides metadata
+ * 4. [deleteCaptureFolder] - Cleans up temp folder
  */
 internal class BugReportGenerator(
-  private val zipWriter: BugReportZipWriter,
+  context: Context,
   private val repository: DebugOverlayDataRepository,
   private val activityProvider: ActivityProvider,
+  // Default implementations allow production simplicity while preserving testability
+  private val tempStorage: BugReportTempStorage = BugReportTempStorage(context),
+  private val zipWriter: BugReportZipWriter = BugReportZipWriter(context),
 ) {
 
   /**
-   * Captures a snapshot of all diagnostic data at the current moment.
+   * Captures all diagnostic data and saves to a temp folder.
    *
-   * Use this for "capture-first" flows where the data should be captured
-   * immediately on button tap, before showing a metadata dialog.
+   * The folder path can be passed to [BugReportActivity] via Intent extra.
+   * Screenshot bitmap is recycled after saving to disk.
    *
-   * The screenshot bitmap will be garbage collected when the snapshot is no
-   * longer referenced. Simply set the reference to null when done.
-   *
-   * @return [Result.success] with the snapshot, or [Result.failure] on error
+   * @return [Result.success] with the folder path, or [Result.failure] on error
    */
   @Suppress("TooGenericExceptionCaught")
-  suspend fun captureSnapshot(): Result<BugReportSnapshot> {
+  suspend fun captureToFolder(): Result<File> {
     val timestampMs = System.currentTimeMillis()
 
     return try {
@@ -65,32 +70,51 @@ internal class BugReportGenerator(
           )
         }
       }
-      Result.success(snapshot)
+      // Save to folder (bitmap is recycled inside saveSnapshot)
+      tempStorage.saveSnapshot(snapshot)
     } catch (e: CancellationException) {
       throw e // Preserve structured concurrency
     } catch (e: Exception) {
-      Logger.e("Snapshot capture failed", e)
+      Logger.e("Capture to folder failed", e)
       Result.failure(e)
     }
   }
 
   /**
-   * Writes a bug report ZIP from a previously captured snapshot.
+   * Loads screenshot from capture folder for preview in the metadata dialog.
    *
-   * @param snapshot The captured diagnostic data
+   * @param captureFolder Folder returned from [captureToFolder]
+   * @return The screenshot bitmap, or null if not available
+   */
+  suspend fun loadScreenshotPreview(captureFolder: File): Bitmap? = tempStorage.loadScreenshot(captureFolder)
+
+  /**
+   * Creates a ZIP file from the captured data in the folder.
+   *
+   * @param captureFolder Folder returned from [captureToFolder]
    * @param metadata Optional user-provided title and description
    * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
    */
-  suspend fun writeReport(snapshot: BugReportSnapshot, metadata: BugReportMetadata? = null): BugReportResult = try {
-    val data = snapshot.toReportData(metadata)
+  suspend fun createReportFromFolder(
+    captureFolder: File,
+    metadata: BugReportMetadata? = null
+  ): BugReportResult = try {
     val zipFile = withContext(Dispatchers.IO) {
-      zipWriter.write(data)
+      zipWriter.writeFromFolder(captureFolder, metadata)
     }
     BugReportResult.Success(zipFile)
   } catch (e: IOException) {
     Logger.e("Bug report write failed", e)
     BugReportResult.Error.IoError(e)
   }
+
+  /**
+   * Deletes a capture folder and all its contents.
+   * Call this after successful share or when user cancels.
+   *
+   * @param captureFolder Folder to delete
+   */
+  suspend fun deleteCaptureFolder(captureFolder: File) = tempStorage.deleteFolder(captureFolder)
 }
 
 /**

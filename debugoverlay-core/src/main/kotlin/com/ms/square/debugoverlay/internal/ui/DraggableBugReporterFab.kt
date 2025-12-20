@@ -2,18 +2,27 @@ package com.ms.square.debugoverlay.internal.ui
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+
+// Padding to accommodate scale effect during drag (1.1x scale needs ~5% padding per side)
+private val FAB_DRAG_PADDING = 4.dp
 
 /**
  * A draggable wrapper for [BugReporterFab] that allows repositioning via drag gesture.
@@ -42,8 +51,7 @@ internal fun DraggableBugReporterFab(
   val scope = rememberCoroutineScope()
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
-  val fabSizePx = with(LocalDensity.current) { FAB_SIZE.toPx().roundToInt() }
-  val contentSize = IntSize(fabSizePx, fabSizePx)
+  var contentSize by remember { mutableStateOf(IntSize.Zero) }
   val screenSize = IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
 
   val state = rememberDraggableOverlayState(
@@ -52,7 +60,7 @@ internal fun DraggableBugReporterFab(
   )
 
   // Clamp position when screen size changes (e.g., rotation)
-  LaunchedEffect(screenSize) {
+  LaunchedEffect(screenSize, contentSize) {
     state.clampToBounds(contentSize, screenSize)
   }
 
@@ -63,15 +71,21 @@ internal fun DraggableBugReporterFab(
   }
 
   Box(
-    modifier = modifier.draggableOverlay(
-      state = state,
-      screenSize = screenSize,
-      contentSize = contentSize,
-      scope = scope,
-      visualFeedback = DragVisualFeedback(draggingAlpha = 0.7f, draggingScale = 1.1f),
-      onHapticFeedback = { view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
-    )
+    modifier = modifier
+      .onSizeChanged { contentSize = it }
+      .draggableOverlay(
+        state = state,
+        screenSize = screenSize,
+        contentSize = contentSize,
+        scope = scope,
+        visualFeedback = DragVisualFeedback(draggingAlpha = 0.7f, draggingScale = 1.1f),
+        onHapticFeedback = { view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
+      ),
+    contentAlignment = Alignment.Center
   ) {
-    BugReporterFab(onError = onError)
+    // Inner Box with padding to accommodate scale effect during drag
+    Box(modifier = Modifier.padding(FAB_DRAG_PADDING)) {
+      BugReporterFab(onError = onError)
+    }
   }
 }
