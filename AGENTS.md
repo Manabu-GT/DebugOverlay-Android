@@ -10,8 +10,9 @@ Welcome! This guide defines how automation and human agents should collaborate i
 2. Inspect the current state: run `git status -sb`, scan recent changes, and note branch naming.
 3. For non-trivial work, draft `tools/ai/plans/PLAN_<TASK_NAME>.md` with the proposed steps and wait for maintainer approval before executing the plan (update the document after each approved step).
 4. Execute the plan while keeping the tree clean—no reverting user edits and no destructive commands (`git reset --hard`, etc.).
-5. Validate locally (build, lint, or targeted tests) whenever changes touch executable code. Capture command, outcome, and failures.
-6. Summarise the result: describe the change, list validations, and call out risks or follow-ups.
+5. **Stay conservative**—only modify what's necessary for the request. Avoid speculative additions (extra features, refactors, or "improvements" beyond scope).
+6. Validate locally (build, lint, or targeted tests) whenever changes touch executable code. Capture command, outcome, and failures.
+7. Summarise the result: describe the change, list validations, and call out risks or follow-ups.
 
 ---
 
@@ -24,6 +25,16 @@ Welcome! This guide defines how automation and human agents should collaborate i
 - **Module Conventions**
   - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
   - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
+
+- **Java Toolchain**
+  - All modules target Java 17. Build scripts should include:
+    ```kotlin
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+    ```
 
 - **Project Modules**
   - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
@@ -80,6 +91,17 @@ Document all executed commands in the hand-off message. If a test is skipped, st
 - Do not amend or squash existing user commits unless asked.
 - Never commit secrets or local config (`local.properties`, keystores).
 - When adding files, default to ASCII unless non-ASCII already exists and is justified.
+
+### GitHub CLI (`gh`)
+
+Use `gh` for GitHub operations (PRs, issues, comments):
+```bash
+gh pr create --title "..." --body "..."   # Create PR
+gh pr view 123                             # View PR details
+gh pr checks                               # Check CI status
+gh issue create --title "..." --body "..." # Create issue
+gh api repos/{owner}/{repo}/pulls/123/comments  # Read PR comments
+```
 
 ---
 
@@ -150,6 +172,11 @@ Use the following structured analysis process when performing code reviews:
 - Provide concise, friendly updates. Use numbered lists when offering options.
 - Reference files with clickable paths (e.g., ``debugoverlay/build.gradle:15``). Avoid line ranges.
 - When unsure, ask before acting. When blocked by tooling/sandbox limits, propose alternatives.
+
+**Final Response Structure:**
+1. **Outcome** — what was changed, fixed, or investigated
+2. **Validation** — commands/tests run, results, skipped checks with reasons
+3. **Follow-ups** — remaining issues, risks, or next steps for the user
 
 ---
 
