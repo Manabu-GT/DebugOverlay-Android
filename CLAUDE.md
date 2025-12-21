@@ -54,17 +54,6 @@ Use specialized subagents to improve quality and efficiency:
 
 Run independent tool calls in parallel. Chain dependent calls sequentially.
 
-### GitHub CLI (`gh`)
-
-Use `gh` for all GitHub operations:
-```bash
-gh pr create --title "..." --body "..."   # Create PR
-gh pr view 123                             # View PR details
-gh pr checks                               # Check CI status
-gh issue create --title "..." --body "..." # Create issue
-gh api repos/{owner}/{repo}/pulls/123/comments  # Read PR comments
-```
-
 ---
 
 ## 4. Workflow Pattern
@@ -77,30 +66,10 @@ Follow **Explore → Plan → Code → Commit**:
 
 ---
 
-## 5. Conservative Approach
-
-1. **Minimal changes** — only modify what's necessary for the request
-2. **Ask when uncertain** — use `AskUserQuestion` rather than guessing
-3. **No speculative additions** — avoid adding features, refactors, or "improvements" beyond scope
-4. **Use `/clear`** — between unrelated tasks to manage context
-
----
-
-## 6. Task Tracking
+## 5. Task Tracking
 
 Use `TodoWrite` for any multi-step task:
 - Create todos at the start of non-trivial work
 - Mark each todo `in_progress` before starting (one at a time)
 - Mark `completed` immediately after finishing
 - Use checklists for migrations or repetitive fixes
-
----
-
-## 7. Response Format
-
-Final responses should include:
-1. **Outcome** — what was changed/fixed/investigated
-2. **Validation** — commands run, results, skipped checks with reasons
-3. **Follow-ups** — remaining issues, risks, or next steps
-
-Reference files with paths and line numbers: `debugoverlay-core/src/.../File.kt:42`
