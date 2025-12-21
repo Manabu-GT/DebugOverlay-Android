@@ -153,6 +153,9 @@
 
   <!-- Bug Report -->
   <string name="debugoverlay_bug_report">Generate Bug Report</string>
+  <string name="debugoverlay_bug_report_generating">Generating bug report</string>
+  <string name="debugoverlay_bug_report_success">Bug report generated</string>
+  <string name="debugoverlay_bug_report_failed">Bug report failed</string>
   <string name="debugoverlay_bug_report_error">Failed to create report</string>
   <string name="debugoverlay_bug_report_subject">Bug Report - %1$s</string>
   <string name="debugoverlay_share_bug_report">Share Bug Report</string>
@@ -167,6 +170,10 @@
   <string name="debugoverlay_bug_report_description_label">Description (optional)</string>
   <string name="debugoverlay_bug_report_description_hint">Steps to reproduce, expected behavior, etc.</string>
   <string name="debugoverlay_bug_report_default_title">Bug Report</string>
-  <string name="debugoverlay_bug_report_submit">Generate</string>
+  <string name="debugoverlay_bug_report_submit">Submit</string>
+  <string name="debugoverlay_bug_report_submitting">Submitting…</string>
+  <string name="debugoverlay_bug_report_screenshot_description">Screenshot captured for bug report</string>
+  <string name="debugoverlay_bug_report_screenshot_failed">Screenshot capture failed</string>
+  <string name="debugoverlay_bug_report_view_full_screenshot">View full screenshot</string>
   <string name="debugoverlay_cancel">Cancel</string>
 </resources>

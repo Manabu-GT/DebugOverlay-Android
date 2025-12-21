@@ -47,6 +47,51 @@ internal object HtmlReportBuilder {
     }
   }
 
+  /**
+   * Injects user metadata into an existing HTML report via placeholder replacement.
+   *
+   * The HTML contains placeholders ([TITLE_PLACEHOLDER], [DESCRIPTION_PLACEHOLDER]) that
+   * are replaced with actual values. This approach is more robust than searching for
+   * literal HTML strings, as it won't silently fail if the template changes.
+   *
+   * @param html The original HTML content with placeholders
+   * @param metadata User-provided title and description
+   * @return HTML with metadata injected
+   */
+  internal fun injectMetadata(html: String, metadata: BugReportMetadata): String {
+    // Replace title placeholder with user title or default
+    val title = metadata.title.takeIf { it.isNotBlank() } ?: DEFAULT_TITLE
+    var result = html.replace(TITLE_PLACEHOLDER, title.escapeHtml())
+
+    // Replace description placeholder with section or empty string
+    val descriptionHtml = metadata.description.takeIf { it.isNotBlank() }
+      ?.let { buildDescriptionSection(it) }
+      ?: ""
+    result = result.replace(DESCRIPTION_PLACEHOLDER, descriptionHtml)
+
+    return result
+  }
+
+  /**
+   * Replaces placeholders with default values when no user metadata is provided.
+   * This ensures the HTML output doesn't contain raw placeholder comments.
+   */
+  internal fun injectDefaults(html: String): String = html
+    .replace(TITLE_PLACEHOLDER, DEFAULT_TITLE.escapeHtml())
+    .replace(DESCRIPTION_PLACEHOLDER, "")
+
+  private fun buildDescriptionSection(description: String): String = buildString {
+    append("    <div class=\"section\">\n")
+    append("      <div class=\"section-header\" onclick=\"toggleSection(this)\">\n")
+    append("        <h2>Description</h2>\n")
+    append("        <span class=\"chevron\">&#9660;</span>\n")
+    append("      </div>\n")
+    append("      <div class=\"section-content\">\n")
+    append("        <div class=\"pre-content\">${description.escapeHtml()}</div>\n")
+    append("      </div>\n")
+    append("    </div>")
+  }
+
   private fun buildHtmlString(data: BugReportData): String = buildString {
     val timestamp = formatFullTimestamp(data.timestampMs)
 
@@ -61,11 +106,8 @@ internal object HtmlReportBuilder {
     append("<body>\n")
     append("  <div class=\"container\">\n")
 
-    // Header
-    appendHeader(timestamp, data.userMetadata?.title)
-
-    // User input section (if provided)
-    appendUserInputSection(data.userMetadata)
+    // Header with placeholders (replaced by injectMetadata() when user submits)
+    appendHeader(timestamp)
 
     // Screenshot section
     appendScreenshotSection(data.screenshot)
@@ -302,32 +344,12 @@ internal object HtmlReportBuilder {
     )
   }
 
-  private fun StringBuilder.appendHeader(timestamp: String, title: String?) {
+  private fun StringBuilder.appendHeader(timestamp: String) {
     append("    <header>\n")
-    if (title != null) {
-      append("      <h1>${title.escapeHtml()}</h1>\n")
-    } else {
-      append("      <h1>Bug Report</h1>\n")
-    }
+    append("      <h1>$TITLE_PLACEHOLDER</h1>\n")
     append("      <div class=\"timestamp\">Generated: ${timestamp.escapeHtml()}</div>\n")
     append("    </header>\n")
-  }
-
-  private fun StringBuilder.appendUserInputSection(metadata: BugReportMetadata?) {
-    // Only show section if there's a non-blank description (title is shown in header).
-    // Note: BugReportMetadataDialog trims whitespace before creating metadata,
-    // so blank descriptions won't reach here.
-    if (metadata?.description.isNullOrBlank()) return
-
-    append("    <div class=\"section\">\n")
-    append("      <div class=\"section-header\" onclick=\"toggleSection(this)\">\n")
-    append("        <h2>Description</h2>\n")
-    append("        <span class=\"chevron\">&#9660;</span>\n")
-    append("      </div>\n")
-    append("      <div class=\"section-content\">\n")
-    append("        <div class=\"pre-content\">${metadata.description.escapeHtml()}</div>\n")
-    append("      </div>\n")
-    append("    </div>\n")
+    append("    $DESCRIPTION_PLACEHOLDER\n")
   }
 
   private fun StringBuilder.appendScreenshotSection(screenshot: Bitmap?) {
@@ -669,4 +691,9 @@ internal object HtmlReportBuilder {
 
   private const val MAX_BODY_LENGTH = 2048
   private const val MAX_TRACE_LENGTH = 8192
+
+  // Placeholders for metadata injection - used by injectMetadata()
+  private const val TITLE_PLACEHOLDER = "<!--TITLE_PLACEHOLDER-->"
+  private const val DESCRIPTION_PLACEHOLDER = "<!--DESCRIPTION_PLACEHOLDER-->"
+  private const val DEFAULT_TITLE = "Bug Report"
 }

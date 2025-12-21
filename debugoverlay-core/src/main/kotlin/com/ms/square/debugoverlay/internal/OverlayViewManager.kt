@@ -12,36 +12,49 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.ms.square.debugoverlay.DebugOverlay
+import com.ms.square.debugoverlay.OverlayMode
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.ActivityProvider
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
+import com.ms.square.debugoverlay.internal.data.source.OverlayPreferences
+import com.ms.square.debugoverlay.internal.data.source.SharedPreferencesOverlayPreferences
+import com.ms.square.debugoverlay.internal.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
+import com.ms.square.debugoverlay.internal.ui.DraggableBugReporterFab
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
-internal class OverlayViewManager(private val application: Application, private val overlayScope: CoroutineScope) :
-  ActivityProvider {
+internal class OverlayViewManager(
+  private val application: Application,
+  private val overlayScope: CoroutineScope,
+  initialOverlayMode: OverlayMode,
+) : ActivityProvider {
+
   private val windowManager: WindowManager =
     application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
+  private val overlayPreferences: OverlayPreferences = SharedPreferencesOverlayPreferences(application)
+
   private val debugPanelDataSource by lazy { DebugOverlayPanelDataSourceImpl(application, overlayScope) }
 
-  // Shared position state across all activities
-  private var savedX: Int = 0
-  private var savedY: Int = 0
+  /** Observable overlay mode that triggers recomposition when changed. */
+  var overlayMode: OverlayMode by mutableStateOf(initialOverlayMode)
 
   /**
    * The last app activity (excluding DebugPanelActivity) that was resumed.
@@ -76,8 +89,8 @@ internal class OverlayViewManager(private val application: Application, private 
         // disable the move window animation as not needed on Android 14+
         setCanPlayMoveAnimation(false)
       }
-      x = savedX
-      y = savedY
+      x = overlayPreferences.getOverlayX()
+      y = overlayPreferences.getOverlayY()
     }
 
   private fun createOverlayRoot(onPositionChanged: (Int, Int) -> Unit): Pair<ViewGroup, OverlayLifecycleOwner> {
@@ -96,7 +109,6 @@ internal class OverlayViewManager(private val application: Application, private 
       lifecycleOwner.onStart()
 
       setContent {
-        val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(initialValue = null)
         // Observe configuration changes for theme adaptation
         val isDarkTheme = LocalConfiguration.current.isDarkTheme()
 
@@ -107,18 +119,35 @@ internal class OverlayViewManager(private val application: Application, private 
             lightColorScheme()
           }
         ) {
-          DraggableOverlayPanel(
-            metrics = metrics,
-            initialOffsetX = savedX.toFloat(),
-            initialOffsetY = savedY.toFloat(),
-            onPositionChanged = onPositionChanged,
-            onClick = {
-              val intent = Intent(application, DebugPanelActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-              }
-              application.startActivity(intent)
+          when (overlayMode) {
+            OverlayMode.FullMetrics -> {
+              val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(
+                initialValue = null
+              )
+              DraggableOverlayPanel(
+                metrics = metrics,
+                initialOffsetX = overlayPreferences.getOverlayX().toFloat(),
+                initialOffsetY = overlayPreferences.getOverlayY().toFloat(),
+                onPositionChanged = onPositionChanged,
+                onClick = {
+                  val intent = Intent(application, DebugPanelActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                  }
+                  application.startActivity(intent)
+                }
+              )
             }
-          )
+            OverlayMode.BugReporterOnly -> {
+              DraggableBugReporterFab(
+                initialOffsetX = overlayPreferences.getOverlayX().toFloat(),
+                initialOffsetY = overlayPreferences.getOverlayY().toFloat(),
+                onPositionChanged = onPositionChanged,
+                onError = { errorMessage ->
+                  Toast.makeText(application, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+              )
+            }
+          }
         }
       }
       // Tag the ComposeView so UI hierarchy scan can filter it out
@@ -132,8 +161,8 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
       Logger.d("onCreate() called for ${activity.javaClass.simpleName}")
-      // Don't create overlay for DebugPanelActivity - no need for it there
-      if (activity !is DebugPanelActivity) {
+      // Don't create overlay for debug-related activities
+      if (!activity.isDebugOverlayActivity()) {
         OverlayViewAttachStateChangeListener().also {
           activity.window.decorView.addOnAttachStateChangeListener(it)
           attachStateChangeListeners[activity] = it
@@ -147,7 +176,7 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityResumed(activity: Activity) {
       Logger.d("onResume() called for ${activity.javaClass.simpleName}")
-      if (activity !is DebugPanelActivity) {
+      if (!activity.isDebugOverlayActivity()) {
         lastAppActivityRef = WeakReference(activity)
         attachStateChangeListeners[activity]?.onActivityResumed()
         DebugOverlay.overlayDataRepository.startOrResumeJankStatsTracking(activity)
@@ -156,7 +185,7 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityPaused(activity: Activity) {
       Logger.d("onPause() called for ${activity.javaClass.simpleName}")
-      if (activity !is DebugPanelActivity) {
+      if (!activity.isDebugOverlayActivity()) {
         attachStateChangeListeners[activity]?.onActivityPaused()
         DebugOverlay.overlayDataRepository.pauseJankStatsTracking(activity)
       }
@@ -164,7 +193,7 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityStopped(activity: Activity) {
       Logger.d("onStop() called for ${activity.javaClass.simpleName}")
-      if (activity !is DebugPanelActivity) {
+      if (!activity.isDebugOverlayActivity()) {
         attachStateChangeListeners[activity]?.onActivityStopped()
       }
     }
@@ -175,7 +204,7 @@ internal class OverlayViewManager(private val application: Application, private 
 
     override fun onActivityDestroyed(activity: Activity) {
       Logger.d("onDestroy() called for ${activity.javaClass.simpleName}")
-      if (activity !is DebugPanelActivity) {
+      if (!activity.isDebugOverlayActivity()) {
         if (lastAppActivityRef?.get() === activity) {
           lastAppActivityRef = null
         }
@@ -183,6 +212,9 @@ internal class OverlayViewManager(private val application: Application, private 
         DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
       }
     }
+
+    /** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
+    private fun Activity.isDebugOverlayActivity(): Boolean = this is DebugPanelActivity || this is BugReportActivity
   }
 
   inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
@@ -193,11 +225,13 @@ internal class OverlayViewManager(private val application: Application, private 
 
     fun onActivityResumed() {
       lifecycleOwner?.onResume()
-      updatePosition(savedX, savedY)
+      updatePosition(overlayPreferences.getOverlayX(), overlayPreferences.getOverlayY())
     }
 
     fun onActivityPaused() {
       lifecycleOwner?.onPause()
+      // Save position only on pause to avoid excessive writes during drag
+      savePosition()
     }
 
     fun onActivityStopped() {
@@ -229,8 +263,6 @@ internal class OverlayViewManager(private val application: Application, private 
     }
 
     private fun updatePosition(x: Int, y: Int) {
-      savedX = x
-      savedY = y
       val params = layoutParams ?: return
       val view = rootView?.takeIf { it.isAttachedToWindow } ?: return
 
@@ -238,6 +270,12 @@ internal class OverlayViewManager(private val application: Application, private 
         params.x = x
         params.y = y
         windowManager.updateViewLayout(view, params)
+      }
+    }
+
+    private fun savePosition() {
+      layoutParams?.let { params ->
+        overlayPreferences.saveOverlayPosition(params.x, params.y)
       }
     }
 

@@ -7,7 +7,6 @@ import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
-import com.ms.square.debugoverlay.internal.bugreport.BugReportZipWriter
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
 import com.ms.square.debugoverlay.internal.util.isMainProcess
@@ -34,6 +33,8 @@ public object DebugOverlay {
           setNetworkTracker(newConfig.networkRequestTracker)
           setLogTracker(newConfig.logTracker)
         } ?: Logger.d("Config updated before install, will apply during install")
+        overlayViewManager?.let { it.overlayMode = newConfig.overlayMode }
+          ?: Logger.d("Config updated before install, will apply during install")
       }
     }
 
@@ -74,11 +75,11 @@ public object DebugOverlay {
       }
       _overlayDataRepository = repository
 
-      val viewManager = OverlayViewManager(application, scope)
+      val viewManager = OverlayViewManager(application, scope, config.overlayMode)
       overlayViewManager = viewManager
 
       _bugReportGenerator = BugReportGenerator(
-        zipWriter = BugReportZipWriter(application),
+        context = application,
         repository = repository,
         activityProvider = viewManager
       )
@@ -101,6 +102,9 @@ public object DebugOverlay {
   /**
    * DebugOverlay configuration.
    *
+   * @property overlayMode The overlay display mode.
+   *   [OverlayMode.FullMetrics] (default) shows real-time metrics panel.
+   *   [OverlayMode.BugReporterOnly] shows a minimal FAB for quick bug reporting.
    * @property networkRequestTracker Tracks HTTP requests for display in Network tab.
    *   Default is [NoOpNetworkRequestTracker] which disables network tracking.
    *   Use DebugOverlayNetworkInterceptor from debugoverlay-extension-okhttp for OkHttp integration.
@@ -111,6 +115,7 @@ public object DebugOverlay {
    * @see configure
    */
   public data class Config(
+    val overlayMode: OverlayMode = OverlayMode.FullMetrics,
     val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
     val logTracker: LogTracker? = null,
   )

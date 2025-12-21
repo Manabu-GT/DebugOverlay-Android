@@ -1,9 +1,8 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
 import android.content.Context
-import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
-import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -27,6 +26,7 @@ internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignor
  * - jank_stats.json
  * - app_exits.txt
  * - ui_hierarchy.txt
+ * - user_input.json
  */
 internal class BugReportZipWriter(context: Context) {
 
@@ -35,90 +35,95 @@ internal class BugReportZipWriter(context: Context) {
   }
 
   /**
-   * Creates a ZIP file containing the bug report data.
+   * Creates a ZIP file from a capture folder containing pre-saved bug report files.
    *
-   * @param data The collected bug report data
+   * @param folder The capture folder containing screenshot.png, bug_report.html, etc.
+   * @param metadata Optional user-provided title and description
    * @return The created ZIP file
-   * @throws java.io.IOException if writing fails
+   * @throws IOException if writing fails
    */
-  fun write(data: BugReportData): File {
-    val timestamp = formatFilenameTimestamp(data.timestampMs)
+  fun writeFromFolder(folder: File, metadata: BugReportMetadata?): File {
+    val timestamp = folder.name.removePrefix(TEMP_FOLDER_PREFIX)
     val zipFile = File(cacheDir, "bug_report_$timestamp.zip")
 
     ZipOutputStream(FileOutputStream(zipFile).buffered()).use { zip ->
-      // HTML report (human-readable with embedded screenshot)
-      writeFileEntry(zip, "bug_report.html") { file ->
-        HtmlReportBuilder.build(data, file)
-      }
+      // Copy all files from capture folder, injecting metadata into HTML
+      val files = folder.listFiles()
+        ?: throw IOException(
+          "Failed to list capture folder contents at ${folder.absolutePath}. " +
+            "Folder may not exist or be inaccessible. This indicates a bug in capture flow."
+        )
 
-      // Screenshot (PNG)
-      data.screenshot?.let { bitmap ->
-        writeScreenshot(zip, bitmap)
-      }
+      files.filter { it.isFile }
+        .forEach { file -> copyOrTransformFile(zip, file, metadata) }
 
-      // User-provided metadata (optional)
-      data.userMetadata?.let { metadata ->
-        writeFileEntry(zip, "user_input.json") { file ->
-          BugReportFileWriters.writeUserMetadata(metadata, file)
-        }
-      }
-
-      // JSON files
-      writeFileEntry(zip, "logs.json") { file ->
-        BugReportFileWriters.writeLogs(data.logs, file)
-      }
-
-      writeFileEntry(zip, "network_requests.json") { file ->
-        BugReportFileWriters.writeNetworkRequests(data.networkRequests, file)
-      }
-
-      data.deviceInfo?.let {
-        writeFileEntry(zip, "device_info.json") { file ->
-          BugReportFileWriters.writeDeviceInfo(it, file)
-        }
-      }
-
-      data.jankStats?.let {
-        writeFileEntry(zip, "jank_stats.json") { file ->
-          BugReportFileWriters.writeJankStats(it, file)
-        }
-      }
-
-      // Plain text files
-      writeFileEntry(zip, "app_exits.txt") { file ->
-        BugReportFileWriters.writeAppExits(data.appExitInfos, file)
-      }
-
-      data.uiHierarchy?.let {
-        writeFileEntry(zip, "ui_hierarchy.txt") { file ->
-          BugReportFileWriters.writeUiHierarchy(it, file)
+      // Add user metadata as JSON for machine readability
+      if (metadata != null) {
+        writeFileEntry(zip, "user_input.json") { tempFile ->
+          BugReportFileWriters.writeUserMetadata(metadata, tempFile)
         }
       }
     }
 
-    Logger.d("Bug report ZIP created: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
+    Logger.d("Bug report ZIP created from folder: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
     return zipFile
   }
 
-  private fun writeScreenshot(zip: ZipOutputStream, bitmap: Bitmap) {
-    zip.putNextEntry(ZipEntry("screenshot.png"))
-    bitmap.compress(Bitmap.CompressFormat.PNG, UNUSED_PNG_QUALITY, zip)
-    zip.closeEntry()
+  private fun copyOrTransformFile(zip: ZipOutputStream, file: File, metadata: BugReportMetadata?) {
+    if (file.name == HTML_REPORT) {
+      writeHtmlWithMetadata(zip, file, metadata)
+    } else {
+      copyFileToZip(zip, file, file.name)
+    }
   }
 
-  private inline fun writeFileEntry(zip: ZipOutputStream, filename: String, writeContent: (File) -> Unit) {
+  /**
+   * Writes HTML file to ZIP with placeholders replaced.
+   * If metadata is provided, uses user values; otherwise injects defaults.
+   */
+  private fun writeHtmlWithMetadata(zip: ZipOutputStream, htmlFile: File, metadata: BugReportMetadata?) {
+    try {
+      val originalHtml = htmlFile.readText()
+      val modifiedHtml = if (metadata != null) {
+        HtmlReportBuilder.injectMetadata(originalHtml, metadata)
+      } else {
+        HtmlReportBuilder.injectDefaults(originalHtml)
+      }
+
+      zip.putNextEntry(ZipEntry(HTML_REPORT))
+      zip.write(modifiedHtml.toByteArray(Charsets.UTF_8))
+      zip.closeEntry()
+    } catch (e: IOException) {
+      Logger.w("Failed to write HTML with metadata, copying original: ${e.message}")
+      copyFileToZip(zip, htmlFile, HTML_REPORT)
+    }
+  }
+
+  private fun copyFileToZip(zip: ZipOutputStream, file: File, entryName: String) {
+    try {
+      zip.putNextEntry(ZipEntry(entryName))
+      file.inputStream().buffered().use { input ->
+        input.copyTo(zip)
+      }
+      zip.closeEntry()
+    } catch (e: IOException) {
+      Logger.w("Failed to copy '$entryName' to ZIP, skipping: ${e.message}")
+    }
+  }
+
+  private inline fun writeFileEntry(zip: ZipOutputStream, fileName: String, writeContent: (File) -> Unit) {
     // Write to temp file first, then add to ZIP
     val tempFile = File.createTempFile("bugreport_", ".tmp", cacheDir)
     try {
       writeContent(tempFile)
-      zip.putNextEntry(ZipEntry(filename))
+      zip.putNextEntry(ZipEntry(fileName))
       tempFile.inputStream().buffered().use { input ->
         input.copyTo(zip)
       }
       zip.closeEntry()
     } catch (e: IOException) {
       // Skip failed entries - partial report is better than none
-      Logger.w("Failed to write '$filename' to bug report, skipping: ${e.message}")
+      Logger.w("Failed to write '$fileName' to bug report, skipping: ${e.message}")
     } finally {
       if (!tempFile.delete()) {
         Logger.w("Failed to delete temp file: ${tempFile.absolutePath}")

@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
+import android.content.Intent
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
@@ -41,8 +42,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
-import com.ms.square.debugoverlay.internal.bugreport.BugReportResult
-import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
 import kotlinx.coroutines.launch
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
@@ -110,38 +109,7 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss: () -> Unit) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
-  var isGeneratingReport by remember { mutableStateOf(false) }
-  var showMetadataDialog by remember { mutableStateOf(false) }
-
-  if (showMetadataDialog) {
-    BugReportMetadataDialog(
-      onConfirm = { metadata ->
-        showMetadataDialog = false
-        scope.launch {
-          isGeneratingReport = true
-          try {
-            when (val result = DebugOverlay.bugReportGenerator.generate(metadata)) {
-              is BugReportResult.Success -> {
-                if (!IntentShareExporter(context).export(result.zipFile)) {
-                  snackBarHostState.showSnackbar(
-                    context.getString(R.string.debugoverlay_share_bug_report_error)
-                  )
-                }
-              }
-              is BugReportResult.Error.IoError -> {
-                snackBarHostState.showSnackbar(
-                  context.getString(R.string.debugoverlay_bug_report_error)
-                )
-              }
-            }
-          } finally {
-            isGeneratingReport = false
-          }
-        }
-      },
-      onDismiss = { showMetadataDialog = false }
-    )
-  }
+  var isCapturing by remember { mutableStateOf(false) }
 
   TopAppBar(
     title = {
@@ -152,8 +120,27 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
     },
     actions = {
       BugReportButton(
-        isGenerating = isGeneratingReport,
-        onGenerateReport = { showMetadataDialog = true }
+        isGenerating = isCapturing,
+        onGenerateReport = {
+          scope.launch {
+            isCapturing = true
+            try {
+              DebugOverlay.bugReportGenerator.captureToFolder()
+                .onSuccess { folder ->
+                  // Launch BugReportActivity for metadata dialog
+                  val intent = Intent(context, BugReportActivity::class.java).apply {
+                    putExtra(INTENT_EXTRA_CAPTURE_FOLDER, folder.absolutePath)
+                  }
+                  context.startActivity(intent)
+                }.onFailure {
+                  snackBarHostState
+                    .showSnackbar(context.getString(R.string.debugoverlay_bug_report_error))
+                }
+            } finally {
+              isCapturing = false
+            }
+          }
+        }
       )
       IconButton(onClick = onDismiss) {
         Icon(
