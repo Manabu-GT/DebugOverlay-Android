@@ -58,7 +58,7 @@ internal object HtmlReportBuilder {
    * @param metadata User-provided title and description
    * @return HTML with metadata injected
    */
-  fun injectMetadata(html: String, metadata: BugReportMetadata): String {
+  internal fun injectMetadata(html: String, metadata: BugReportMetadata): String {
     // Replace title placeholder with user title or default
     val title = metadata.title.takeIf { it.isNotBlank() } ?: DEFAULT_TITLE
     var result = html.replace(TITLE_PLACEHOLDER, title.escapeHtml())
@@ -76,11 +76,9 @@ internal object HtmlReportBuilder {
    * Replaces placeholders with default values when no user metadata is provided.
    * This ensures the HTML output doesn't contain raw placeholder comments.
    */
-  fun injectDefaults(html: String): String {
-    return html
-      .replace(TITLE_PLACEHOLDER, DEFAULT_TITLE.escapeHtml())
-      .replace(DESCRIPTION_PLACEHOLDER, "")
-  }
+  internal fun injectDefaults(html: String): String = html
+    .replace(TITLE_PLACEHOLDER, DEFAULT_TITLE.escapeHtml())
+    .replace(DESCRIPTION_PLACEHOLDER, "")
 
   private fun buildDescriptionSection(description: String): String = buildString {
     append("    <div class=\"section\">\n")
@@ -102,7 +100,7 @@ internal object HtmlReportBuilder {
     append("<head>\n")
     append("  <meta charset=\"UTF-8\">\n")
     append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
-    append("  <title>Bug Report - ${timestamp.escapeHtml()}</title>\n")
+    append("  <title>Bug Report - $timestamp</title>\n")
     appendStyles()
     append("</head>\n")
     append("<body>\n")

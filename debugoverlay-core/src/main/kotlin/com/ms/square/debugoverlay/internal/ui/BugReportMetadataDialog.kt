@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -61,6 +62,7 @@ internal fun BugReportMetadataDialog(
   onConfirm: (BugReportMetadata?) -> Unit,
   onDismiss: () -> Unit,
 ) {
+  val imageBitmap = remember(screenshot) { screenshot?.asImageBitmap() }
   var title by remember { mutableStateOf("") }
   var description by remember { mutableStateOf("") }
   var showFullScreenPreview by remember { mutableStateOf(false) }
@@ -73,9 +75,9 @@ internal fun BugReportMetadataDialog(
     text = {
       Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         // Screenshot preview or error placeholder
-        if (screenshot != null) {
+        if (imageBitmap != null) {
           ScreenshotPreview(
-            bitmap = screenshot,
+            imageBitmap = imageBitmap,
             onClick = { showFullScreenPreview = true },
             modifier = Modifier
               .fillMaxWidth()
@@ -119,9 +121,9 @@ internal fun BugReportMetadataDialog(
   )
 
   // Fullscreen preview dialog (only if screenshot available)
-  if (showFullScreenPreview && screenshot != null) {
+  if (showFullScreenPreview && imageBitmap != null) {
     FullScreenImageDialog(
-      bitmap = screenshot,
+      imageBitmap = imageBitmap,
       onDismiss = { showFullScreenPreview = false }
     )
   }
@@ -164,7 +166,7 @@ private fun MetadataFormContent(
 }
 
 @Composable
-private fun ScreenshotPreview(bitmap: Bitmap, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ScreenshotPreview(imageBitmap: ImageBitmap, onClick: () -> Unit, modifier: Modifier = Modifier) {
   val viewFullScreenshotLabel = stringResource(R.string.debugoverlay_bug_report_view_full_screenshot)
   Surface(
     modifier = modifier
@@ -177,7 +179,6 @@ private fun ScreenshotPreview(bitmap: Bitmap, onClick: () -> Unit, modifier: Mod
     color = MaterialTheme.colorScheme.surfaceContainerHigh,
     shape = MaterialTheme.shapes.medium
   ) {
-    val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
     Box(contentAlignment = Alignment.Center) {
       Image(
         bitmap = imageBitmap,
@@ -233,8 +234,7 @@ private fun ScreenshotErrorPlaceholder(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun FullScreenImageDialog(bitmap: Bitmap, onDismiss: () -> Unit) {
-  val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
+private fun FullScreenImageDialog(imageBitmap: ImageBitmap, onDismiss: () -> Unit) {
   AlertDialog(
     onDismissRequest = onDismiss,
     containerColor = MaterialTheme.colorScheme.surfaceDim,

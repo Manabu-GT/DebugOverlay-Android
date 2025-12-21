@@ -170,10 +170,6 @@ internal class OverlayViewManager(
       }
     }
 
-    /** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
-    private fun Activity.isDebugOverlayActivity(): Boolean =
-      this is DebugPanelActivity || this is BugReportActivity
-
     override fun onActivityStarted(activity: Activity) {
       Logger.d("onStart() called for ${activity.javaClass.simpleName}")
     }
@@ -216,6 +212,9 @@ internal class OverlayViewManager(
         DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
       }
     }
+
+    /** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
+    private fun Activity.isDebugOverlayActivity(): Boolean = this is DebugPanelActivity || this is BugReportActivity
   }
 
   inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {

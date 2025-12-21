@@ -1,5 +1,3 @@
-@file:Suppress("LongParameterList")
-
 package com.ms.square.debugoverlay.internal.bugreport
 
 import android.graphics.Bitmap
@@ -25,6 +23,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  * @param appExitInfos Recent app exit reasons
  * @param uiHierarchy UI hierarchy dump from Radiography
  */
+@Suppress("LongParameterList")
 internal class BugReportSnapshot(
   val timestampMs: Long,
   val screenshot: Bitmap?,

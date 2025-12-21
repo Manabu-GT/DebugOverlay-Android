@@ -4,32 +4,42 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.APP_EXITS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.DEVICE_INFO
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.JANK_STATS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.LOGS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.NETWORK_REQUESTS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.SCREENSHOT
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.UI_HIERARCHY
+import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
 internal const val TEMP_FOLDER_PREFIX = "debugoverlay_capture_"
-internal const val SCREENSHOT_FILENAME = "screenshot.png"
-private const val HTML_REPORT_FILENAME = "bug_report.html"
+private const val CACHE_SUBDIR = "debugoverlay_bugreport_drafts"
 
 /**
  * Handles temporary storage of bug report capture data.
  *
  * Saves captured diagnostic data to a temp folder, allowing it to be passed
- * between the FAB (in WindowManager overlay) and BugReportActivity via folder path.
+ * between the DebugPanel/FAB and BugReportActivity via folder path.
  *
  * TODO: Future draft management improvements:
- *  - Store timestamp in metadata.json instead of folder name (more robust)
- *  - Use UUID for folder names
+ *  - Store timestamp data and list of bug report files in metadata.json (more robust)
+ *  - Use UUID for folder names?
  *  - Add maxDimension parameter to loadScreenshot for memory-efficient thumbnails
  *  - Add Mutex around deleteFolder to prevent race conditions
- *  - Add cleanupOldDrafts(maxDrafts: Int) for draft eviction
- *  - Add cleanupStaleCaptures() to delete folders older than 24h on app start
+ *  - Add cleanupOldDrafts(maxDrafts: Int) for draft eviction - should be 10 to start with.
  */
 internal class BugReportTempStorage(context: Context) {
 
-  private val cacheDir = context.cacheDir
+  private val cacheDir by lazy {
+    File(context.cacheDir, CACHE_SUBDIR).apply { mkdirs() }
+  }
 
   /**
    * Saves a snapshot to a temp folder.
@@ -39,48 +49,50 @@ internal class BugReportTempStorage(context: Context) {
    * @param snapshot The captured diagnostic data
    * @return Result containing the folder path, or a failure with exception details
    */
-  @Suppress("TooGenericExceptionCaught", "LongMethod")
+  @Suppress("LongMethod")
   suspend fun saveSnapshot(snapshot: BugReportSnapshot): Result<File> = withContext(Dispatchers.IO) {
-    runCatching {
+    runCatchingNonCancellation {
       val folder = createTempFolder(snapshot.timestampMs)
 
       try {
         // Save screenshot first (most important for preview)
         snapshot.screenshot?.let { bitmap ->
-          runCatching { saveScreenshot(bitmap, File(folder, SCREENSHOT_FILENAME)) }
+          runCatchingNonCancellation { saveScreenshot(bitmap, File(folder, SCREENSHOT)) }
             .onFailure { Logger.e("Failed to save screenshot", it) }
         }
 
         // Generate and save HTML report (needs bitmap before it's recycled)
         // User metadata is not available at capture time, will be added to ZIP separately
-        runCatching {
+        runCatchingNonCancellation {
           val reportData = snapshot.toReportData(metadata = null)
-          HtmlReportBuilder.build(reportData, File(folder, HTML_REPORT_FILENAME))
+          HtmlReportBuilder.build(reportData, File(folder, HTML_REPORT))
         }.onFailure { Logger.e("Failed to save HTML report", it) }
 
         // Save diagnostic data files (wrap each to allow partial saves)
-        runCatching { BugReportFileWriters.writeLogs(snapshot.logs, File(folder, "logs.json")) }
+        runCatchingNonCancellation { BugReportFileWriters.writeLogs(snapshot.logs, File(folder, LOGS)) }
           .onFailure { Logger.e("Failed to save logs", it) }
 
-        runCatching {
-          BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, "network_requests.json"))
+        runCatchingNonCancellation {
+          BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
         }.onFailure { Logger.e("Failed to save network requests", it) }
 
-        snapshot.deviceInfo?.let {
-          runCatching { BugReportFileWriters.writeDeviceInfo(it, File(folder, "device_info.json")) }
+        snapshot.deviceInfo?.let { deviceInfo ->
+          runCatchingNonCancellation { BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO)) }
             .onFailure { Logger.e("Failed to save device info", it) }
         }
 
-        snapshot.jankStats?.let {
-          runCatching { BugReportFileWriters.writeJankStats(it, File(folder, "jank_stats.json")) }
+        snapshot.jankStats?.let { jankStats ->
+          runCatchingNonCancellation { BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS)) }
             .onFailure { Logger.e("Failed to save jank stats", it) }
         }
 
-        runCatching { BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, "app_exits.txt")) }
+        runCatchingNonCancellation {
+          BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS))
+        }
           .onFailure { Logger.e("Failed to save app exits", it) }
 
-        snapshot.uiHierarchy?.let {
-          runCatching { BugReportFileWriters.writeUiHierarchy(it, File(folder, "ui_hierarchy.txt")) }
+        snapshot.uiHierarchy?.let { uiHierarchy ->
+          runCatchingNonCancellation { BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY)) }
             .onFailure { Logger.e("Failed to save UI hierarchy", it) }
         }
       } finally {
@@ -101,7 +113,7 @@ internal class BugReportTempStorage(context: Context) {
    */
   @Suppress("TooGenericExceptionCaught")
   suspend fun loadScreenshot(folder: File): Bitmap? = withContext(Dispatchers.IO) {
-    val screenshotFile = File(folder, SCREENSHOT_FILENAME)
+    val screenshotFile = File(folder, SCREENSHOT)
     if (!screenshotFile.exists()) return@withContext null
 
     try {
@@ -114,18 +126,6 @@ internal class BugReportTempStorage(context: Context) {
       Logger.e("Failed to load screenshot", e)
       null
     }
-  }
-
-  /**
-   * Extracts the capture timestamp from folder name.
-   *
-   * @param folder The capture folder
-   * @return The timestamp in millis, or current time if parsing fails
-   */
-  // TODO: Read from metadata.json instead of parsing folder name (more robust for draft management)
-  fun getTimestamp(folder: File): Long {
-    return folder.name.removePrefix(TEMP_FOLDER_PREFIX).toLongOrNull()
-      ?: System.currentTimeMillis()
   }
 
   /**
@@ -146,7 +146,7 @@ internal class BugReportTempStorage(context: Context) {
   }
 
   private fun createTempFolder(timestampMs: Long): File {
-    val folder = File(cacheDir, "$TEMP_FOLDER_PREFIX$timestampMs")
+    val folder = File(cacheDir, "$TEMP_FOLDER_PREFIX${formatFilenameTimestamp(timestampMs)}")
     check(folder.mkdirs() || folder.exists()) {
       "Failed to create temp folder: ${folder.absolutePath}"
     }

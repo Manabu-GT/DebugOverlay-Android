@@ -48,13 +48,10 @@ internal class DraggableOverlayState(initialOffsetX: Float, initialOffsetY: Floa
    * Uses gravity END/TOP coordinate system (x=0 is right edge, y=0 is top).
    */
   internal suspend fun updateOffset(dragDeltaX: Float, dragDeltaY: Float, contentSize: IntSize, screenSize: IntSize) {
-    val maxX = (screenSize.width - contentSize.width).coerceAtLeast(0)
-    val maxY = (screenSize.height - contentSize.height).coerceAtLeast(0)
-
     // LEFT is positive (flip sign because gravity is END)
-    offsetX.snapTo((offsetX.value - dragDeltaX).coerceIn(0f, maxX.toFloat()))
+    offsetX.snapTo((offsetX.value - dragDeltaX).coerceIn(0f, maxX(contentSize, screenSize)))
     // DOWN is positive (gravity is TOP)
-    offsetY.snapTo((offsetY.value + dragDeltaY).coerceIn(0f, maxY.toFloat()))
+    offsetY.snapTo((offsetY.value + dragDeltaY).coerceIn(0f, maxY(contentSize, screenSize)))
   }
 
   /**
@@ -62,16 +59,19 @@ internal class DraggableOverlayState(initialOffsetX: Float, initialOffsetY: Floa
    */
   internal suspend fun clampToBounds(contentSize: IntSize, screenSize: IntSize) {
     if (contentSize.width > 0 && contentSize.height > 0) {
-      val maxX = (screenSize.width - contentSize.width).coerceAtLeast(0).toFloat()
-      val maxY = (screenSize.height - contentSize.height).coerceAtLeast(0).toFloat()
-
-      val clampedX = offsetX.value.coerceIn(0f, maxX)
-      val clampedY = offsetY.value.coerceIn(0f, maxY)
+      val clampedX = offsetX.value.coerceIn(0f, maxX(contentSize, screenSize))
+      val clampedY = offsetY.value.coerceIn(0f, maxY(contentSize, screenSize))
 
       if (offsetX.value != clampedX) offsetX.snapTo(clampedX)
       if (offsetY.value != clampedY) offsetY.snapTo(clampedY)
     }
   }
+
+  private fun maxX(contentSize: IntSize, screenSize: IntSize): Float =
+    (screenSize.width - contentSize.width).coerceAtLeast(0).toFloat()
+
+  private fun maxY(contentSize: IntSize, screenSize: IntSize): Float =
+    (screenSize.height - contentSize.height).coerceAtLeast(0).toFloat()
 }
 
 @Composable

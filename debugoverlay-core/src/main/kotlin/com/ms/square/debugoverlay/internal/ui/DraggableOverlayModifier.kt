@@ -1,7 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
@@ -13,7 +12,6 @@ import kotlinx.coroutines.launch
 /**
  * Visual feedback configuration during drag.
  */
-@Stable
 internal data class DragVisualFeedback(val draggingAlpha: Float = 0.7f, val draggingScale: Float = 1.05f)
 
 /**
@@ -23,7 +21,6 @@ internal data class DragVisualFeedback(val draggingAlpha: Float = 0.7f, val drag
  * @param screenSize Current screen size for bounds calculation
  * @param contentSize Size of the draggable content
  * @param scope CoroutineScope for launching animations
- * @param snapToEdge Whether to snap to nearest horizontal edge on drag end
  * @param visualFeedback Alpha/scale effects during drag
  * @param onHapticFeedback Callback to trigger haptic feedback on drag start
  */
@@ -32,7 +29,6 @@ internal fun Modifier.draggableOverlay(
   screenSize: IntSize,
   contentSize: IntSize,
   scope: CoroutineScope,
-  snapToEdge: Boolean = true,
   visualFeedback: DragVisualFeedback = DragVisualFeedback(),
   onHapticFeedback: () -> Unit = {},
 ): Modifier = this
@@ -46,9 +42,7 @@ internal fun Modifier.draggableOverlay(
       },
       onDragEnd = {
         scope.launch {
-          if (snapToEdge) {
-            state.snapToEdge(screenSize.width.toFloat(), contentSize.width.toFloat())
-          }
+          state.snapToEdge(screenSize.width.toFloat(), contentSize.width.toFloat())
           state.isDragging = false
         }
       },

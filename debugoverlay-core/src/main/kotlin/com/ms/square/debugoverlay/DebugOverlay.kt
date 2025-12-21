@@ -114,7 +114,7 @@ public object DebugOverlay {
    * @see configure
    */
   public data class Config(
-    val overlayMode: OverlayMode = OverlayMode.BugReporterOnly,
+    val overlayMode: OverlayMode = OverlayMode.FullMetrics,
     val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
     val logTracker: LogTracker? = null,
   )

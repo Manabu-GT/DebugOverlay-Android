@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -28,7 +29,6 @@ internal class BugReportGenerator(
   context: Context,
   private val repository: DebugOverlayDataRepository,
   private val activityProvider: ActivityProvider,
-  // Default implementations allow production simplicity while preserving testability
   private val tempStorage: BugReportTempStorage = BugReportTempStorage(context),
   private val zipWriter: BugReportZipWriter = BugReportZipWriter(context),
 ) {
@@ -44,7 +44,6 @@ internal class BugReportGenerator(
   @Suppress("TooGenericExceptionCaught")
   suspend fun captureToFolder(): Result<File> {
     val timestampMs = System.currentTimeMillis()
-
     return try {
       val snapshot = withContext(Dispatchers.Default) {
         supervisorScope {
@@ -95,10 +94,7 @@ internal class BugReportGenerator(
    * @param metadata Optional user-provided title and description
    * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
    */
-  suspend fun createReportFromFolder(
-    captureFolder: File,
-    metadata: BugReportMetadata? = null
-  ): BugReportResult = try {
+  suspend fun createReportFromFolder(captureFolder: File, metadata: BugReportMetadata? = null): BugReportResult = try {
     val zipFile = withContext(Dispatchers.IO) {
       zipWriter.writeFromFolder(captureFolder, metadata)
     }
@@ -115,17 +111,4 @@ internal class BugReportGenerator(
    * @param captureFolder Folder to delete
    */
   suspend fun deleteCaptureFolder(captureFolder: File) = tempStorage.deleteFolder(captureFolder)
-}
-
-/**
- * Runs [block] catching all exceptions except [CancellationException].
- * This preserves structured concurrency while allowing graceful degradation.
- */
-@Suppress("TooGenericExceptionCaught")
-private inline fun <T> runCatchingNonCancellation(block: () -> T): Result<T> = try {
-  Result.success(block())
-} catch (e: CancellationException) {
-  throw e
-} catch (e: Exception) {
-  Result.failure(e)
 }

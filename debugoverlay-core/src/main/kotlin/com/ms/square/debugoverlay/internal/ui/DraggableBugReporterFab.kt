@@ -52,7 +52,9 @@ internal fun DraggableBugReporterFab(
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
   var contentSize by remember { mutableStateOf(IntSize.Zero) }
-  val screenSize = IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
+  val screenSize = remember(windowInfo.containerSize) {
+    IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
+  }
 
   val state = rememberDraggableOverlayState(
     initialOffsetX = initialOffsetX,
@@ -83,7 +85,9 @@ internal fun DraggableBugReporterFab(
       ),
     contentAlignment = Alignment.Center
   ) {
-    // Inner Box with padding to accommodate scale effect during drag
+    // Inner Box with padding to prevent clipping during drag scale (1.1x).
+    // This padding MUST be inside the outer Box so onSizeChanged() captures
+    // the total size including padding, reserving layout space for the scaled FAB.
     Box(modifier = Modifier.padding(FAB_DRAG_PADDING)) {
       BugReporterFab(onError = onError)
     }

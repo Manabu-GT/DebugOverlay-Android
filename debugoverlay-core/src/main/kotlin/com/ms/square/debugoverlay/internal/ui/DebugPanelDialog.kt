@@ -125,18 +125,17 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
           scope.launch {
             isCapturing = true
             try {
-              val result = DebugOverlay.bugReportGenerator.captureToFolder()
-              result.onSuccess { folder ->
-                // Launch BugReportActivity for metadata dialog
-                val intent = Intent(context, BugReportActivity::class.java).apply {
-                  putExtra(EXTRA_CAPTURE_FOLDER, folder.absolutePath)
+              DebugOverlay.bugReportGenerator.captureToFolder()
+                .onSuccess { folder ->
+                  // Launch BugReportActivity for metadata dialog
+                  val intent = Intent(context, BugReportActivity::class.java).apply {
+                    putExtra(INTENT_EXTRA_CAPTURE_FOLDER, folder.absolutePath)
+                  }
+                  context.startActivity(intent)
+                }.onFailure {
+                  snackBarHostState
+                    .showSnackbar(context.getString(R.string.debugoverlay_bug_report_error))
                 }
-                context.startActivity(intent)
-              }.onFailure {
-                snackBarHostState.showSnackbar(
-                  context.getString(R.string.debugoverlay_bug_report_error)
-                )
-              }
             } finally {
               isCapturing = false
             }

@@ -52,7 +52,9 @@ internal fun DraggableOverlayPanel(
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
   var panelSize by remember { mutableStateOf(IntSize.Zero) }
-  val screenSize = IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
+  val screenSize = remember(windowInfo.containerSize) {
+    IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
+  }
 
   val state = rememberDraggableOverlayState(
     initialOffsetX = initialOffsetX,

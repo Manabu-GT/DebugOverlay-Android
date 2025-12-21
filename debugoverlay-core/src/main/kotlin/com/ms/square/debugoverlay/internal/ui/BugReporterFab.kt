@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
+import android.content.Intent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
@@ -22,7 +23,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -86,20 +86,20 @@ internal fun BugReporterFab(modifier: Modifier = Modifier, onError: (String) -> 
       if (fabState == BugReporterFabState.Idle) {
         scope.launch {
           fabState = BugReporterFabState.Processing
-          val result = DebugOverlay.bugReportGenerator.captureToFolder()
-          result.onSuccess { folder ->
-            // Launch activity with folder path for metadata dialog
-            val intent = Intent(context, BugReportActivity::class.java).apply {
-              addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-              putExtra(EXTRA_CAPTURE_FOLDER, folder.absolutePath)
+          DebugOverlay.bugReportGenerator.captureToFolder()
+            .onSuccess { folder ->
+              // Launch activity with folder path for metadata dialog
+              val intent = Intent(context, BugReportActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra(INTENT_EXTRA_CAPTURE_FOLDER, folder.absolutePath)
+              }
+              context.startActivity(intent)
+              fabState = BugReporterFabState.Idle
+            }.onFailure {
+              val errorMsg = context.getString(R.string.debugoverlay_bug_report_error)
+              onError(errorMsg)
+              fabState = BugReporterFabState.Error(errorMsg)
             }
-            context.startActivity(intent)
-            fabState = BugReporterFabState.Idle
-          }.onFailure {
-            val errorMsg = context.getString(R.string.debugoverlay_bug_report_error)
-            onError(errorMsg)
-            fabState = BugReporterFabState.Error(errorMsg)
-          }
         }
       }
     },

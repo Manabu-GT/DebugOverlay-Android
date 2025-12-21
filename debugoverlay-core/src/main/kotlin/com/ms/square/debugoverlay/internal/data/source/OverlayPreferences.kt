@@ -44,7 +44,7 @@ private const val KEY_OVERLAY_Y = "overlay_position_y"
  */
 internal class SharedPreferencesOverlayPreferences(context: Context) : OverlayPreferences {
 
-  private val prefs: SharedPreferences = context.applicationContext.getSharedPreferences(
+  private val prefs: SharedPreferences = context.getSharedPreferences(
     PREFS_NAME,
     Context.MODE_PRIVATE
   )
