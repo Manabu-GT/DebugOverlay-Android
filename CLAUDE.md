@@ -1,89 +1,106 @@
-# DebugOverlay Guide for Claude
+# Claude Code Instructions for DebugOverlay
 
-This repository already contains `AGENTS.md`. Claude should use that document as the canonical reference and treat this file as a Claude-specific companion that highlights preferred behaviours and common pitfalls. Follow every directive below unless a higher-priority instruction (system > developer > user) explicitly overrides it.
-
----
-
-## 1. Core Principles
-
-1. **Pause and align** – read the full request, open tasks, and any referenced files before taking action. When requirements are ambiguous or contradictory, ask for clarification instead of guessing.
-2. **Follow instruction priority** – system > developer > user > repo docs (`AGENTS.md`, `CLAUDE.md`) > task context. Resolve conflicts in that order and call them out when they appear.
-3. **Stay conservative** – prefer the minimal change that satisfies the request and avoid speculative edits.
+Use `AGENTS.md` as the canonical project reference for code standards, testing, review protocol, and communication style. This file contains only Claude-specific behavioral instructions.
 
 ---
 
-## 2. Workflow Checklist
+## 1. Instruction Priority
 
-1. `git status -sb` to understand the current branch and pending work.
-2. Review `AGENTS.md` for baseline policies (testing expectations, coding standards, communication style).
-3. For non-trivial work, draft `tools/ai/plans/PLAN_<TASK_NAME>.md` with the proposed steps, wait for maintainer approval before executing, and update the plan after each approved step.
-4. Execute changes incrementally. After each significant edit, re-run `git status` to confirm only intended files changed.
-5. Keep notes about commands run, decisions taken, and any blockers—these will feed into the final hand-off.
+Resolve conflicts in this order:
+1. System instructions
+2. Developer instructions
+3. User instructions
+4. Repository docs (`AGENTS.md`, then this file)
+5. Task context
 
-Use tools deliberately:
-- Prefer `rg`/`fd`/`ls` for discovery.
-- Use `apply_patch` for manual edits; avoid auto-format commands that could produce large style-only diffs unless requested.
-
----
-
-## 3. Code & Build Expectations (Quick Reference)
-
-- Gradle & AGP versions are defined in `gradle/wrapper/gradle-wrapper.properties` and `gradle/libs.versions.toml`. Update both when tool upgrades are required.
-- All modules now use Kotlin DSL (`*.gradle.kts`) and the central version catalog. When modifying dependencies or plugins:
-  - Add or update aliases in `gradle/libs.versions.toml`.
-  - Reference them via `libs.*` or `libs.plugins.*` in module build scripts.
-- Java/Kotlin toolchains default to Java 17; keep `java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }` unless the user requests a change.
-- Preserve resource prefixes (`resourcePrefix 'debugoverlay_'`) and do not remove default resource directories when adding extra paths (use `res.srcDir(...)` instead of overwriting `srcDirs`).
-- Honour the module list in `AGENTS.md` (`debugoverlay-core`, `debugoverlay`, `sample`), avoid creating new modules without approval, and keep all modules on AndroidX APIs (no legacy `android.support`). Remember that `debugoverlay` is the primary public API, `debugoverlay-core` is the underlying runtime.
+Call out conflicts when they appear.
 
 ---
 
-## 4. Testing Guidance
+## 2. Proactive Subagent Usage
 
-| Scenario                                  | Minimum Verification |
-|-------------------------------------------|----------------------|
-| Gradle/build logic or catalog edits       | `./gradlew help`; add the smallest assemble task that exercises the affected wiring if artifacts could be impacted |
-| Core runtime changes                      | `./gradlew :debugoverlay-core:check` (or narrower unit/integration tasks if only part of the module is touched) |
-| Auto Installer w AndroidX Startup updates | `./gradlew :debugoverlay:check` |
-| Sample app UI/UX                          | `./gradlew :sample:assembleDebug`, plus manual interaction notes if feasible |
-| Documentation-only edits                  | No build required, but confirm code snippets compile conceptually |
+Use specialized subagents to improve quality and efficiency:
 
-Always document executed commands and outcomes in the final response. When a test cannot be run (e.g., tooling restriction), explain why and call out the residual risk.
+| Scenario | Subagent | Model |
+|----------|----------|-------|
+| Android-specific tasks (ViewModels, Lifecycle, system services) | `mobile-developer` | sonnet |
+| Compose UI, Material 3, accessibility, adaptive layouts | `ui-designer` | opus |
+| Gradle issues, dependencies, build optimization, CI/CD | `build-engineer` | sonnet |
+| Kotlin patterns, coroutines, KMP, Flow, idiomatic review | `kotlin-specialist` | opus |
+| After completing a feature/fix | `code-reviewer` | opus |
+| Codebase exploration, "where is X?", "how does Y work?" | `Explore` | haiku |
+| Non-trivial implementation planning | `Plan` | inherit |
+| Questions about Claude Code itself | `claude-code-guide` | haiku |
 
----
-
-## 5. Communication Defaults
-
-- Keep updates short, friendly, and actionable.
-- Reference files using clickable paths with line numbers when possible (e.g., ``debugoverlay/build.gradle.kts:42`` or ``gradle/libs.versions.toml``).
-- Present options as numbered lists when offering alternatives.
-- If blocked (permissions, sandbox limits, missing context), report the issue, propose workarounds, and wait for guidance.
-
----
-
-## 6. Review Mindset (When Asked to Review)
-
-1. Identify issues first, ordered by severity (critical → major → minor), citing file paths and line numbers.
-2. Focus on functionality, security/privacy, reliability/performance, maintainability, testing coverage, and consistency with project patterns.
-3. Provide concrete remediation suggestions or questions. Mention residual risks or testing gaps even when approving.
+**Trigger proactively** — don't wait for the user to ask:
+- Writing ViewModel or Lifecycle code → `mobile-developer`
+- Writing Compose UI → `ui-designer`
+- After implementing a feature → `code-reviewer`
+- Kotlin code review → `kotlin-specialist`
+- Build sync errors → `build-engineer`
 
 ---
 
-## 7. Safety & Incident Handling
+## 3. Tool Preferences
 
-- Never run destructive Git commands (`git reset --hard`, `git clean -fd`) unless explicitly instructed by the user.
-- If unexpected file changes appear (e.g., unrelated modifications, generated files), stop, describe the observation, and request direction.
-- Preserve secrets: do not print or store contents of `local.properties`, keystores, or other sensitive files.
+| Task | Preferred | Avoid |
+|------|-----------|-------|
+| Find files by pattern | `Glob` | `find`, `ls` in Bash |
+| Search file contents | `Grep` | `grep`, `rg` in Bash |
+| Read files | `Read` | `cat`, `head`, `tail` |
+| Edit files | `Edit` | `sed`, `awk` |
+| Open-ended exploration | `Task` with `Explore` agent | Multiple manual Glob/Grep |
+| GitHub operations (PRs, issues, comments) | `gh` CLI | Direct API calls |
+
+Run independent tool calls in parallel. Chain dependent calls sequentially.
+
+### GitHub CLI (`gh`)
+
+Use `gh` for all GitHub operations:
+```bash
+gh pr create --title "..." --body "..."   # Create PR
+gh pr view 123                             # View PR details
+gh pr checks                               # Check CI status
+gh issue create --title "..." --body "..." # Create issue
+gh api repos/{owner}/{repo}/pulls/123/comments  # Read PR comments
+```
 
 ---
 
-## 8. Final Response Template
+## 4. Workflow Pattern
 
-Unless the user specifies otherwise, final messages should include:
-1. **Outcome summary** – what was changed, fixed, or investigated.
-2. **Validation** – list commands/tests run, including failures or skipped checks with reasons.
-3. **Follow-ups/Risks** – mention remaining issues, suggested next steps, or verification the user should perform.
+Follow **Explore → Plan → Code → Commit**:
+1. Read relevant files first — never propose changes to unread code
+2. Use extended thinking for complex decisions ("think hard", "ultrathink")
+3. Plan before implementing (use `EnterPlanMode` for non-trivial work)
+4. Implement incrementally, validate, then commit
 
 ---
 
-Keep both `AGENTS.md` and this guide open during sessions. If new conventions emerge (e.g., tool upgrades, testing matrix changes), update both documents in a coordinated PR. Happy collaborating, Claude!
+## 5. Conservative Approach
+
+1. **Minimal changes** — only modify what's necessary for the request
+2. **Ask when uncertain** — use `AskUserQuestion` rather than guessing
+3. **No speculative additions** — avoid adding features, refactors, or "improvements" beyond scope
+4. **Use `/clear`** — between unrelated tasks to manage context
+
+---
+
+## 6. Task Tracking
+
+Use `TodoWrite` for any multi-step task:
+- Create todos at the start of non-trivial work
+- Mark each todo `in_progress` before starting (one at a time)
+- Mark `completed` immediately after finishing
+- Use checklists for migrations or repetitive fixes
+
+---
+
+## 7. Response Format
+
+Final responses should include:
+1. **Outcome** — what was changed/fixed/investigated
+2. **Validation** — commands run, results, skipped checks with reasons
+3. **Follow-ups** — remaining issues, risks, or next steps
+
+Reference files with paths and line numbers: `debugoverlay-core/src/.../File.kt:42`

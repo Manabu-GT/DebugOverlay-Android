@@ -25,6 +25,16 @@ Welcome! This guide defines how automation and human agents should collaborate i
   - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
   - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
 
+- **Java Toolchain**
+  - All modules target Java 17. Build scripts should include:
+    ```kotlin
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+    ```
+
 - **Project Modules**
   - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
   - `debugoverlay` - Primary public API artifact that most apps depend on
