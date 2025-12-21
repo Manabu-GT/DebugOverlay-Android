@@ -60,8 +60,8 @@ internal class BugReportGenerator(
           BugReportSnapshot(
             timestampMs = timestampMs,
             screenshot = runCatchingNonCancellation { screenshotDeferred.await() }.getOrNull(),
-            logs = runCatchingNonCancellation { logsDeferred.await() }.getOrElse { emptyList() },
-            networkRequests = runCatchingNonCancellation { networkRequestsDeferred.await() }.getOrElse { emptyList() },
+            logs = runCatchingNonCancellation { logsDeferred.await() }.getOrDefault(emptyList()),
+            networkRequests = runCatchingNonCancellation { networkRequestsDeferred.await() }.getOrDefault(emptyList()),
             deviceInfo = runCatchingNonCancellation { deviceInfoDeferred.await() }.getOrNull(),
             jankStats = runCatchingNonCancellation { jankStatsDeferred.await() }.getOrNull(),
             appExitInfos = runCatchingNonCancellation { appExitInfosDeferred.await() }.getOrDefault(emptyList()),

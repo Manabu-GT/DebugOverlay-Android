@@ -49,7 +49,10 @@ internal class BugReportZipWriter(context: Context) {
     ZipOutputStream(FileOutputStream(zipFile).buffered()).use { zip ->
       // Copy all files from capture folder, injecting metadata into HTML
       val files = folder.listFiles()
-        ?: throw IOException("Cannot list files in folder: ${folder.absolutePath} (may not exist or lack permissions)")
+        ?: throw IOException(
+          "Failed to list capture folder contents at ${folder.absolutePath}. " +
+            "Folder may not exist or be inaccessible. This indicates a bug in capture flow."
+        )
 
       files.filter { it.isFile }
         .forEach { file -> copyOrTransformFile(zip, file, metadata) }

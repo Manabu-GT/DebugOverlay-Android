@@ -170,7 +170,8 @@
   <string name="debugoverlay_bug_report_description_label">Description (optional)</string>
   <string name="debugoverlay_bug_report_description_hint">Steps to reproduce, expected behavior, etc.</string>
   <string name="debugoverlay_bug_report_default_title">Bug Report</string>
-  <string name="debugoverlay_bug_report_submit">Generate</string>
+  <string name="debugoverlay_bug_report_submit">Submit</string>
+  <string name="debugoverlay_bug_report_submitting">Submitting…</string>
   <string name="debugoverlay_bug_report_screenshot_description">Screenshot captured for bug report</string>
   <string name="debugoverlay_bug_report_screenshot_failed">Screenshot capture failed</string>
   <string name="debugoverlay_bug_report_view_full_screenshot">View full screenshot</string>

@@ -15,6 +15,8 @@ import com.ms.square.debugoverlay.internal.bugreport.FileNames.UI_HIERARCHY
 import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -36,6 +38,8 @@ private const val CACHE_SUBDIR = "debugoverlay_bugreport_drafts"
  *  - Add cleanupOldDrafts(maxDrafts: Int) for draft eviction - should be 10 to start with.
  */
 internal class BugReportTempStorage(context: Context) {
+
+  private val folderMutex = Mutex()
 
   private val cacheDir by lazy {
     File(context.cacheDir, CACHE_SUBDIR).apply { mkdirs() }
@@ -97,6 +101,8 @@ internal class BugReportTempStorage(context: Context) {
         }
       } finally {
         // Recycle bitmap after all saves complete—Activity will reload from disk
+        // NOTE: Since the normal GC process will free up this memory when there are
+        // no more references to this bitmap, this isn't strictly necessary.
         snapshot.screenshot?.recycle()
       }
 
@@ -113,18 +119,20 @@ internal class BugReportTempStorage(context: Context) {
    */
   @Suppress("TooGenericExceptionCaught")
   suspend fun loadScreenshot(folder: File): Bitmap? = withContext(Dispatchers.IO) {
-    val screenshotFile = File(folder, SCREENSHOT)
-    if (!screenshotFile.exists()) return@withContext null
+    folderMutex.withLock {
+      val screenshotFile = File(folder, SCREENSHOT)
+      if (!screenshotFile.exists()) return@withContext null
 
-    try {
-      // TODO: Add maxDimension parameter with BitmapFactory.Options for memory-efficient thumbnails
-      BitmapFactory.decodeFile(screenshotFile.absolutePath)
-    } catch (e: OutOfMemoryError) {
-      Logger.e("OOM while loading screenshot", e)
-      null
-    } catch (e: Exception) {
-      Logger.e("Failed to load screenshot", e)
-      null
+      try {
+        // TODO: Add maxDimension parameter with BitmapFactory.Options for memory-efficient thumbnails
+        BitmapFactory.decodeFile(screenshotFile.absolutePath)
+      } catch (e: OutOfMemoryError) {
+        Logger.e("OOM while loading screenshot", e)
+        null
+      } catch (e: Exception) {
+        Logger.e("Failed to load screenshot", e)
+        null
+      }
     }
   }
 
@@ -133,14 +141,15 @@ internal class BugReportTempStorage(context: Context) {
    *
    * @param folder The capture folder to delete
    */
-  // TODO: Add Mutex to prevent race conditions when multiple deletions happen concurrently
   suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
-    if (folder.exists() && folder.name.startsWith(TEMP_FOLDER_PREFIX)) {
-      val deleted = folder.deleteRecursively()
-      if (deleted) {
-        Logger.d("Deleted capture folder: ${folder.absolutePath}")
-      } else {
-        Logger.w("Failed to delete capture folder: ${folder.absolutePath}")
+    folderMutex.withLock {
+      if (folder.exists() && folder.name.startsWith(TEMP_FOLDER_PREFIX)) {
+        val deleted = folder.deleteRecursively()
+        if (deleted) {
+          Logger.d("Deleted capture folder: ${folder.absolutePath}")
+        } else {
+          Logger.w("Failed to delete capture folder: ${folder.absolutePath}")
+        }
       }
     }
   }

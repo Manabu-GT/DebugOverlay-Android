@@ -33,7 +33,8 @@ public object DebugOverlay {
           setNetworkTracker(newConfig.networkRequestTracker)
           setLogTracker(newConfig.logTracker)
         } ?: Logger.d("Config updated before install, will apply during install")
-        overlayViewManager?.overlayMode = newConfig.overlayMode
+        overlayViewManager?.let { it.overlayMode = newConfig.overlayMode }
+          ?: Logger.d("Config updated before install, will apply during install")
       }
     }
 

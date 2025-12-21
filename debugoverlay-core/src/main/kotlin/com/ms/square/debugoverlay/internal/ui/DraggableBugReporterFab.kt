@@ -88,6 +88,10 @@ internal fun DraggableBugReporterFab(
     // Inner Box with padding to prevent clipping during drag scale (1.1x).
     // This padding MUST be inside the outer Box so onSizeChanged() captures
     // the total size including padding, reserving layout space for the scaled FAB.
+    // Layout structure:
+    // Outer Box [onSizeChanged captures total size including padding]
+    //   └─ Inner Box [padding reserves space for 1.1x scale]
+    //        └─ BugReporterFab [56dp, scales to ~62dp during drag]
     Box(modifier = Modifier.padding(FAB_DRAG_PADDING)) {
       BugReporterFab(onError = onError)
     }
