@@ -1,6 +1,6 @@
 DebugOverlay-Android
 ====================
-[![Maven Central](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
+[![Maven Central (Snapshots)](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
 [![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -72,7 +72,7 @@ dependencyResolutionManagement {
 }
 ```
 
-> Stable release planned mid January 2026. Remove this repository once 2.0.0 is released on Maven Central.
+> Stable release planned. Remove this repository once 2.0.0 is released on Maven Central.
 
 ### 2. Add dependency
 
@@ -107,6 +107,24 @@ To disable auto-install (e.g., for specific build flavors), add this to your `An
 
 > **Note:** Manual lifecycle control is not supported in v2.0.0 at the moment. Disabling auto-install means the overlay won't appear.
 
+### Overlay modes
+
+By default DebugOverlay shows the real-time metrics overlay (`OverlayMode.FullMetrics`). For QA/internal builds, you can show only the Bug Reporter FAB:
+
+```kotlin
+class MyApp : Application() {
+  override fun onCreate() {
+    super.onCreate()
+
+    DebugOverlay.configure {
+      copy(overlayMode = OverlayMode.BugReporterOnly)
+    }
+  }
+}
+```
+
+<img src="art/readme_bug_reporter_only.gif" alt="Bug Reporter Only Mode">
+
 ### Network request tracking
 
 ```kotlin
@@ -122,6 +140,20 @@ val client = OkHttpClient.Builder()
   .build()
 ```
 
+By default it redacts common auth headers and query params. To customize redaction and body size limits:
+
+```kotlin
+val client = OkHttpClient.Builder()
+  .addNetworkInterceptor(
+    DebugOverlayNetworkInterceptor(
+      headersNameToRedact = DEFAULT_HEADERS_REDACT + setOf("x-my-custom-token"),
+      queryParamsNameToRedact = DEFAULT_QUERY_PARAMS_REDACT + setOf("sessionId"),
+      maxBodySize = 128 * 1024L, // 128KB (use 0L to omit all bodies)
+    )
+  )
+  .build()
+```
+
 ### Timber log capture
 
 ```kotlin
@@ -133,14 +165,37 @@ dependencies {
 
 Auto-plants via AndroidX Startup. The Log tab shows "Timber" as the source with full stack traces.
 
-To disable auto-plant, remove `TimberTreeStartupInitializer` via manifest merger and call `Timber.plant(DebugOverlayTimberTree())` manually.
+To disable auto-plant, remove `TimberTreeStartupInitializer` via manifest merger:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+  <application>
+    <provider
+      android:name="androidx.startup.InitializationProvider"
+      android:authorities="${applicationId}.androidx-startup"
+      tools:node="merge">
+      <meta-data
+        android:name="com.ms.square.debugoverlay.extension.timber.TimberTreeStartupInitializer"
+        tools:node="remove" />
+    </provider>
+  </application>
+</manifest>
+```
+
+Then call `Timber.plant(DebugOverlayTimberTree())` manually.
 
 ### Bug Reporting
 
-Tap the bug icon in the debug panel toolbar. Generates a ZIP with:
+In `OverlayMode.FullMetrics`, tap the bug icon in the debug panel toolbar. In `OverlayMode.BugReporterOnly`, tap the bug reporter FAB. Generates a ZIP with:
 - Interactive HTML dashboard
 - Embedded screenshot
-- Device info, logs, network history, UI hierarchy
+- Logs (Logcat/Timber)
+- Network history (requires OkHttp extension)
+- JankStats
+- App exit history (Android 11+)
+- UI hierarchy
+- Device info
 
 > **Privacy:** Reports contain raw logs and network data. Review before sharing externally. The OkHttp extension supports header redaction and body size limits to minimize sensitive data capture.
 
