@@ -143,6 +143,9 @@ val client = OkHttpClient.Builder()
 By default it redacts common auth headers and query params. To customize redaction and body size limits:
 
 ```kotlin
+import com.ms.square.debugoverlay.extension.okhttp.DEFAULT_HEADERS_REDACT
+import com.ms.square.debugoverlay.extension.okhttp.DEFAULT_QUERY_PARAMS_REDACT
+
 val client = OkHttpClient.Builder()
   .addNetworkInterceptor(
     DebugOverlayNetworkInterceptor(
