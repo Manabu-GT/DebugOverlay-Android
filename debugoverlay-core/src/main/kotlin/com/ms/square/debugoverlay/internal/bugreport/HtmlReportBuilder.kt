@@ -3,12 +3,14 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.graphics.Bitmap
 import android.util.Base64
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
+import com.ms.square.debugoverlay.internal.data.model.AppExitReason
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
 import com.ms.square.debugoverlay.internal.util.HTTP_SUCCESS_END
 import com.ms.square.debugoverlay.internal.util.HTTP_SUCCESS_START
 import com.ms.square.debugoverlay.internal.util.escapeHtml
 import com.ms.square.debugoverlay.internal.util.formatBytes
+import com.ms.square.debugoverlay.internal.util.formatBytesFromKb
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
 import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.model.LogEntry
@@ -389,9 +391,32 @@ internal object HtmlReportBuilder {
 
     if (deviceInfo != null) {
       append("        <div class=\"info-grid\">\n")
+      // Device basics
       appendInfoItem("Device", "${deviceInfo.hardware.manufacturer} ${deviceInfo.hardware.model}")
+      appendInfoItem("Brand", deviceInfo.hardware.brand)
+
+      // Android & Build
       appendInfoItem("Android", "${deviceInfo.system.androidVersion} (API ${deviceInfo.system.apiLevel})")
+      appendInfoItem("Security Patch", deviceInfo.system.securityPatch)
+      appendInfoItem("Build", "${deviceInfo.system.buildType} / ${deviceInfo.system.buildId}")
+      appendInfoItem("Kernel", deviceInfo.system.kernelVersion)
+
+      // Display
       appendInfoItem("Screen", "${deviceInfo.hardware.screenResolution} @ ${deviceInfo.hardware.screenDensity}")
+      appendInfoItem(
+        "Refresh Rate",
+        "${deviceInfo.hardware.currentRefreshRate.toInt()}Hz (max ${deviceInfo.hardware.maxRefreshRate.toInt()}Hz)"
+      )
+      appendInfoItem("OpenGL", deviceInfo.hardware.openGlVersion)
+
+      // CPU
+      appendInfoItem(
+        "CPU",
+        "${deviceInfo.hardware.cpuArchitecture} (${deviceInfo.hardware.cpuCores} cores)"
+      )
+      appendInfoItem("ABIs", deviceInfo.hardware.supportedAbis.joinToString(", "))
+
+      // Memory & Storage
       appendInfoItem(
         "RAM",
         "${formatBytes(deviceInfo.hardware.availableRam)} / ${formatBytes(deviceInfo.hardware.totalRam)}"
@@ -400,12 +425,41 @@ internal object HtmlReportBuilder {
         "Storage",
         "${formatBytes(deviceInfo.hardware.availableStorage)} / ${formatBytes(deviceInfo.hardware.totalStorage)}"
       )
+
+      // Battery & Network
       appendInfoItem("Battery", "${deviceInfo.battery.level}% (${deviceInfo.battery.status})")
       appendInfoItem(
         "Network",
         "${deviceInfo.network.type}${if (deviceInfo.network.isConnected) " - Connected" else ""}"
       )
-      appendInfoItem("Locale", deviceInfo.system.locale)
+
+      // Localization
+      appendInfoItem("Locale", "${deviceInfo.system.locale} (${deviceInfo.system.language})")
+      appendInfoItem("Time Zone", deviceInfo.system.timeZone)
+
+      // System status
+      appendInfoItem(
+        "Environment",
+        buildList {
+          if (deviceInfo.system.isEmulator) add("Emulator")
+          if (deviceInfo.system.isRooted) add("Rooted")
+          if (isEmpty()) add("Normal")
+        }.joinToString(", ")
+      )
+      deviceInfo.system.installerPackage?.let { appendInfoItem("Installer", it) }
+      deviceInfo.system.playServicesVersion?.let { appendInfoItem("Play Services", it) }
+
+      // Hardware features
+      appendInfoItem(
+        "Features",
+        buildList {
+          if (deviceInfo.hardware.hardwareFeature.hasNfc) add("NFC")
+          if (deviceInfo.hardware.hardwareFeature.hasBluetooth) add("Bluetooth")
+          if (deviceInfo.hardware.hardwareFeature.hasCamera) add("Camera")
+          if (deviceInfo.hardware.hardwareFeature.hasFingerprint) add("Fingerprint")
+        }.joinToString(", ").ifEmpty { "None" }
+      )
+
       append("        </div>\n")
     } else {
       append("        <div class=\"empty-state\">Device information not available</div>\n")
@@ -604,31 +658,59 @@ internal object HtmlReportBuilder {
     if (exits.isEmpty()) {
       append("        <div class=\"empty-state\">No app exit events recorded</div>\n")
     } else {
-      exits.forEach { exit ->
-        val time = formatFullTimestamp(exit.timestampMs)
-        append("        <div class=\"exit-entry\">\n")
-        append("          <div class=\"exit-reason\">${exit.reason.label.escapeHtml()}</div>\n")
-        append("          <div style=\"color: var(--text-secondary); font-size: 0.85rem;\">")
-        append("$time &bull; ${exit.processName.escapeHtml()}")
-        append("</div>\n")
-        exit.description?.let { desc ->
-          append("          <div style=\"color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;\">")
-          append(desc.escapeHtml())
-          append("</div>\n")
-        }
-        exit.trace?.let { trace ->
-          append("          <div class=\"details-toggle\" onclick=\"toggleExitTrace(this)\">")
-          append("<span class=\"arrow\">&#9654;</span> Stack Trace</div>\n")
-          append("          <div class=\"exit-trace\" style=\"display: none; margin-top: 8px;\">\n")
-          append("            <pre class=\"pre-content\">${trace.truncateBody(MAX_TRACE_LENGTH).escapeHtml()}</pre>\n")
-          append("          </div>\n")
-        }
-        append("        </div>\n")
-      }
+      exits.forEach { exit -> appendAppExitEntry(exit) }
     }
 
     append("      </div>\n")
     append("    </div>\n")
+  }
+
+  private fun StringBuilder.appendAppExitEntry(exit: AppExitInfo) {
+    val time = formatFullTimestamp(exit.timestampMs)
+    val severityColor = when (exit.reason.severity) {
+      AppExitReason.Severity.CRITICAL -> "var(--error)"
+      AppExitReason.Severity.WARNING -> "var(--warning)"
+      AppExitReason.Severity.INFO -> "var(--text-secondary)"
+    }
+
+    append("        <div class=\"exit-entry\">\n")
+    append("          <div class=\"exit-reason\" style=\"color: $severityColor;\">")
+    append("${exit.reason.label.escapeHtml()}</div>\n")
+
+    // Time, process, importance
+    append("          <div style=\"color: var(--text-secondary); font-size: 0.85rem;\">")
+    append("$time &bull; ${exit.processName.escapeHtml()} &bull; ${exit.importance.label}")
+    append("</div>\n")
+
+    // Memory usage (PSS/RSS)
+    if (exit.pssKb > 0 || exit.rssKb > 0) {
+      append("          <div style=\"color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;\">")
+      append("Memory: PSS ${formatBytesFromKb(exit.pssKb)} / RSS ${formatBytesFromKb(exit.rssKb)}")
+      append("</div>\n")
+    }
+
+    // Description from system
+    exit.description?.let { desc ->
+      append("          <div style=\"color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;\">")
+      append(desc.escapeHtml())
+      append("</div>\n")
+    }
+
+    // Explanation (helpful context for the exit reason)
+    append("          <div style=\"color: var(--accent-light); font-size: 0.8rem; margin-top: 6px; font-style: italic;\">")
+    append(exit.reason.explanation.escapeHtml())
+    append("</div>\n")
+
+    // Stack trace (expandable)
+    exit.trace?.let { trace ->
+      append("          <div class=\"details-toggle\" onclick=\"toggleExitTrace(this)\">")
+      append("<span class=\"arrow\">&#9654;</span> Stack Trace</div>\n")
+      append("          <div class=\"exit-trace\" style=\"display: none; margin-top: 8px;\">\n")
+      append("            <pre class=\"pre-content\">${trace.truncateBody(MAX_TRACE_LENGTH).escapeHtml()}</pre>\n")
+      append("          </div>\n")
+    }
+
+    append("        </div>\n")
   }
 
   private fun StringBuilder.appendUiHierarchySection(uiHierarchy: String?) {

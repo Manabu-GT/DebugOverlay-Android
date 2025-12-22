@@ -48,8 +48,9 @@ internal class DraggableOverlayState(initialOffsetX: Float, initialOffsetY: Floa
    * Uses gravity END/TOP coordinate system (x=0 is right edge, y=0 is top).
    */
   internal suspend fun updateOffset(dragDeltaX: Float, dragDeltaY: Float, contentSize: IntSize, screenSize: IntSize) {
-    // LEFT drag is negative delta, but END gravity means moving left increases x
-    // So we negate: moving left (positive dragDeltaX) should increase offsetX
+    // In screen coords: LEFT drag is negative dragDeltaX, RIGHT drag is positive
+    // END gravity: x=0 is right edge, so LEFT (negative delta) should increase offsetX
+    // Formula: offsetX - dragDeltaX converts negative delta to positive offset increase
     offsetX.snapTo((offsetX.value - dragDeltaX).coerceIn(0f, maxX(contentSize, screenSize)))
     // DOWN is positive (gravity is TOP)
     offsetY.snapTo((offsetY.value + dragDeltaY).coerceIn(0f, maxY(contentSize, screenSize)))
