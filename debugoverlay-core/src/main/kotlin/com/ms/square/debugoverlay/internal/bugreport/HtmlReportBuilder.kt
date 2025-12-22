@@ -17,6 +17,7 @@ import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
 import java.io.ByteArrayOutputStream
 import java.io.File
+import kotlin.math.roundToInt
 
 /**
  * Builds an HTML bug report with embedded screenshot and diagnostic data.
@@ -33,7 +34,7 @@ import java.io.File
  * "screenshot.png" cannot be resolved since the viewer has no permission to access sibling
  * files in the ZIP.
  */
-@Suppress("TooManyFunctions", "LongMethod")
+@Suppress("TooManyFunctions", "LongMethod", "LargeClass")
 internal object HtmlReportBuilder {
 
   /**
@@ -403,10 +404,9 @@ internal object HtmlReportBuilder {
 
       // Display
       appendInfoItem("Screen", "${deviceInfo.hardware.screenResolution} @ ${deviceInfo.hardware.screenDensity}")
-      appendInfoItem(
-        "Refresh Rate",
-        "${deviceInfo.hardware.currentRefreshRate.toInt()}Hz (max ${deviceInfo.hardware.maxRefreshRate.toInt()}Hz)"
-      )
+      val currentHz = deviceInfo.hardware.currentRefreshRate.roundToInt()
+      val maxHz = deviceInfo.hardware.maxRefreshRate.roundToInt()
+      appendInfoItem("Refresh Rate", "${currentHz}Hz (max ${maxHz}Hz)")
       appendInfoItem("OpenGL", deviceInfo.hardware.openGlVersion)
 
       // CPU
@@ -682,10 +682,14 @@ internal object HtmlReportBuilder {
     append("$time &bull; ${exit.processName.escapeHtml()} &bull; ${exit.importance.label}")
     append("</div>\n")
 
-    // Memory usage (PSS/RSS)
+    // Memory usage (PSS/RSS) - show only available values
     if (exit.pssKb > 0 || exit.rssKb > 0) {
+      val memoryParts = buildList {
+        if (exit.pssKb > 0) add("PSS ${formatBytesFromKb(exit.pssKb)}")
+        if (exit.rssKb > 0) add("RSS ${formatBytesFromKb(exit.rssKb)}")
+      }
       append("          <div style=\"color: var(--text-secondary); font-size: 0.85rem; margin-top: 2px;\">")
-      append("Memory: PSS ${formatBytesFromKb(exit.pssKb)} / RSS ${formatBytesFromKb(exit.rssKb)}")
+      append("Memory: ${memoryParts.joinToString(" / ")}")
       append("</div>\n")
     }
 
@@ -697,7 +701,9 @@ internal object HtmlReportBuilder {
     }
 
     // Explanation (helpful context for the exit reason)
-    append("          <div style=\"color: var(--accent-light); font-size: 0.8rem; margin-top: 6px; font-style: italic;\">")
+    append(
+      "          <div style=\"color: var(--accent-light); font-size: 0.8rem; margin-top: 6px; font-style: italic;\">"
+    )
     append(exit.reason.explanation.escapeHtml())
     append("</div>\n")
 
