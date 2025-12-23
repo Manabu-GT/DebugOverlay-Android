@@ -36,7 +36,7 @@ internal class BugReportGenerator(
   /**
    * Captures all diagnostic data and saves to a temp folder.
    *
-   * The folder path can be passed to [BugReportActivity] via Intent extra.
+   * The folder path can be passed to [com.ms.square.debugoverlay.internal.ui.BugReportActivity] via Intent extra.
    * Screenshot bitmap is recycled after saving to disk.
    *
    * @return [Result.success] with the folder path, or [Result.failure] on error
@@ -103,6 +103,18 @@ internal class BugReportGenerator(
     Logger.e("Bug report write failed", e)
     BugReportResult.Error.IoError(e)
   }
+
+  /**
+   * Saves user metadata to a capture folder, marking it as a draft.
+   *
+   * Called when user dismisses the metadata dialog without submitting.
+   * After saving, evicts old drafts if over limit.
+   *
+   * @param captureFolder Folder returned from [captureToFolder]
+   * @param metadata User-provided title and description
+   */
+  suspend fun saveUserInputToDraft(captureFolder: File, metadata: BugReportMetadata) =
+    tempStorage.saveUserInput(captureFolder, metadata)
 
   /**
    * Deletes a capture folder and all its contents.

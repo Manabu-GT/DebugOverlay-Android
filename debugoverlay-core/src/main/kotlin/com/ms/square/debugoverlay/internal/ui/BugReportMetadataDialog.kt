@@ -53,24 +53,31 @@ import com.ms.square.debugoverlay.internal.bugreport.BugReportMetadata
  * followed by optional title and description fields.
  * Users can leave fields empty to generate a report without metadata.
  *
+ * State is hoisted to the caller to enable auto-save on dismiss.
+ *
  * @param screenshot The captured screenshot to display as preview (null if capture failed)
+ * @param title Current title value (hoisted state)
+ * @param onTitleChange Called when title changes
+ * @param description Current description value (hoisted state)
+ * @param onDescriptionChange Called when description changes
  * @param isSubmitting When true, buttons are disabled to prevent double-tap
- * @param onConfirm Called with the metadata when user confirms (null if both fields empty)
- * @param onDismiss Called when dialog is cancelled
+ * @param onConfirm Called with the metadata when user confirms
+ * @param onDismiss Called when dialog is cancelled (caller should save current values)
  */
-@Suppress("LongMethod")
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 internal fun BugReportMetadataDialog(
   screenshot: Bitmap?,
+  title: String,
+  onTitleChange: (String) -> Unit,
+  description: String,
+  onDescriptionChange: (String) -> Unit,
   isSubmitting: Boolean = false,
-  onConfirm: (BugReportMetadata?) -> Unit,
+  onConfirm: (BugReportMetadata) -> Unit,
   onDismiss: () -> Unit,
 ) {
   val imageBitmap = remember(screenshot) { screenshot?.asImageBitmap() }
-  var title by remember { mutableStateOf("") }
-  var description by remember { mutableStateOf("") }
   var showFullScreenPreview by remember { mutableStateOf(false) }
-  val defaultTitle = stringResource(R.string.debugoverlay_bug_report_default_title)
 
   AlertDialog(
     onDismissRequest = { if (!isSubmitting) onDismiss() },
@@ -96,17 +103,14 @@ internal fun BugReportMetadataDialog(
         }
         Spacer(modifier = Modifier.height(16.dp))
         // Form fields
-        MetadataFormContent(title, { title = it }, description, { description = it })
+        MetadataFormContent(title, onTitleChange, description, onDescriptionChange)
       }
     },
     confirmButton = {
       Button(
         onClick = {
-          val metadata = if (title.isBlank() && description.isBlank()) {
-            null
-          } else {
-            BugReportMetadata(title = title.trim().ifBlank { defaultTitle }, description = description.trim())
-          }
+          // Always create metadata with current values (title can be blank, validatedTitle handles default)
+          val metadata = BugReportMetadata(title = title.trim(), description = description.trim())
           onConfirm(metadata)
         },
         enabled = !isSubmitting

@@ -12,37 +12,95 @@ import com.ms.square.debugoverlay.internal.bugreport.FileNames.LOGS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.NETWORK_REQUESTS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.SCREENSHOT
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.UI_HIERARCHY
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.USER_INPUT
 import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 
 internal const val TEMP_FOLDER_PREFIX = "debugoverlay_capture_"
 private const val CACHE_SUBDIR = "debugoverlay_bugreport_drafts"
+private const val DEFAULT_MAX_DRAFTS = 10
 
 /**
- * Handles temporary storage of bug report capture data.
+ * Represents a saved bug report draft.
+ *
+ * A folder is considered a draft when it contains a [FileNames.USER_INPUT] file,
+ * which is saved when the user dismisses the metadata dialog.
+ *
+ * @param folderPath Absolute path to the draft folder (String for immutability)
+ * @param lastModifiedMs Folder last modified timestamp, captured at construction
+ * @param metadata User-provided title and description, null if parse failed or file missing
+ * @param hasScreenshot Whether the draft has a screenshot file
+ */
+internal data class DraftInfo(
+  val folderPath: String,
+  val lastModifiedMs: Long,
+  val metadata: BugReportMetadata?,
+  val hasScreenshot: Boolean,
+) {
+  /** Convenience property to get the folder as a File. */
+  val folder: File get() = File(folderPath)
+}
+
+/**
+ * Handles temporary storage of bug report capture data and draft management.
  *
  * Saves captured diagnostic data to a temp folder, allowing it to be passed
  * between the DebugPanel/FAB and BugReportActivity via folder path.
  *
- * TODO: Future draft management improvements:
- *  - Store timestamp data and list of bug report files in metadata.json (more robust)
- *  - Use UUID for folder names?
- *  - Add maxDimension parameter to loadScreenshot for memory-efficient thumbnails
- *  - Add Mutex around deleteFolder to prevent race conditions
- *  - Add cleanupOldDrafts(maxDrafts: Int) for draft eviction - should be 10 to start with.
+ * Draft management:
+ * - A folder is a "draft" when it has [FileNames.USER_INPUT] (saved on dialog dismiss)
+ * - Drafts are observable via [drafts] and [draftCount] StateFlows
+ * - Maximum [DEFAULT_MAX_DRAFTS] drafts retained; oldest evicted automatically
+ *
+ * @param context Application context for cache directory access
+ * @param scope Coroutine scope for background operations. Default lives for app lifetime.
  */
-internal class BugReportTempStorage(context: Context) {
+internal class BugReportTempStorage(
+  context: Context,
+  private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+) {
 
   private val folderMutex = Mutex()
+  private val json = Json { ignoreUnknownKeys = true }
 
   private val cacheDir by lazy {
     File(context.cacheDir, CACHE_SUBDIR).apply { mkdirs() }
+  }
+
+  // Draft observability
+  private val _drafts = MutableStateFlow<List<DraftInfo>>(emptyList())
+
+  /** Observable list of saved drafts, sorted by most recent first. */
+  val drafts: Flow<List<DraftInfo>> = _drafts.asStateFlow()
+
+  /** Observable count of saved drafts. Emits only when count changes. */
+  val draftCount: Flow<Int> = _drafts
+    .map { it.size }
+    .distinctUntilChanged()
+    .stateIn(scope, SharingStarted.Lazily, 0)
+
+  init {
+    scope.launch {
+      runCatchingNonCancellation { refreshDrafts() }
+        .onFailure { Logger.e("Failed to refresh drafts on init", it) }
+    }
   }
 
   /**
@@ -119,20 +177,22 @@ internal class BugReportTempStorage(context: Context) {
    */
   @Suppress("TooGenericExceptionCaught")
   suspend fun loadScreenshot(folder: File): Bitmap? = withContext(Dispatchers.IO) {
-    folderMutex.withLock {
-      val screenshotFile = File(folder, SCREENSHOT)
-      if (!screenshotFile.exists()) return@withContext null
+    val screenshotFile = File(folder, SCREENSHOT)
 
-      try {
-        // TODO: Add maxDimension parameter with BitmapFactory.Options for memory-efficient thumbnails
-        BitmapFactory.decodeFile(screenshotFile.absolutePath)
-      } catch (e: OutOfMemoryError) {
-        Logger.e("OOM while loading screenshot", e)
-        null
-      } catch (e: Exception) {
-        Logger.e("Failed to load screenshot", e)
-        null
-      }
+    // Quick existence check with mutex (prevents reading during folder deletion)
+    val exists = folderMutex.withLock { screenshotFile.exists() }
+    if (!exists) return@withContext null
+
+    // Slow bitmap decode outside mutex to avoid blocking other operations
+    try {
+      // TODO: Add maxDimension parameter with BitmapFactory.Options for memory-efficient thumbnails
+      BitmapFactory.decodeFile(screenshotFile.absolutePath)
+    } catch (e: OutOfMemoryError) {
+      Logger.e("OOM while loading screenshot", e)
+      null
+    } catch (e: Exception) {
+      Logger.e("Failed to load screenshot", e)
+      null
     }
   }
 
@@ -152,6 +212,121 @@ internal class BugReportTempStorage(context: Context) {
         }
       }
     }
+  }
+
+  // ========== Draft Management ==========
+
+  /**
+   * Refreshes the draft list from disk.
+   *
+   * Scans the cache directory for folders with [FileNames.USER_INPUT] files,
+   * which indicates a saved draft. Updates [drafts] StateFlow atomically.
+   *
+   * I/O-heavy operations (file existence checks, JSON parsing) are performed
+   * outside the mutex to avoid blocking other operations.
+   */
+  suspend fun refreshDrafts(): Unit = withContext(Dispatchers.IO) {
+    // Step 1: List folder names only (fast, mutex protects concurrent folder creation/deletion)
+    val candidates = folderMutex.withLock {
+      cacheDir.listFiles()
+        ?.filter { it.isDirectory && it.name.startsWith(TEMP_FOLDER_PREFIX) }
+        ?.toList() ?: emptyList()
+    }
+
+    // Step 2: Filter + load metadata (slow I/O, outside mutex)
+    val draftList = candidates
+      .filter { File(it, USER_INPUT).exists() } // Only folders with user_input.json are drafts
+      .mapNotNull { folder ->
+        runCatchingNonCancellation {
+          DraftInfo(
+            folderPath = folder.absolutePath,
+            lastModifiedMs = folder.lastModified(),
+            metadata = loadUserInputSync(folder),
+            hasScreenshot = File(folder, SCREENSHOT).exists()
+          )
+        }.getOrNull() // Handles folder deleted mid-flight
+      }
+      .sortedByDescending { it.lastModifiedMs }
+
+    // Step 3: Atomic update
+    _drafts.value = draftList
+    Logger.d("Refreshed drafts: ${draftList.size} found")
+  }
+
+  /**
+   * Saves user metadata to a capture folder, marking it as a draft.
+   *
+   * After saving, evicts old drafts if over limit and refreshes the draft list.
+   *
+   * @param folder The capture folder
+   * @param metadata The user-provided title and description
+   */
+  suspend fun saveUserInput(folder: File, metadata: BugReportMetadata): Unit = withContext(Dispatchers.IO) {
+    val file = File(folder, USER_INPUT)
+    runCatchingNonCancellation {
+      file.writeText(json.encodeToString(metadata))
+      Logger.d("Saved user input to: ${file.absolutePath}")
+    }.onFailure {
+      Logger.e("Failed to save user input", it)
+      return@withContext // Don't evict/refresh if save failed
+    }
+
+    // Now that we've created a new draft, evict old ones and refresh list
+    evictOldDrafts()
+  }
+
+  /**
+   * Loads user metadata from a capture folder.
+   *
+   * @param folder The capture folder
+   * @return The metadata, or null if file doesn't exist or parse fails
+   */
+  suspend fun loadUserInput(folder: File): BugReportMetadata? = withContext(Dispatchers.IO) {
+    loadUserInputSync(folder)
+  }
+
+  /**
+   * Evicts oldest drafts when count exceeds [maxDrafts].
+   *
+   * Only counts/deletes folders that have [FileNames.USER_INPUT] (actual drafts),
+   * not in-progress captures. This is safe to call after saveSnapshot.
+   *
+   * @param maxDrafts Maximum number of drafts to retain (default: [DEFAULT_MAX_DRAFTS])
+   */
+  suspend fun evictOldDrafts(maxDrafts: Int = DEFAULT_MAX_DRAFTS): Unit = withContext(Dispatchers.IO) {
+    // Hold mutex for entire operation to prevent race conditions
+    folderMutex.withLock {
+      val currentDrafts = cacheDir.listFiles()
+        ?.filter { it.isDirectory && it.name.startsWith(TEMP_FOLDER_PREFIX) }
+        ?.filter { File(it, USER_INPUT).exists() } // Only drafts, not in-progress
+        ?.sortedByDescending { it.lastModified() }
+        ?: emptyList()
+
+      if (currentDrafts.size <= maxDrafts) return@withLock
+
+      // Delete oldest drafts beyond the limit
+      val toEvict = currentDrafts.drop(maxDrafts)
+      toEvict.forEach { folder ->
+        if (folder.exists()) {
+          folder.deleteRecursively()
+          Logger.d("Evicted old draft: ${folder.name}")
+        }
+      }
+    }
+
+    // Refresh outside mutex
+    refreshDrafts()
+  }
+
+  /**
+   * Synchronous helper to load user input JSON. Called from Dispatchers.IO.
+   */
+  private fun loadUserInputSync(folder: File): BugReportMetadata? {
+    val file = File(folder, USER_INPUT)
+    if (!file.exists()) return null
+    return runCatching {
+      json.decodeFromString(BugReportMetadata.serializer(), file.readText())
+    }.getOrNull()
   }
 
   private fun createTempFolder(timestampMs: Long): File {

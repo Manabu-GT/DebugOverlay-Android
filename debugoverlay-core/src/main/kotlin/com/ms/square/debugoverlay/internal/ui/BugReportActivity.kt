@@ -26,15 +26,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.BugReportMetadata
 import com.ms.square.debugoverlay.internal.bugreport.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
+import com.ms.square.debugoverlay.internal.bugreport.validatedTitle
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.launch
 import java.io.File
 
 internal const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
 private const val BUNDLE_KEY_CAPTURE_FOLDER = "capture_folder"
+private const val BUNDLE_KEY_TITLE = "title"
+private const val BUNDLE_KEY_DESCRIPTION = "description"
 
 /**
  * Activity for displaying the bug report metadata dialog.
@@ -46,15 +50,22 @@ private const val BUNDLE_KEY_CAPTURE_FOLDER = "capture_folder"
  * 1. FAB captures data to folder via [captureToFolder]
  * 2. FAB starts this activity with folder path
  * 3. This activity loads screenshot preview and shows the metadata dialog
- * 4. User submits → ZIP is created → shared via Intent
- * 5. Activity finishes and cleans up the capture folder (on success only)
+ * 4. User submits → ZIP is created → shared via Intent → folder deleted
+ * 5. User cancels → current input saved as draft → folder marked as draft
  *
- * TODO: Folder cleanup will be handled in draft management feature.
- *       For now, cancelled captures remain in cache until system clears it.
+ * Draft management:
+ * - On cancel: saves user_input.json to mark folder as a draft
+ * - On submit: deletes folder after successful ZIP creation
+ * - Eviction runs after save to prevent exceeding max drafts
  */
 internal class BugReportActivity : ComponentActivity() {
 
   private var captureFolder: File? = null
+  private var isSubmitted = false
+
+  // Hoisted state for title/description using mutableStateOf for Compose observability
+  private var currentTitle by mutableStateOf("")
+  private var currentDescription by mutableStateOf("")
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -70,6 +81,10 @@ internal class BugReportActivity : ComponentActivity() {
       return
     }
     captureFolder = File(folderPath)
+
+    // Restore title/description from savedInstanceState (process death)
+    currentTitle = savedInstanceState?.getString(BUNDLE_KEY_TITLE) ?: ""
+    currentDescription = savedInstanceState?.getString(BUNDLE_KEY_DESCRIPTION) ?: ""
 
     setContent { BugReportScreen(captureFolder = captureFolder) }
   }
@@ -94,6 +109,10 @@ internal class BugReportActivity : ComponentActivity() {
       Box(modifier = Modifier.fillMaxSize()) {
         BugReportMetadataDialog(
           screenshot = screenshot,
+          title = currentTitle,
+          onTitleChange = { currentTitle = it },
+          description = currentDescription,
+          onDescriptionChange = { currentDescription = it },
           isSubmitting = isSubmitting,
           onConfirm = { metadata ->
             handleConfirm(
@@ -103,10 +122,7 @@ internal class BugReportActivity : ComponentActivity() {
               onSubmitEnd = { isSubmitting = false }
             )
           },
-          onDismiss = {
-            // TODO: Folder cleanup on dismiss will be handled in draft management feature
-            finish()
-          }
+          onDismiss = { handleDismiss() }
         )
 
         // Snackbar host at bottom for error messages
@@ -126,8 +142,38 @@ internal class BugReportActivity : ComponentActivity() {
     }
   }
 
+  private fun handleDismiss() {
+    if (isSubmitted) {
+      // Already submitted successfully, just finish
+      finish()
+      return
+    }
+
+    // Save current input as draft before finishing
+    val folder = captureFolder
+    if (folder == null) {
+      finish()
+      return
+    }
+
+    lifecycleScope.launch {
+      runCatching {
+        val metadata = BugReportMetadata(
+          title = currentTitle.trim(),
+          description = currentDescription.trim()
+        )
+        DebugOverlay.bugReportGenerator.saveUserInputToDraft(folder, metadata)
+        Logger.d("Saved draft on dismiss: ${folder.name}")
+      }.onFailure {
+        Logger.e("Failed to save draft on dismiss", it)
+      }
+      // finish() must be called inside coroutine after save completes
+      finish()
+    }
+  }
+
   private fun handleConfirm(
-    metadata: BugReportMetadata?,
+    metadata: BugReportMetadata,
     snackbarHostState: SnackbarHostState,
     onSubmitStart: () -> Unit,
     onSubmitEnd: () -> Unit,
@@ -141,11 +187,21 @@ internal class BugReportActivity : ComponentActivity() {
         return@launch
       }
 
-      when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, metadata)) {
+      // Use validatedTitle to ensure non-blank title for final submission
+      val defaultTitle = getString(R.string.debugoverlay_bug_report_default_title)
+      val validatedMetadata = BugReportMetadata(
+        title = metadata.validatedTitle(defaultTitle),
+        description = metadata.description
+      )
+
+      when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, validatedMetadata)) {
         is BugReportResult.Success -> {
+          // Delete folder after successful ZIP creation (before share)
+          DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
+
           val exported = IntentShareExporter(this@BugReportActivity).export(result.zipFile)
           if (exported) {
-            DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
+            isSubmitted = true // Prevent draft save on finish
             finish()
           } else {
             snackbarHostState.showSnackbar(getString(R.string.debugoverlay_share_bug_report_error))
@@ -165,5 +221,7 @@ internal class BugReportActivity : ComponentActivity() {
     captureFolder?.absolutePath?.let {
       outState.putString(BUNDLE_KEY_CAPTURE_FOLDER, it)
     }
+    outState.putString(BUNDLE_KEY_TITLE, currentTitle)
+    outState.putString(BUNDLE_KEY_DESCRIPTION, currentDescription)
   }
 }
