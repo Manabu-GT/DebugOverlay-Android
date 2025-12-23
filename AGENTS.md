@@ -82,6 +82,25 @@ Welcome! This guide defines how automation and human agents should collaborate i
 | Sample app UX/UI         | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
 | Documentation only       | No build, but ensure links and code snippets compile conceptually |
 
+### Test Naming Convention
+
+**Unit tests** (`src/test`): Use Kotlin backticks with natural English sentences:
+```kotlin
+@Test fun `escapeHtml returns same instance when no special characters`()
+@Test fun `add returns null when queue is not at capacity`()
+```
+
+**Instrumented tests** (`src/androidTest`): Use underscore-separated camelCase (backticks have compatibility issues on API < 30):
+```kotlin
+@Test fun escapeHtml_returnsNull_whenInputIsEmpty()
+```
+
+Guidelines:
+- Start with the method/subject being tested
+- Describe the behavior, not the implementation
+- Include conditions when relevant ("when X", "with Y")
+- No delimiters (commas, colons) in backtick names
+
 Document all executed commands in the hand-off message. If a test is skipped, state why and note the risk. For script/config changes (Gradle `.kts`, `libs.versions.toml`, wrapper updates), run a lightweight task such as `./gradlew help` to ensure the configuration still loads.
 
 ---

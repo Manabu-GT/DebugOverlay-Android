@@ -2,7 +2,10 @@ package com.ms.square.debugoverlay.internal.data
 
 import com.google.common.truth.Truth.assertThat
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -22,7 +25,7 @@ class EvictingQueueTest {
   }
 
   @Test
-  fun `constructor accepts capacity of 1`() {
+  fun `constructor succeeds with capacity of 1`() {
     val queue = EvictingQueue<String>(1)
     assertThat(queue.size).isEqualTo(0)
   }
@@ -86,6 +89,12 @@ class EvictingQueueTest {
   }
 
   @Test
+  fun `toList returns empty list when queue is empty`() {
+    val queue = EvictingQueue<String>(5)
+    assertThat(queue.toList()).isEmpty()
+  }
+
+  @Test
   fun `toList returns elements in insertion order`() {
     val queue = EvictingQueue<String>(5)
 
@@ -109,7 +118,7 @@ class EvictingQueueTest {
   }
 
   @Test
-  fun `addAndSnapshot adds element and returns list`() {
+  fun `addAndSnapshot returns list containing added element`() {
     val queue = EvictingQueue<String>(5)
     queue.add("first")
 
@@ -135,44 +144,103 @@ class EvictingQueueTest {
     val queue = EvictingQueue<Int>(capacity)
     val numAdds = 1000
 
+    val startSignal = CompletableDeferred<Unit>()
+
     val jobs = (1..numAdds).map { i ->
       launch(Dispatchers.Default) {
+        startSignal.await()
         queue.add(i)
       }
     }
+    startSignal.complete(Unit)
     jobs.joinAll()
 
+    // 1. Verify Size
     assertThat(queue.size).isEqualTo(capacity)
-    assertThat(queue.toList()).hasSize(capacity)
+    val finalContent = queue.toList()
+    assertThat(finalContent).hasSize(capacity)
+
+    // 2. Verify Data Consistency (Addressing "corrupted or duplicated elements")
+    assertThat(finalContent.toSet()).hasSize(capacity)
+
+    // 3. Verify No Data Corruption
+    // Ensure every element in the queue is actually one of the numbers we added.
+    finalContent.forEach { value ->
+      assertThat(value).isIn(1..numAdds)
+    }
   }
 
   @Test
-  fun `concurrent reads and writes do not throw`() = runBlocking {
-    val queue = EvictingQueue<Int>(50)
-    val iterations = 500
+  fun `concurrent reads and writes maintain integrity`() = runBlocking {
+    val capacity = 50
+    val queue = EvictingQueue<Int>(capacity)
+    val iterations = 1000
+    val startSignal = CompletableDeferred<Unit>()
 
     val writeJobs = (1..iterations).map { i ->
       launch(Dispatchers.Default) {
+        startSignal.await()
         queue.add(i)
       }
     }
 
     val readJobs = (1..iterations).map {
       launch(Dispatchers.Default) {
+        startSignal.await()
         queue.toList()
         queue.size
       }
     }
 
+    startSignal.complete(Unit)
     (writeJobs + readJobs).joinAll()
 
-    // Just verify no exceptions and queue is in valid state
-    assertThat(queue.size).isAtMost(50)
-    assertThat(queue.toList().size).isAtMost(50)
+    // 1. Verify Size
+    assertThat(queue.size).isEqualTo(capacity)
+    val finalContent = queue.toList()
+    assertThat(finalContent.size).isEqualTo(capacity)
+
+    // 2. Verify Data Consistency (Addressing "corrupted or duplicated elements")
+    assertThat(finalContent.toSet()).hasSize(capacity)
+
+    // 3. Verify No Data Corruption
+    // Ensure every element in the queue is actually one of the numbers we added.
+    finalContent.forEach { value ->
+      assertThat(value).isIn(1..iterations)
+    }
   }
 
   @Test
-  fun `handles null elements`() {
+  fun `concurrent addAndSnapshot maintains atomicity`() = runBlocking {
+    val capacity = 100
+    val queue = EvictingQueue<Int>(capacity)
+    val iterations = 1000
+    val startSignal = CompletableDeferred<Unit>()
+
+    // Launch many threads that try to add and snapshot simultaneously
+    val jobs = (1..iterations).map { i ->
+      async(Dispatchers.Default) {
+        startSignal.await()
+        // The result MUST contain 'i' as the last element because
+        // the method is synchronized. If it wasn't atomic, another
+        // thread could sneak in an add() before the snapshot was taken.
+        val snapshot = queue.addAndSnapshot(i)
+
+        // Return the verification result for this thread
+        snapshot.last() == i
+      }
+    }
+
+    startSignal.complete(Unit)
+    val results = jobs.awaitAll()
+
+    // Verify every single thread got its own item as the last element
+    assertThat(results).doesNotContain(false)
+    assertThat(queue.size).isEqualTo(capacity)
+  }
+
+  @Test
+  fun `add and toList handle null elements`() {
     val queue = EvictingQueue<String?>(3)
 
     queue.add(null)

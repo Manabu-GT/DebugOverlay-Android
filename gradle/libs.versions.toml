@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-agp = "8.13.2"
+agp = "8.13.0"
 dexcount = "4.0.0"
 kotlinxSerializationJson = "1.9.0"
 maven-publish = "0.34.0"
