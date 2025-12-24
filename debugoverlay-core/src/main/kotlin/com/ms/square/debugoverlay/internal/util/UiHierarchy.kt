@@ -15,7 +15,7 @@ import radiography.ViewStateRenderers.DefaultsNoPii
  * @return The UI hierarchy as a string, or null if capture failed
  */
 internal suspend fun captureUiHierarchy(): String? = withContext(Dispatchers.Default) {
-  runCatching {
+  runCatchingNonCancellation {
     Radiography.scan(
       viewStateRenderers = DefaultsNoPii,
       scanScope = excludeDebugOverlayScope

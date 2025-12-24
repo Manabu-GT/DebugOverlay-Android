@@ -28,12 +28,12 @@ import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.OverlayMode
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.ActivityProvider
+import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
+import com.ms.square.debugoverlay.internal.bugreport.ui.DraggableBugReporterFab
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
 import com.ms.square.debugoverlay.internal.data.source.OverlayPreferences
 import com.ms.square.debugoverlay.internal.data.source.SharedPreferencesOverlayPreferences
-import com.ms.square.debugoverlay.internal.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
-import com.ms.square.debugoverlay.internal.ui.DraggableBugReporterFab
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.CoroutineScope

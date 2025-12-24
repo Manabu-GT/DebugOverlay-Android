@@ -1,11 +1,10 @@
-package com.ms.square.debugoverlay.internal.ui
+package com.ms.square.debugoverlay.internal.bugreport.ui
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,7 +43,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
-import com.ms.square.debugoverlay.internal.bugreport.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 
 /**
  * Dialog for entering bug report metadata (title and optional description).

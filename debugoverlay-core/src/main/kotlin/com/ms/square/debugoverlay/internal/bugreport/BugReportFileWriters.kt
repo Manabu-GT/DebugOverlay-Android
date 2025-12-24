@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState

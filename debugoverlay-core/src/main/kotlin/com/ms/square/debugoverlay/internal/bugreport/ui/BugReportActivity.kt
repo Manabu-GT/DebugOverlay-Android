@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.ui
+package com.ms.square.debugoverlay.internal.bugreport.ui
 
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -27,10 +27,10 @@ import androidx.lifecycle.lifecycleScope
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
-import com.ms.square.debugoverlay.internal.bugreport.BugReportMetadata
-import com.ms.square.debugoverlay.internal.bugreport.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
-import com.ms.square.debugoverlay.internal.bugreport.validatedTitle
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
+import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.launch
 import java.io.File
@@ -196,12 +196,12 @@ internal class BugReportActivity : ComponentActivity() {
 
       when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, validatedMetadata)) {
         is BugReportResult.Success -> {
-          // Delete folder after successful ZIP creation (before share)
-          DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
-
           val exported = IntentShareExporter(this@BugReportActivity).export(result.zipFile)
           if (exported) {
             isSubmitted = true // Prevent draft save on finish
+            // Delete folder after successful share.
+            // We can't know if it was actually shared successfully, but this is fine for now.
+            DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
             finish()
           } else {
             snackbarHostState.showSnackbar(getString(R.string.debugoverlay_share_bug_report_error))

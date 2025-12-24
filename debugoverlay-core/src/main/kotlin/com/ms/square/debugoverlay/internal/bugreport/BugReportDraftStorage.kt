@@ -13,19 +13,18 @@ import com.ms.square.debugoverlay.internal.bugreport.FileNames.NETWORK_REQUESTS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.SCREENSHOT
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.UI_HIERARCHY
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.USER_INPUT
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
+import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -33,49 +32,35 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 
+internal sealed interface BugReportDraftStorage {
+  val drafts: Flow<List<DraftInfo>>
+  val draftCount: Flow<Int>
+
+  suspend fun saveSnapshot(snapshot: BugReportSnapshot): File
+  suspend fun saveUserInput(folder: File, metadata: BugReportMetadata)
+  suspend fun loadScreenshot(folder: File, maxDimension: Int = 1920): Bitmap?
+  suspend fun deleteFolder(folder: File)
+}
+
 internal const val TEMP_FOLDER_PREFIX = "debugoverlay_capture_"
 private const val CACHE_SUBDIR = "debugoverlay_bugreport_drafts"
 private const val DEFAULT_MAX_DRAFTS = 10
 
 /**
- * Represents a saved bug report draft.
+ * Default implementation of [BugReportDraftStorage] using the app's cache directory.
  *
- * A folder is considered a draft when it contains a [FileNames.USER_INPUT] file,
- * which is saved when the user dismisses the metadata dialog.
- *
- * @param folderPath Absolute path to the draft folder (String for immutability)
- * @param lastModifiedMs Folder last modified timestamp, captured at construction
- * @param metadata User-provided title and description, null if parse failed or file missing
- * @param hasScreenshot Whether the draft has a screenshot file
- */
-internal data class DraftInfo(
-  val folderPath: String,
-  val lastModifiedMs: Long,
-  val metadata: BugReportMetadata?,
-  val hasScreenshot: Boolean,
-) {
-  /** Convenience property to get the folder as a File. */
-  val folder: File get() = File(folderPath)
-}
-
-/**
- * Handles temporary storage of bug report capture data and draft management.
- *
- * Saves captured diagnostic data to a temp folder, allowing it to be passed
+ * Saves captured diagnostic data to a folder in cache, allowing it to be passed
  * between the DebugPanel/FAB and BugReportActivity via folder path.
  *
- * Draft management:
- * - A folder is a "draft" when it has [FileNames.USER_INPUT] (saved on dialog dismiss)
- * - Drafts are observable via [drafts] and [draftCount] StateFlows
+ * Draft lifecycle:
+ * - A folder becomes a "draft" when [FileNames.USER_INPUT] is saved (on dialog dismiss)
+ * - Drafts are observable via [drafts] and [draftCount] flows
  * - Maximum [DEFAULT_MAX_DRAFTS] drafts retained; oldest evicted automatically
+ * - Folders are stored in cache and may be cleared by the system when storage is low
  *
  * @param context Application context for cache directory access
- * @param scope Coroutine scope for background operations. Default lives for app lifetime.
  */
-internal class BugReportTempStorage(
-  context: Context,
-  private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) {
+internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftStorage {
 
   private val folderMutex = Mutex()
   private val json = Json { ignoreUnknownKeys = true }
@@ -88,112 +73,119 @@ internal class BugReportTempStorage(
   private val _drafts = MutableStateFlow<List<DraftInfo>>(emptyList())
 
   /** Observable list of saved drafts, sorted by most recent first. */
-  val drafts: Flow<List<DraftInfo>> = _drafts.asStateFlow()
+  override val drafts: Flow<List<DraftInfo>> = _drafts.asStateFlow()
 
   /** Observable count of saved drafts. Emits only when count changes. */
-  val draftCount: Flow<Int> = _drafts
+  override val draftCount: Flow<Int> = _drafts
     .map { it.size }
     .distinctUntilChanged()
-    .stateIn(scope, SharingStarted.Lazily, 0)
-
-  init {
-    scope.launch {
+    .onStart {
       runCatchingNonCancellation { refreshDrafts() }
         .onFailure { Logger.e("Failed to refresh drafts on init", it) }
     }
-  }
 
   /**
-   * Saves a snapshot to a temp folder.
+   * Saves a snapshot to a folder using best-effort persistence.
    *
+   * Individual file writes may fail without failing the overall operation.
    * The screenshot bitmap in [snapshot] will be recycled after saving and must not be used afterward.
    *
    * @param snapshot The captured diagnostic data
-   * @return Result containing the folder path, or a failure with exception details
+   * @return File containing the folder path
    */
-  @Suppress("LongMethod")
-  suspend fun saveSnapshot(snapshot: BugReportSnapshot): Result<File> = withContext(Dispatchers.IO) {
-    runCatchingNonCancellation {
-      val folder = createTempFolder(snapshot.timestampMs)
+  override suspend fun saveSnapshot(snapshot: BugReportSnapshot): File = withContext(Dispatchers.IO) {
+    val folder = createTempFolder(snapshot.timestampMs)
 
-      try {
-        // Save screenshot first (most important for preview)
-        snapshot.screenshot?.let { bitmap ->
-          runCatchingNonCancellation { saveScreenshot(bitmap, File(folder, SCREENSHOT)) }
-            .onFailure { Logger.e("Failed to save screenshot", it) }
-        }
-
-        // Generate and save HTML report (needs bitmap before it's recycled)
-        // User metadata is not available at capture time, will be added to ZIP separately
-        runCatchingNonCancellation {
-          val reportData = snapshot.toReportData(metadata = null)
-          HtmlReportBuilder.build(reportData, File(folder, HTML_REPORT))
-        }.onFailure { Logger.e("Failed to save HTML report", it) }
-
-        // Save diagnostic data files (wrap each to allow partial saves)
-        runCatchingNonCancellation { BugReportFileWriters.writeLogs(snapshot.logs, File(folder, LOGS)) }
-          .onFailure { Logger.e("Failed to save logs", it) }
-
-        runCatchingNonCancellation {
-          BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
-        }.onFailure { Logger.e("Failed to save network requests", it) }
-
-        snapshot.deviceInfo?.let { deviceInfo ->
-          runCatchingNonCancellation { BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO)) }
-            .onFailure { Logger.e("Failed to save device info", it) }
-        }
-
-        snapshot.jankStats?.let { jankStats ->
-          runCatchingNonCancellation { BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS)) }
-            .onFailure { Logger.e("Failed to save jank stats", it) }
-        }
-
-        runCatchingNonCancellation {
-          BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS))
-        }
-          .onFailure { Logger.e("Failed to save app exits", it) }
-
-        snapshot.uiHierarchy?.let { uiHierarchy ->
-          runCatchingNonCancellation { BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY)) }
-            .onFailure { Logger.e("Failed to save UI hierarchy", it) }
-        }
-      } finally {
-        // Recycle bitmap after all saves complete—Activity will reload from disk
-        // NOTE: Since the normal GC process will free up this memory when there are
-        // no more references to this bitmap, this isn't strictly necessary.
-        snapshot.screenshot?.recycle()
+    try {
+      // Save screenshot first (most important for preview)
+      snapshot.screenshot?.let { bitmap ->
+        saveBestEffort("screenshot") { saveScreenshot(bitmap, File(folder, SCREENSHOT)) }
       }
 
-      Logger.d("Bug report snapshot saved to: ${folder.absolutePath}")
-      folder
+      // Generate and save HTML report (needs bitmap before it's recycled)
+      // User metadata is not available at capture time, will be added to ZIP separately
+      saveBestEffort("HTML report") {
+        val reportData = snapshot.toReportData(metadata = null)
+        HtmlReportBuilder.build(reportData, File(folder, HTML_REPORT))
+      }
+
+      // Save diagnostic data files
+      saveBestEffort("logs") { BugReportFileWriters.writeLogs(snapshot.logs, File(folder, LOGS)) }
+      saveBestEffort("network requests") {
+        BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
+      }
+      snapshot.deviceInfo?.let { deviceInfo ->
+        saveBestEffort("device info") { BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO)) }
+      }
+      snapshot.jankStats?.let { jankStats ->
+        saveBestEffort("jank stats") { BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS)) }
+      }
+      saveBestEffort("app exits") { BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS)) }
+      snapshot.uiHierarchy?.let { uiHierarchy ->
+        saveBestEffort("UI hierarchy") {
+          BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY))
+        }
+      }
+    } finally {
+      // Recycle bitmap after all saves complete—Activity will reload from disk
+      // NOTE: Since the normal GC process will free up this memory when there are
+      // no more references to this bitmap, this isn't strictly necessary.
+      snapshot.screenshot?.recycle()
     }
+
+    Logger.d("Bug report snapshot saved to: ${folder.absolutePath}")
+    folder
   }
 
   /**
    * Loads the screenshot from a capture folder for preview.
    *
+   * No mutex is needed here because:
+   * - BitmapFactory.decodeFile() handles missing/deleted files gracefully (returns null)
+   * - The try-catch covers any exceptions from concurrent deletion
+   * - Holding mutex during decode (100-500ms) would block other operations unnecessarily
+   *
    * @param folder The capture folder
+   * @param maxDimension The max dimension to restrict the resulting bitmap size for memory efficiency.
    * @return The screenshot bitmap, or null if not available or loading fails
    */
-  @Suppress("TooGenericExceptionCaught")
-  suspend fun loadScreenshot(folder: File): Bitmap? = withContext(Dispatchers.IO) {
+  override suspend fun loadScreenshot(folder: File, maxDimension: Int): Bitmap? = withContext(Dispatchers.IO) {
     val screenshotFile = File(folder, SCREENSHOT)
+    if (!screenshotFile.exists()) return@withContext null
 
-    // Quick existence check with mutex (prevents reading during folder deletion)
-    val exists = folderMutex.withLock { screenshotFile.exists() }
-    if (!exists) return@withContext null
+    runCatchingNonCancellation {
+      // First decode bounds only
+      val options = BitmapFactory.Options().apply {
+        inJustDecodeBounds = true
+      }
+      BitmapFactory.decodeFile(screenshotFile.absolutePath, options)
 
-    // Slow bitmap decode outside mutex to avoid blocking other operations
-    try {
-      // TODO: Add maxDimension parameter with BitmapFactory.Options for memory-efficient thumbnails
-      BitmapFactory.decodeFile(screenshotFile.absolutePath)
-    } catch (e: OutOfMemoryError) {
-      Logger.e("OOM while loading screenshot", e)
-      null
-    } catch (e: Exception) {
+      // If bounds decode failed, file doesn't exist or is invalid
+      if (options.outWidth <= 0 || options.outHeight <= 0) return@withContext null
+
+      // Calculate sample size to fit within maxDimension
+      options.inSampleSize = calculateInSampleSize(options, maxDimension, maxDimension)
+      options.inJustDecodeBounds = false
+
+      // Decode with sampling
+      BitmapFactory.decodeFile(screenshotFile.absolutePath, options)
+    }.getOrElse { e ->
       Logger.e("Failed to load screenshot", e)
       null
     }
+  }
+
+  private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+    val (height, width) = options.outHeight to options.outWidth
+    var inSampleSize = 1
+    if (height > reqHeight || width > reqWidth) {
+      val halfHeight = height / 2
+      val halfWidth = width / 2
+      while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+        inSampleSize *= 2
+      }
+    }
+    return inSampleSize
   }
 
   /**
@@ -201,7 +193,7 @@ internal class BugReportTempStorage(
    *
    * @param folder The capture folder to delete
    */
-  suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
+  override suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
     folderMutex.withLock {
       if (folder.exists() && folder.name.startsWith(TEMP_FOLDER_PREFIX)) {
         val deleted = folder.deleteRecursively()
@@ -225,7 +217,7 @@ internal class BugReportTempStorage(
    * I/O-heavy operations (file existence checks, JSON parsing) are performed
    * outside the mutex to avoid blocking other operations.
    */
-  suspend fun refreshDrafts(): Unit = withContext(Dispatchers.IO) {
+  private suspend fun refreshDrafts(): Unit = withContext(Dispatchers.IO) {
     // Step 1: List folder names only (fast, mutex protects concurrent folder creation/deletion)
     val candidates = folderMutex.withLock {
       cacheDir.listFiles()
@@ -241,7 +233,7 @@ internal class BugReportTempStorage(
           DraftInfo(
             folderPath = folder.absolutePath,
             lastModifiedMs = folder.lastModified(),
-            metadata = loadUserInputSync(folder),
+            metadata = loadUserInput(folder),
             hasScreenshot = File(folder, SCREENSHOT).exists()
           )
         }.getOrNull() // Handles folder deleted mid-flight
@@ -261,10 +253,10 @@ internal class BugReportTempStorage(
    * @param folder The capture folder
    * @param metadata The user-provided title and description
    */
-  suspend fun saveUserInput(folder: File, metadata: BugReportMetadata): Unit = withContext(Dispatchers.IO) {
+  override suspend fun saveUserInput(folder: File, metadata: BugReportMetadata): Unit = withContext(Dispatchers.IO) {
     val file = File(folder, USER_INPUT)
     runCatchingNonCancellation {
-      file.writeText(json.encodeToString(metadata))
+      file.writeText(json.encodeToString(BugReportMetadata.serializer(), metadata))
       Logger.d("Saved user input to: ${file.absolutePath}")
     }.onFailure {
       Logger.e("Failed to save user input", it)
@@ -273,16 +265,7 @@ internal class BugReportTempStorage(
 
     // Now that we've created a new draft, evict old ones and refresh list
     evictOldDrafts()
-  }
-
-  /**
-   * Loads user metadata from a capture folder.
-   *
-   * @param folder The capture folder
-   * @return The metadata, or null if file doesn't exist or parse fails
-   */
-  suspend fun loadUserInput(folder: File): BugReportMetadata? = withContext(Dispatchers.IO) {
-    loadUserInputSync(folder)
+    refreshDrafts()
   }
 
   /**
@@ -293,7 +276,7 @@ internal class BugReportTempStorage(
    *
    * @param maxDrafts Maximum number of drafts to retain (default: [DEFAULT_MAX_DRAFTS])
    */
-  suspend fun evictOldDrafts(maxDrafts: Int = DEFAULT_MAX_DRAFTS): Unit = withContext(Dispatchers.IO) {
+  private suspend fun evictOldDrafts(maxDrafts: Int = DEFAULT_MAX_DRAFTS): Unit = withContext(Dispatchers.IO) {
     // Hold mutex for entire operation to prevent race conditions
     folderMutex.withLock {
       val currentDrafts = cacheDir.listFiles()
@@ -313,15 +296,12 @@ internal class BugReportTempStorage(
         }
       }
     }
-
-    // Refresh outside mutex
-    refreshDrafts()
   }
 
   /**
-   * Synchronous helper to load user input JSON. Called from Dispatchers.IO.
+   * Synchronously load user input JSON. Called from Dispatchers.IO.
    */
-  private fun loadUserInputSync(folder: File): BugReportMetadata? {
+  private fun loadUserInput(folder: File): BugReportMetadata? {
     val file = File(folder, USER_INPUT)
     if (!file.exists()) return null
     return runCatching {
@@ -329,6 +309,7 @@ internal class BugReportTempStorage(
     }.getOrNull()
   }
 
+  // TODO: folder name will be updated to use uuid instead instead of TEMP_FOLDER_PREFIX + timestamp
   private fun createTempFolder(timestampMs: Long): File {
     val folder = File(cacheDir, "$TEMP_FOLDER_PREFIX${formatFilenameTimestamp(timestampMs)}")
     check(folder.mkdirs() || folder.exists()) {
@@ -342,4 +323,13 @@ internal class BugReportTempStorage(
       bitmap.compress(Bitmap.CompressFormat.PNG, UNUSED_PNG_QUALITY, out)
     }
   }
+}
+
+/**
+ * Executes [block] catching all non-cancellation exceptions.
+ * Logs failures but continues execution (best-effort persistence).
+ */
+private inline fun saveBestEffort(name: String, block: () -> Unit) {
+  runCatchingNonCancellation(block)
+    .onFailure { Logger.e("Failed to save $name", it) }
 }

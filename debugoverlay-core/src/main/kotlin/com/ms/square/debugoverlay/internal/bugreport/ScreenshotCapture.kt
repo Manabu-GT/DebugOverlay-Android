@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.util.isMainThread
-import kotlinx.coroutines.CancellationException
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
@@ -44,14 +44,13 @@ internal object ScreenshotCapture {
       return null
     }
 
-    return runCatching {
+    return runCatchingNonCancellation {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         captureWithPixelCopy(activity.window)
       } else {
         captureWithCanvasOnMain(activity.window)
       }
     }.getOrElse { e ->
-      if (e is CancellationException) throw e
       Logger.w("Screenshot capture failed", e)
       null
     }
