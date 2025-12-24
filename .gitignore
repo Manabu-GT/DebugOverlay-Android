@@ -6,6 +6,7 @@ keystore.properties
 
 # AI agent planning files
 tools/ai/plans
+tools/ai/guides
 
 # Gradle files
 .gradle/

@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.ui
+package com.ms.square.debugoverlay.internal.bugreport.ui
 
 import android.content.Intent
 import androidx.compose.animation.animateColorAsState

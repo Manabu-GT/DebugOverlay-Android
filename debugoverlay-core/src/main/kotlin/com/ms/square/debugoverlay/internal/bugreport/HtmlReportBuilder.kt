@@ -2,6 +2,8 @@ package com.ms.square.debugoverlay.internal.bugreport
 
 import android.graphics.Bitmap
 import android.util.Base64
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportData
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.AppExitReason
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo

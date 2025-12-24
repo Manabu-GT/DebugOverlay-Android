@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.bugreport
+package com.ms.square.debugoverlay.internal.bugreport.model
 
 import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo

@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.ui
+package com.ms.square.debugoverlay.internal.bugreport.ui
 
 /**
  * State machine for the Bug Reporter FAB.

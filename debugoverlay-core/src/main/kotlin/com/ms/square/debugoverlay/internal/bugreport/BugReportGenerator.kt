@@ -3,10 +3,13 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.content.Context
 import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
+import com.ms.square.debugoverlay.internal.util.awaitCatching
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -29,22 +32,21 @@ internal class BugReportGenerator(
   context: Context,
   private val repository: DebugOverlayDataRepository,
   private val activityProvider: ActivityProvider,
-  private val tempStorage: BugReportTempStorage = BugReportTempStorage(context),
+  private val storage: BugReportDraftStorage = DefaultBugReportDraftStorage(context),
   private val zipWriter: BugReportZipWriter = BugReportZipWriter(context),
 ) {
 
   /**
    * Captures all diagnostic data and saves to a temp folder.
    *
-   * The folder path can be passed to [BugReportActivity] via Intent extra.
+   * The folder path can be passed to BugReportActivity via Intent extra.
    * Screenshot bitmap is recycled after saving to disk.
    *
    * @return [Result.success] with the folder path, or [Result.failure] on error
    */
-  @Suppress("TooGenericExceptionCaught")
   suspend fun captureToFolder(): Result<File> {
     val timestampMs = System.currentTimeMillis()
-    return try {
+    return runCatchingNonCancellation {
       val snapshot = withContext(Dispatchers.Default) {
         supervisorScope {
           val screenshotDeferred = async {
@@ -59,23 +61,20 @@ internal class BugReportGenerator(
 
           BugReportSnapshot(
             timestampMs = timestampMs,
-            screenshot = runCatchingNonCancellation { screenshotDeferred.await() }.getOrNull(),
-            logs = runCatchingNonCancellation { logsDeferred.await() }.getOrDefault(emptyList()),
-            networkRequests = runCatchingNonCancellation { networkRequestsDeferred.await() }.getOrDefault(emptyList()),
-            deviceInfo = runCatchingNonCancellation { deviceInfoDeferred.await() }.getOrNull(),
-            jankStats = runCatchingNonCancellation { jankStatsDeferred.await() }.getOrNull(),
-            appExitInfos = runCatchingNonCancellation { appExitInfosDeferred.await() }.getOrDefault(emptyList()),
-            uiHierarchy = runCatchingNonCancellation { uiHierarchyDeferred.await() }.getOrNull()
+            // ScreenshotCapture.capture() handles errors internally, returns null on failure
+            screenshot = screenshotDeferred.await(),
+            logs = logsDeferred.awaitCatching().getOrDefault(emptyList()),
+            networkRequests = networkRequestsDeferred.awaitCatching().getOrDefault(emptyList()),
+            deviceInfo = deviceInfoDeferred.awaitCatching().getOrNull(),
+            jankStats = jankStatsDeferred.awaitCatching().getOrNull(),
+            appExitInfos = appExitInfosDeferred.awaitCatching().getOrDefault(emptyList()),
+            // captureUiHierarchy() handles errors internally, returns null on failure
+            uiHierarchy = uiHierarchyDeferred.await()
           )
         }
       }
       // Save to folder (bitmap is recycled inside saveSnapshot)
-      tempStorage.saveSnapshot(snapshot)
-    } catch (e: CancellationException) {
-      throw e // Preserve structured concurrency
-    } catch (e: Exception) {
-      Logger.e("Capture to folder failed", e)
-      Result.failure(e)
+      storage.saveSnapshot(snapshot)
     }
   }
 
@@ -85,7 +84,7 @@ internal class BugReportGenerator(
    * @param captureFolder Folder returned from [captureToFolder]
    * @return The screenshot bitmap, or null if not available
    */
-  suspend fun loadScreenshotPreview(captureFolder: File): Bitmap? = tempStorage.loadScreenshot(captureFolder)
+  suspend fun loadScreenshotPreview(captureFolder: File): Bitmap? = storage.loadScreenshot(captureFolder)
 
   /**
    * Creates a ZIP file from the captured data in the folder.
@@ -105,10 +104,22 @@ internal class BugReportGenerator(
   }
 
   /**
+   * Saves user metadata to a capture folder, marking it as a draft.
+   *
+   * Called when user dismisses the metadata dialog without submitting.
+   * After saving, evicts old drafts if over limit.
+   *
+   * @param captureFolder Folder returned from [captureToFolder]
+   * @param metadata User-provided title and description
+   */
+  suspend fun saveUserInputToDraft(captureFolder: File, metadata: BugReportMetadata) =
+    storage.saveUserInput(captureFolder, metadata)
+
+  /**
    * Deletes a capture folder and all its contents.
    * Call this after successful share or when user cancels.
    *
    * @param captureFolder Folder to delete
    */
-  suspend fun deleteCaptureFolder(captureFolder: File) = tempStorage.deleteFolder(captureFolder)
+  suspend fun deleteCaptureFolder(captureFolder: File) = storage.deleteFolder(captureFolder)
 }

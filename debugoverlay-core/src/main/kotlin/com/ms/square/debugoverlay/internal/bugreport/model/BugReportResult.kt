@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.bugreport
+package com.ms.square.debugoverlay.internal.bugreport.model
 
 import java.io.File
 

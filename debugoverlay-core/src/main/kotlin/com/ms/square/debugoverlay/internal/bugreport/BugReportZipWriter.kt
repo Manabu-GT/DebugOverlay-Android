@@ -3,6 +3,7 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.content.Context
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

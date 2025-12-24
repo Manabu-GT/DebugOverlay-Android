@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.ui
+package com.ms.square.debugoverlay.internal.bugreport.ui
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.layout.Box
@@ -19,6 +19,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.ms.square.debugoverlay.internal.ui.DragVisualFeedback
+import com.ms.square.debugoverlay.internal.ui.draggableOverlay
+import com.ms.square.debugoverlay.internal.ui.rememberDraggableOverlayState
 import kotlin.math.roundToInt
 
 // Padding to accommodate scale effect during drag (1.1x scale needs ~5% padding per side)

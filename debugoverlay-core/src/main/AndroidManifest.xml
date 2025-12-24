@@ -11,7 +11,7 @@
       android:excludeFromRecents="true" />
 
     <activity
-      android:name="com.ms.square.debugoverlay.internal.ui.BugReportActivity"
+      android:name="com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity"
       android:theme="@style/debugoverlay_Theme.Transparent"
       android:exported="false"
       android:excludeFromRecents="true" />

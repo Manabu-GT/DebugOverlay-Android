@@ -46,6 +46,12 @@ Welcome! This guide defines how automation and human agents should collaborate i
 - **Coding Language**
   - All new code should be written in Kotlin.
 
+- **Kotlin Coroutines**
+  - In suspend functions, **always use `runCatchingNonCancellation` instead of `runCatching`**.
+  - `runCatching` catches ALL exceptions including `CancellationException`, which breaks structured concurrency and prevents proper coroutine cancellation.
+  - `runCatchingNonCancellation` (defined in `internal/util/Results.kt`) re-throws `CancellationException` while catching other exceptions.
+  - Exception: In non-suspend contexts (regular functions, callbacks), `runCatching` is acceptable.
+
 - **Formatting & Static Analysis**
   - Respect existing style (4-space Java/Kotlin, XML indentation).
   - Run relevant formatters (`ktlint`, `spotless`, IDE auto-format) if part of the workflow, but do not introduce sweeping style-only diffs.
