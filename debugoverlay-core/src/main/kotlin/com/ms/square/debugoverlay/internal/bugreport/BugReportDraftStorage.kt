@@ -258,7 +258,7 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
     val canonicalCacheDir = cacheDir.canonicalFile
     canonicalFolder.parentFile == canonicalCacheDir
   }.getOrElse { e ->
-    Logger.w("Failed to resolve canonical path for safety check: ${e.message}")
+    Logger.w("Failed to resolve canonical path for safety check: ${e.javaClass.simpleName} - ${e.message}")
     false
   }
 
@@ -320,7 +320,7 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
         state = BugReportState.DRAFT,
         userInput = userInput
       ) ?: BugReportMetadata(
-        capturedAt = System.currentTimeMillis(),
+        capturedAt = folder.lastModified(),
         state = BugReportState.DRAFT,
         userInput = userInput
       )
