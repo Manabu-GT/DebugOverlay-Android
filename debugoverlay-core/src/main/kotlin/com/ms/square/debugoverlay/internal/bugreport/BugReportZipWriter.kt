@@ -3,20 +3,31 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.content.Context
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.METADATA
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportState
+import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
+import com.ms.square.debugoverlay.internal.util.checkFolderExists
+import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 private const val CACHE_SUBDIR = "debugoverlay_bugreports"
+private const val UUID_SUFFIX_LENGTH = 8
+private const val MAX_ZIP_FILES = 3
 internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignored
 
 /**
  * Creates ZIP archives containing bug report data.
  *
- * Output filename format: `bug_report_YYYYMMDD_HHmmss.zip`
+ * Output filename format: `bug_report_YYYYMMDD_HHmmss_<uuid8>.zip`
  *
  * Contents:
  * - bug_report.html (human-readable report with embedded screenshot)
@@ -27,52 +38,108 @@ internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignor
  * - jank_stats.json
  * - app_exits.txt
  * - ui_hierarchy.txt
- * - user_input.json
+ * - metadata.json (contains capturedAt, userInput, etc.)
  */
 internal class BugReportZipWriter(context: Context) {
 
+  private val json = Json { ignoreUnknownKeys = true }
+
   private val cacheDir by lazy {
-    File(context.cacheDir, CACHE_SUBDIR).apply { mkdirs() }
+    File(context.cacheDir, CACHE_SUBDIR).also {
+      it.checkFolderExists()
+    }
   }
 
   /**
    * Creates a ZIP file from a capture folder containing pre-saved bug report files.
    *
    * @param folder The capture folder containing screenshot.png, bug_report.html, etc.
-   * @param metadata Optional user-provided title and description
+   * @param userInput Optional user-provided title and description
    * @return The created ZIP file
    * @throws IOException if writing fails
    */
-  fun writeFromFolder(folder: File, metadata: BugReportMetadata?): File {
-    val timestamp = folder.name.removePrefix(TEMP_FOLDER_PREFIX)
-    val zipFile = File(cacheDir, "bug_report_$timestamp.zip")
+  suspend fun writeFromFolder(folder: File, userInput: UserInput?): File = withContext(Dispatchers.IO) {
+    val timestampMs = readTimestampFromMetadata(folder)
+    val uniqueSuffix = UUID.randomUUID().toString().take(UUID_SUFFIX_LENGTH)
+    val zipFile = File(cacheDir, "bug_report_${formatFilenameTimestamp(timestampMs)}_$uniqueSuffix.zip")
 
     ZipOutputStream(FileOutputStream(zipFile).buffered()).use { zip ->
-      // Copy all files from capture folder, injecting metadata into HTML
+      // Copy all files from capture folder, injecting userInput into HTML
       val files = folder.listFiles()
         ?: throw IOException(
           "Failed to list capture folder contents at ${folder.absolutePath}. " +
             "Folder may not exist or be inaccessible. This indicates a bug in capture flow."
         )
 
-      files.filter { it.isFile }
-        .forEach { file -> copyOrTransformFile(zip, file, metadata) }
+      files.filter { it.isFile && it.name != METADATA }
+        .forEach { file -> copyOrTransformFile(zip, file, userInput) }
 
-      // Add user metadata as JSON for machine readability
-      if (metadata != null) {
-        writeFileEntry(zip, "user_input.json") { tempFile ->
-          BugReportFileWriters.writeUserMetadata(metadata, tempFile)
-        }
-      }
+      // Write metadata.json with final userInput to ZIP
+      writeMetadataToZip(zip, folder, userInput)
     }
 
     Logger.d("Bug report ZIP created from folder: ${zipFile.absolutePath} (${zipFile.length()} bytes)")
-    return zipFile
+    cleanupOldZips()
+    zipFile
   }
 
-  private fun copyOrTransformFile(zip: ZipOutputStream, file: File, metadata: BugReportMetadata?) {
+  /**
+   * Writes updated metadata.json to ZIP with state set to SUBMITTED.
+   */
+  private fun writeMetadataToZip(zip: ZipOutputStream, folder: File, userInput: UserInput?) {
+    val metadataFile = File(folder, METADATA)
+    val existingMetadata = if (metadataFile.exists()) {
+      runCatching {
+        json.decodeFromString(BugReportMetadata.serializer(), metadataFile.readText())
+      }.getOrNull()
+    } else {
+      null
+    }
+
+    val finalMetadata = existingMetadata?.copy(
+      state = BugReportState.SUBMITTED,
+      userInput = userInput
+    ) ?: BugReportMetadata(
+      capturedAt = folder.lastModified(),
+      state = BugReportState.SUBMITTED,
+      userInput = userInput
+    )
+
+    try {
+      zip.putNextEntry(ZipEntry(METADATA))
+      try {
+        zip.write(json.encodeToString(BugReportMetadata.serializer(), finalMetadata).toByteArray(Charsets.UTF_8))
+      } finally {
+        zip.closeEntry()
+      }
+    } catch (e: IOException) {
+      Logger.w("Failed to write metadata.json to ZIP: ${e.message}")
+    }
+  }
+
+  /**
+   * Reads the capturedAt timestamp from the folder's metadata.json.
+   * Falls back to lastModified if metadata cannot be read.
+   */
+  private fun readTimestampFromMetadata(folder: File): Long {
+    val metadataFile = File(folder, METADATA)
+    if (!metadataFile.exists()) {
+      Logger.w("metadata.json not found in ${folder.absolutePath}, using lastModified time")
+      return folder.lastModified()
+    }
+
+    return runCatching {
+      val metadata = json.decodeFromString(BugReportMetadata.serializer(), metadataFile.readText())
+      metadata.capturedAt
+    }.getOrElse { e ->
+      Logger.w("Failed to read metadata.json: ${e.message}, using folder's lastModified time")
+      folder.lastModified()
+    }
+  }
+
+  private fun copyOrTransformFile(zip: ZipOutputStream, file: File, userInput: UserInput?) {
     if (file.name == HTML_REPORT) {
-      writeHtmlWithMetadata(zip, file, metadata)
+      writeHtmlWithUserInput(zip, file, userInput)
     } else {
       copyFileToZip(zip, file, file.name)
     }
@@ -80,22 +147,25 @@ internal class BugReportZipWriter(context: Context) {
 
   /**
    * Writes HTML file to ZIP with placeholders replaced.
-   * If metadata is provided, uses user values; otherwise injects defaults.
+   * If userInput is provided, uses user values; otherwise injects defaults.
    */
-  private fun writeHtmlWithMetadata(zip: ZipOutputStream, htmlFile: File, metadata: BugReportMetadata?) {
+  private fun writeHtmlWithUserInput(zip: ZipOutputStream, htmlFile: File, userInput: UserInput?) {
     try {
       val originalHtml = htmlFile.readText()
-      val modifiedHtml = if (metadata != null) {
-        HtmlReportBuilder.injectMetadata(originalHtml, metadata)
+      val modifiedHtml = if (userInput != null) {
+        HtmlReportBuilder.injectUserInput(originalHtml, userInput)
       } else {
         HtmlReportBuilder.injectDefaults(originalHtml)
       }
 
       zip.putNextEntry(ZipEntry(HTML_REPORT))
-      zip.write(modifiedHtml.toByteArray(Charsets.UTF_8))
-      zip.closeEntry()
+      try {
+        zip.write(modifiedHtml.toByteArray(Charsets.UTF_8))
+      } finally {
+        zip.closeEntry()
+      }
     } catch (e: IOException) {
-      Logger.w("Failed to write HTML with metadata, copying original: ${e.message}")
+      Logger.w("Failed to write HTML with user input, copying original: ${e.message}")
       copyFileToZip(zip, htmlFile, HTML_REPORT)
     }
   }
@@ -103,31 +173,34 @@ internal class BugReportZipWriter(context: Context) {
   private fun copyFileToZip(zip: ZipOutputStream, file: File, entryName: String) {
     try {
       zip.putNextEntry(ZipEntry(entryName))
-      file.inputStream().buffered().use { input ->
-        input.copyTo(zip)
+      try {
+        file.inputStream().buffered().use { input ->
+          input.copyTo(zip)
+        }
+      } finally {
+        zip.closeEntry()
       }
-      zip.closeEntry()
     } catch (e: IOException) {
       Logger.w("Failed to copy '$entryName' to ZIP, skipping: ${e.message}")
     }
   }
 
-  private inline fun writeFileEntry(zip: ZipOutputStream, fileName: String, writeContent: (File) -> Unit) {
-    // Write to temp file first, then add to ZIP
-    val tempFile = File.createTempFile("bugreport_", ".tmp", cacheDir)
-    try {
-      writeContent(tempFile)
-      zip.putNextEntry(ZipEntry(fileName))
-      tempFile.inputStream().buffered().use { input ->
-        input.copyTo(zip)
-      }
-      zip.closeEntry()
-    } catch (e: IOException) {
-      // Skip failed entries - partial report is better than none
-      Logger.w("Failed to write '$fileName' to bug report, skipping: ${e.message}")
-    } finally {
-      if (!tempFile.delete()) {
-        Logger.w("Failed to delete temp file: ${tempFile.absolutePath}")
+  /**
+   * Deletes oldest ZIP files to maintain [MAX_ZIP_FILES] limit.
+   * Called after successful ZIP creation. Keeps the most recent files.
+   */
+  private fun cleanupOldZips() {
+    val zipFiles = cacheDir.listFiles { file -> file.isFile && file.extension == "zip" }
+      ?.sortedByDescending { it.lastModified() }
+      ?: return
+
+    if (zipFiles.size <= MAX_ZIP_FILES) return
+
+    zipFiles.drop(MAX_ZIP_FILES).forEach { file ->
+      if (file.delete()) {
+        Logger.d("Deleted old ZIP: ${file.name}")
+      } else {
+        Logger.w("Failed to delete old ZIP: ${file.name}")
       }
     }
   }

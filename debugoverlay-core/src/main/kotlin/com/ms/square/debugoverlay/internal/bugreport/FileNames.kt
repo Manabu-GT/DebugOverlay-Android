@@ -9,5 +9,5 @@ internal object FileNames {
   const val JANK_STATS = "jank_stats.json"
   const val APP_EXITS = "app_exits.txt"
   const val UI_HIERARCHY = "ui_hierarchy.txt"
-  const val USER_INPUT = "user_input.json"
+  const val METADATA = "metadata.json"
 }

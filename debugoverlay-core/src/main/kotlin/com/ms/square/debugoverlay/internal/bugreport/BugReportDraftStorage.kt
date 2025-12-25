@@ -9,14 +9,16 @@ import com.ms.square.debugoverlay.internal.bugreport.FileNames.DEVICE_INFO
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.JANK_STATS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.LOGS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.METADATA
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.NETWORK_REQUESTS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.SCREENSHOT
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.UI_HIERARCHY
-import com.ms.square.debugoverlay.internal.bugreport.FileNames.USER_INPUT
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportState
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
-import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
+import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
+import com.ms.square.debugoverlay.internal.util.checkFolderExists
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -31,18 +33,19 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal sealed interface BugReportDraftStorage {
   val drafts: Flow<List<DraftInfo>>
   val draftCount: Flow<Int>
 
   suspend fun saveSnapshot(snapshot: BugReportSnapshot): File
-  suspend fun saveUserInput(folder: File, metadata: BugReportMetadata)
+  suspend fun saveUserInput(folder: File, userInput: UserInput)
   suspend fun loadScreenshot(folder: File, maxDimension: Int = 1920): Bitmap?
   suspend fun deleteFolder(folder: File)
 }
 
-internal const val TEMP_FOLDER_PREFIX = "debugoverlay_capture_"
 private const val CACHE_SUBDIR = "debugoverlay_bugreport_drafts"
 private const val DEFAULT_MAX_DRAFTS = 10
 
@@ -53,20 +56,26 @@ private const val DEFAULT_MAX_DRAFTS = 10
  * between the DebugPanel/FAB and BugReportActivity via folder path.
  *
  * Draft lifecycle:
- * - A folder becomes a "draft" when [FileNames.USER_INPUT] is saved (on dialog dismiss)
+ * - On capture, a folder with [FileNames.METADATA] is created with [BugReportState.IN_PROGRESS]
+ * - A folder becomes a "draft" when its state changes to [BugReportState.DRAFT] (on dialog dismiss)
  * - Drafts are observable via [drafts] and [draftCount] flows
  * - Maximum [DEFAULT_MAX_DRAFTS] drafts retained; oldest evicted automatically
  * - Folders are stored in cache and may be cleared by the system when storage is low
  *
  * @param context Application context for cache directory access
  */
+@Suppress("TooManyFunctions")
 internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftStorage {
+
+  private val draftsInitialized = AtomicBoolean(false)
 
   private val folderMutex = Mutex()
   private val json = Json { ignoreUnknownKeys = true }
 
   private val cacheDir by lazy {
-    File(context.cacheDir, CACHE_SUBDIR).apply { mkdirs() }
+    File(context.cacheDir, CACHE_SUBDIR).also {
+      it.checkFolderExists()
+    }
   }
 
   // Draft observability
@@ -74,15 +83,24 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
 
   /** Observable list of saved drafts, sorted by most recent first. */
   override val drafts: Flow<List<DraftInfo>> = _drafts.asStateFlow()
+    .onStart {
+      initDraftsIfNeeded()
+    }
 
   /** Observable count of saved drafts. Emits only when count changes. */
   override val draftCount: Flow<Int> = _drafts
     .map { it.size }
     .distinctUntilChanged()
     .onStart {
+      initDraftsIfNeeded()
+    }
+
+  private suspend fun initDraftsIfNeeded() {
+    if (draftsInitialized.compareAndSet(false, true)) {
       runCatchingNonCancellation { refreshDrafts() }
         .onFailure { Logger.e("Failed to refresh drafts on init", it) }
     }
+  }
 
   /**
    * Saves a snapshot to a folder using best-effort persistence.
@@ -90,22 +108,31 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
    * Individual file writes may fail without failing the overall operation.
    * The screenshot bitmap in [snapshot] will be recycled after saving and must not be used afterward.
    *
+   * Creates a [FileNames.METADATA] file with [BugReportState.IN_PROGRESS] state.
+   *
    * @param snapshot The captured diagnostic data
    * @return File containing the folder path
    */
   override suspend fun saveSnapshot(snapshot: BugReportSnapshot): File = withContext(Dispatchers.IO) {
-    val folder = createTempFolder(snapshot.timestampMs)
+    val folder = createFolder()
 
     try {
-      // Save screenshot first (most important for preview)
+      // Save metadata first (required for draft detection)
+      val metadata = BugReportMetadata(
+        capturedAt = snapshot.timestampMs,
+        state = BugReportState.IN_PROGRESS
+      )
+      saveBestEffort("metadata") { saveMetadata(folder, metadata) }
+
+      // Save screenshot (most important for preview)
       snapshot.screenshot?.let { bitmap ->
         saveBestEffort("screenshot") { saveScreenshot(bitmap, File(folder, SCREENSHOT)) }
       }
 
       // Generate and save HTML report (needs bitmap before it's recycled)
-      // User metadata is not available at capture time, will be added to ZIP separately
+      // User input is not available at capture time, will be added to ZIP separately
       saveBestEffort("HTML report") {
-        val reportData = snapshot.toReportData(metadata = null)
+        val reportData = snapshot.toReportData(userInput = null)
         HtmlReportBuilder.build(reportData, File(folder, HTML_REPORT))
       }
 
@@ -115,12 +142,18 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
         BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
       }
       snapshot.deviceInfo?.let { deviceInfo ->
-        saveBestEffort("device info") { BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO)) }
+        saveBestEffort("device info") {
+          BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO))
+        }
       }
       snapshot.jankStats?.let { jankStats ->
-        saveBestEffort("jank stats") { BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS)) }
+        saveBestEffort("jank stats") {
+          BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS))
+        }
       }
-      saveBestEffort("app exits") { BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS)) }
+      saveBestEffort("app exits") {
+        BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS))
+      }
       snapshot.uiHierarchy?.let { uiHierarchy ->
         saveBestEffort("UI hierarchy") {
           BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY))
@@ -191,11 +224,20 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
   /**
    * Deletes a capture folder and all its contents.
    *
+   * Safety: Only deletes folders that are direct children of [cacheDir] to prevent
+   * accidental deletion of arbitrary paths.
+   *
    * @param folder The capture folder to delete
    */
   override suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
     folderMutex.withLock {
-      if (folder.exists() && folder.name.startsWith(TEMP_FOLDER_PREFIX)) {
+      // Safety check: only delete folders that are direct children of our cache directory
+      if (!isDirectChildOfCacheDir(folder)) {
+        Logger.w("Refusing to delete folder outside cache directory: ${folder.absolutePath}")
+        return@withLock
+      }
+
+      if (folder.exists()) {
         val deleted = folder.deleteRecursively()
         if (deleted) {
           Logger.d("Deleted capture folder: ${folder.absolutePath}")
@@ -206,13 +248,27 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
     }
   }
 
+  /**
+   * Checks if the given folder is a direct child of [cacheDir].
+   *
+   * Uses canonical paths to resolve symlinks and ".." traversal attacks.
+   */
+  private fun isDirectChildOfCacheDir(folder: File): Boolean = runCatching {
+    val canonicalFolder = folder.canonicalFile
+    val canonicalCacheDir = cacheDir.canonicalFile
+    canonicalFolder.parentFile == canonicalCacheDir
+  }.getOrElse { e ->
+    Logger.w("Failed to resolve canonical path for safety check: ${e.message}")
+    false
+  }
+
   // ========== Draft Management ==========
 
   /**
    * Refreshes the draft list from disk.
    *
-   * Scans the cache directory for folders with [FileNames.USER_INPUT] files,
-   * which indicates a saved draft. Updates [drafts] StateFlow atomically.
+   * Scans the cache directory for folders with [FileNames.METADATA] files
+   * that have [BugReportState.DRAFT] state. Updates [drafts] StateFlow atomically.
    *
    * I/O-heavy operations (file existence checks, JSON parsing) are performed
    * outside the mutex to avoid blocking other operations.
@@ -221,24 +277,25 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
     // Step 1: List folder names only (fast, mutex protects concurrent folder creation/deletion)
     val candidates = folderMutex.withLock {
       cacheDir.listFiles()
-        ?.filter { it.isDirectory && it.name.startsWith(TEMP_FOLDER_PREFIX) }
+        ?.filter { it.isDirectory }
         ?.toList() ?: emptyList()
     }
 
     // Step 2: Filter + load metadata (slow I/O, outside mutex)
     val draftList = candidates
-      .filter { File(it, USER_INPUT).exists() } // Only folders with user_input.json are drafts
       .mapNotNull { folder ->
         runCatchingNonCancellation {
+          val metadata = loadMetadata(folder) ?: return@mapNotNull null
+          // Only folders with DRAFT state are considered drafts
+          if (metadata.state != BugReportState.DRAFT) return@mapNotNull null
           DraftInfo(
             folderPath = folder.absolutePath,
-            lastModifiedMs = folder.lastModified(),
-            metadata = loadUserInput(folder),
+            metadata = metadata,
             hasScreenshot = File(folder, SCREENSHOT).exists()
           )
         }.getOrNull() // Handles folder deleted mid-flight
       }
-      .sortedByDescending { it.lastModifiedMs }
+      .sortedByDescending { it.capturedAt }
 
     // Step 3: Atomic update
     _drafts.value = draftList
@@ -246,18 +303,29 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
   }
 
   /**
-   * Saves user metadata to a capture folder, marking it as a draft.
+   * Saves user input to a capture folder, marking it as a draft.
+   *
+   * Updates the existing [FileNames.METADATA] file with [BugReportState.DRAFT] state
+   * and the provided [userInput].
    *
    * After saving, evicts old drafts if over limit and refreshes the draft list.
    *
    * @param folder The capture folder
-   * @param metadata The user-provided title and description
+   * @param userInput The user-provided title and description
    */
-  override suspend fun saveUserInput(folder: File, metadata: BugReportMetadata): Unit = withContext(Dispatchers.IO) {
-    val file = File(folder, USER_INPUT)
+  override suspend fun saveUserInput(folder: File, userInput: UserInput): Unit = withContext(Dispatchers.IO) {
     runCatchingNonCancellation {
-      file.writeText(json.encodeToString(BugReportMetadata.serializer(), metadata))
-      Logger.d("Saved user input to: ${file.absolutePath}")
+      val existingMetadata = loadMetadata(folder)
+      val updatedMetadata = existingMetadata?.copy(
+        state = BugReportState.DRAFT,
+        userInput = userInput
+      ) ?: BugReportMetadata(
+        capturedAt = System.currentTimeMillis(),
+        state = BugReportState.DRAFT,
+        userInput = userInput
+      )
+      saveMetadata(folder, updatedMetadata)
+      Logger.d("Saved user input to: ${folder.absolutePath}")
     }.onFailure {
       Logger.e("Failed to save user input", it)
       return@withContext // Don't evict/refresh if save failed
@@ -271,7 +339,7 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
   /**
    * Evicts oldest drafts when count exceeds [maxDrafts].
    *
-   * Only counts/deletes folders that have [FileNames.USER_INPUT] (actual drafts),
+   * Only counts/deletes folders that have [BugReportState.DRAFT] state,
    * not in-progress captures. This is safe to call after saveSnapshot.
    *
    * @param maxDrafts Maximum number of drafts to retain (default: [DEFAULT_MAX_DRAFTS])
@@ -280,9 +348,14 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
     // Hold mutex for entire operation to prevent race conditions
     folderMutex.withLock {
       val currentDrafts = cacheDir.listFiles()
-        ?.filter { it.isDirectory && it.name.startsWith(TEMP_FOLDER_PREFIX) }
-        ?.filter { File(it, USER_INPUT).exists() } // Only drafts, not in-progress
-        ?.sortedByDescending { it.lastModified() }
+        ?.filter { it.isDirectory }
+        ?.mapNotNull { folder ->
+          val metadata = loadMetadata(folder) ?: return@mapNotNull null
+          if (metadata.state != BugReportState.DRAFT) return@mapNotNull null
+          folder to metadata.capturedAt
+        }
+        ?.sortedByDescending { it.second }
+        ?.map { it.first }
         ?: emptyList()
 
       if (currentDrafts.size <= maxDrafts) return@withLock
@@ -299,22 +372,27 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
   }
 
   /**
-   * Synchronously load user input JSON. Called from Dispatchers.IO.
+   * Synchronously load metadata JSON. Called from Dispatchers.IO.
    */
-  private fun loadUserInput(folder: File): BugReportMetadata? {
-    val file = File(folder, USER_INPUT)
+  private fun loadMetadata(folder: File): BugReportMetadata? {
+    val file = File(folder, METADATA)
     if (!file.exists()) return null
     return runCatching {
       json.decodeFromString(BugReportMetadata.serializer(), file.readText())
     }.getOrNull()
   }
 
-  // TODO: folder name will be updated to use uuid instead instead of TEMP_FOLDER_PREFIX + timestamp
-  private fun createTempFolder(timestampMs: Long): File {
-    val folder = File(cacheDir, "$TEMP_FOLDER_PREFIX${formatFilenameTimestamp(timestampMs)}")
-    check(folder.mkdirs() || folder.exists()) {
-      "Failed to create temp folder: ${folder.absolutePath}"
-    }
+  /**
+   * Synchronously save metadata JSON. Called from Dispatchers.IO.
+   */
+  private fun saveMetadata(folder: File, metadata: BugReportMetadata) {
+    val file = File(folder, METADATA)
+    file.writeText(json.encodeToString(BugReportMetadata.serializer(), metadata))
+  }
+
+  private fun createFolder(): File {
+    val folder = File(cacheDir, UUID.randomUUID().toString())
+    folder.checkFolderExists()
     return folder
   }
 
