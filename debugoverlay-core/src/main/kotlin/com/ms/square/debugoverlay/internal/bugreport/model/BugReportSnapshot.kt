@@ -38,12 +38,12 @@ internal class BugReportSnapshot(
   /**
    * Converts this snapshot to [BugReportData] for writing.
    *
-   * @param metadata User-provided title and description (null if skipped)
+   * @param userInput User-provided title and description (null if skipped)
    * @return BugReportData ready for ZIP writing
    */
-  fun toReportData(metadata: BugReportMetadata?): BugReportData = BugReportData(
+  fun toReportData(userInput: UserInput?): BugReportData = BugReportData(
     timestampMs = timestampMs,
-    userMetadata = metadata,
+    userInput = userInput,
     screenshot = screenshot,
     deviceInfo = deviceInfo,
     logs = logs,

@@ -43,7 +43,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 
 /**
  * Dialog for entering bug report metadata (title and optional description).
@@ -72,7 +72,7 @@ internal fun BugReportMetadataDialog(
   description: String,
   onDescriptionChange: (String) -> Unit,
   isSubmitting: Boolean = false,
-  onConfirm: (BugReportMetadata) -> Unit,
+  onConfirm: (UserInput) -> Unit,
   onDismiss: () -> Unit,
 ) {
   val imageBitmap = remember(screenshot) { screenshot?.asImageBitmap() }
@@ -108,9 +108,9 @@ internal fun BugReportMetadataDialog(
     confirmButton = {
       Button(
         onClick = {
-          // Always create metadata with current values (title can be blank, validatedTitle handles default)
-          val metadata = BugReportMetadata(title = title.trim(), description = description.trim())
-          onConfirm(metadata)
+          // Always create UserInput with current values (title can be blank, validatedTitle handles default)
+          val userInput = UserInput(title = title.trim(), description = description.trim())
+          onConfirm(userInput)
         },
         enabled = !isSubmitting
       ) {

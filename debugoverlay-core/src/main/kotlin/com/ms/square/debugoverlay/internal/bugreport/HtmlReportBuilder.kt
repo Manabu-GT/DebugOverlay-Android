@@ -3,7 +3,7 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.graphics.Bitmap
 import android.util.Base64
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportData
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
+import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.AppExitReason
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
@@ -53,23 +53,23 @@ internal object HtmlReportBuilder {
   }
 
   /**
-   * Injects user metadata into an existing HTML report via placeholder replacement.
+   * Injects user input into an existing HTML report via placeholder replacement.
    *
    * The HTML contains placeholders ([TITLE_PLACEHOLDER], [DESCRIPTION_PLACEHOLDER]) that
    * are replaced with actual values. This approach is more robust than searching for
    * literal HTML strings, as it won't silently fail if the template changes.
    *
    * @param html The original HTML content with placeholders
-   * @param metadata User-provided title and description
-   * @return HTML with metadata injected
+   * @param userInput User-provided title and description
+   * @return HTML with user input injected
    */
-  internal fun injectMetadata(html: String, metadata: BugReportMetadata): String {
+  internal fun injectUserInput(html: String, userInput: UserInput): String {
     // Replace title placeholder with user title or default
-    val title = metadata.title.takeIf { it.isNotBlank() } ?: DEFAULT_TITLE
+    val title = userInput.title.takeIf { it.isNotBlank() } ?: DEFAULT_TITLE
     var result = html.replace(TITLE_PLACEHOLDER, title.escapeHtml())
 
     // Replace description placeholder with section or empty string
-    val descriptionHtml = metadata.description.takeIf { it.isNotBlank() }
+    val descriptionHtml = userInput.description.takeIf { it.isNotBlank() }
       ?.let { buildDescriptionSection(it) }
       ?: ""
     result = result.replace(DESCRIPTION_PLACEHOLDER, descriptionHtml)
@@ -78,7 +78,7 @@ internal object HtmlReportBuilder {
   }
 
   /**
-   * Replaces placeholders with default values when no user metadata is provided.
+   * Replaces placeholders with default values when no user input is provided.
    * This ensures the HTML output doesn't contain raw placeholder comments.
    */
   internal fun injectDefaults(html: String): String = html
@@ -111,7 +111,7 @@ internal object HtmlReportBuilder {
     append("<body>\n")
     append("  <div class=\"container\">\n")
 
-    // Header with placeholders (replaced by injectMetadata() when user submits)
+    // Header with placeholders (replaced by injectUserInput() when user submits)
     appendHeader(timestamp)
 
     // Screenshot section

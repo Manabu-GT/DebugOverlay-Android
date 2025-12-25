@@ -1,6 +1,5 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
@@ -22,7 +21,7 @@ private const val SEPARATOR_WIDTH = 80
  * Utility functions for writing bug report data to files.
  *
  * File format strategy:
- * - JSON for structured data: user metadata, logs, network requests, device info, jank stats
+ * - JSON for structured data: logs, network requests, device info, jank stats
  * - Plain text for narrative data: app exits, UI hierarchy
  */
 internal object BugReportFileWriters {
@@ -33,13 +32,6 @@ internal object BugReportFileWriters {
   // ============================================================================
   // JSON Writers (structured data)
   // ============================================================================
-
-  /**
-   * Writes user-provided metadata (title/description) to a JSON file.
-   */
-  fun writeUserMetadata(metadata: BugReportMetadata, file: File) {
-    file.writeText(json.encodeToString(metadata))
-  }
 
   /**
    * Writes log entries to a JSON file.

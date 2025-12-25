@@ -28,8 +28,8 @@ import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
+import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.launch
@@ -54,7 +54,7 @@ private const val BUNDLE_KEY_DESCRIPTION = "description"
  * 5. User cancels → current input saved as draft → folder marked as draft
  *
  * Draft management:
- * - On cancel: saves user_input.json to mark folder as a draft
+ * - On cancel: saves metadata.json to mark folder as a draft
  * - On submit: deletes folder after successful ZIP creation
  * - Eviction runs after save to prevent exceeding max drafts
  */
@@ -114,9 +114,9 @@ internal class BugReportActivity : ComponentActivity() {
           description = currentDescription,
           onDescriptionChange = { currentDescription = it },
           isSubmitting = isSubmitting,
-          onConfirm = { metadata ->
+          onConfirm = { userInput ->
             handleConfirm(
-              metadata = metadata,
+              userInput = userInput,
               snackbarHostState = snackbarHostState,
               onSubmitStart = { isSubmitting = true },
               onSubmitEnd = { isSubmitting = false }
@@ -158,11 +158,11 @@ internal class BugReportActivity : ComponentActivity() {
 
     lifecycleScope.launch {
       runCatching {
-        val metadata = BugReportMetadata(
+        val userInput = UserInput(
           title = currentTitle.trim(),
           description = currentDescription.trim()
         )
-        DebugOverlay.bugReportGenerator.saveUserInputToDraft(folder, metadata)
+        DebugOverlay.bugReportGenerator.saveUserInputToDraft(folder, userInput)
         Logger.d("Saved draft on dismiss: ${folder.name}")
       }.onFailure {
         Logger.e("Failed to save draft on dismiss", it)
@@ -173,7 +173,7 @@ internal class BugReportActivity : ComponentActivity() {
   }
 
   private fun handleConfirm(
-    metadata: BugReportMetadata,
+    userInput: UserInput,
     snackbarHostState: SnackbarHostState,
     onSubmitStart: () -> Unit,
     onSubmitEnd: () -> Unit,
@@ -189,12 +189,12 @@ internal class BugReportActivity : ComponentActivity() {
 
       // Use validatedTitle to ensure non-blank title for final submission
       val defaultTitle = getString(R.string.debugoverlay_bug_report_default_title)
-      val validatedMetadata = BugReportMetadata(
-        title = metadata.validatedTitle(defaultTitle),
-        description = metadata.description
+      val validatedUserInput = UserInput(
+        title = userInput.validatedTitle(defaultTitle),
+        description = userInput.description
       )
 
-      when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, validatedMetadata)) {
+      when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, validatedUserInput)) {
         is BugReportResult.Success -> {
           val exported = IntentShareExporter(this@BugReportActivity).export(result.zipFile)
           if (exported) {

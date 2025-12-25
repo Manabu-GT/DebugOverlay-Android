@@ -3,9 +3,9 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.content.Context
 import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
+import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.awaitCatching
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
@@ -90,13 +90,11 @@ internal class BugReportGenerator(
    * Creates a ZIP file from the captured data in the folder.
    *
    * @param captureFolder Folder returned from [captureToFolder]
-   * @param metadata Optional user-provided title and description
+   * @param userInput Optional user-provided title and description
    * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
    */
-  suspend fun createReportFromFolder(captureFolder: File, metadata: BugReportMetadata? = null): BugReportResult = try {
-    val zipFile = withContext(Dispatchers.IO) {
-      zipWriter.writeFromFolder(captureFolder, metadata)
-    }
+  suspend fun createReportFromFolder(captureFolder: File, userInput: UserInput? = null): BugReportResult = try {
+    val zipFile = zipWriter.writeFromFolder(captureFolder, userInput)
     BugReportResult.Success(zipFile)
   } catch (e: IOException) {
     Logger.e("Bug report write failed", e)
@@ -104,16 +102,16 @@ internal class BugReportGenerator(
   }
 
   /**
-   * Saves user metadata to a capture folder, marking it as a draft.
+   * Saves user input to a capture folder, marking it as a draft.
    *
    * Called when user dismisses the metadata dialog without submitting.
    * After saving, evicts old drafts if over limit.
    *
    * @param captureFolder Folder returned from [captureToFolder]
-   * @param metadata User-provided title and description
+   * @param userInput User-provided title and description
    */
-  suspend fun saveUserInputToDraft(captureFolder: File, metadata: BugReportMetadata) =
-    storage.saveUserInput(captureFolder, metadata)
+  suspend fun saveUserInputToDraft(captureFolder: File, userInput: UserInput) =
+    storage.saveUserInput(captureFolder, userInput)
 
   /**
    * Deletes a capture folder and all its contents.
