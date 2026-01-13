@@ -58,20 +58,13 @@ import kotlinx.coroutines.flow.Flow
  * - Manual scroll pauses auto-scroll
  * - Detail screen navigation with back button
  * - FAB to resume auto-scroll when paused
- * - Source indicator showing "System Logcat" or custom source name (e.g., "Timber")
  *
  * @param logsFlow Flow of log entries to collect and display.
- * @param logSourceNameFlow Flow of current log source name.
  * @param modifier Modifier to be applied to the root layout
  */
 @Composable
-internal fun LogTabContent(
-  logsFlow: Flow<List<LogEntry>>,
-  logSourceNameFlow: Flow<String>,
-  modifier: Modifier = Modifier,
-) {
+internal fun LogTabContent(logsFlow: Flow<List<LogEntry>>, modifier: Modifier = Modifier) {
   val logEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
-  val logSourceName by logSourceNameFlow.collectAsStateWithLifecycle("")
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
   var searchQuery by remember { mutableStateOf("") }
@@ -109,7 +102,6 @@ internal fun LogTabContent(
     onBack = { selectedLogEntry = null },
     listContent = {
       LogListScreen(
-        logSourceName = logSourceName,
         searchQuery = searchQuery,
         onSearchQueryChanged = { searchQuery = it },
         selectedLevel = selectedLevel,
@@ -137,10 +129,8 @@ internal fun LogTabContent(
 /**
  * Log list screen with filters and log entries.
  */
-@Suppress("LongParameterList")
 @Composable
 private fun LogListScreen(
-  logSourceName: String,
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   selectedLevel: LogLevel,
@@ -154,7 +144,6 @@ private fun LogListScreen(
   Box(modifier = modifier.fillMaxWidth()) {
     Column(modifier = Modifier.fillMaxWidth()) {
       LogFilterBar(
-        logSourceName = logSourceName,
         searchQuery = searchQuery,
         onSearchQueryChanged = onSearchQueryChanged,
         selectedLevel = selectedLevel,
@@ -180,7 +169,6 @@ private fun LogListScreen(
 
 @Composable
 private fun LogFilterBar(
-  logSourceName: String,
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   selectedLevel: LogLevel,
@@ -188,49 +176,18 @@ private fun LogFilterBar(
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxWidth().padding(top = 8.dp)) {
-    Row(
+    SearchField(
+      searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
+      searchQuery = searchQuery,
+      onSearchQueryChanged = onSearchQueryChanged,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 8.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      LogSourceIndicator(sourceName = logSourceName)
-      SearchField(
-        searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
-        searchQuery = searchQuery,
-        onSearchQueryChanged = onSearchQueryChanged,
-        modifier = Modifier.weight(1f)
-      )
-    }
+        .padding(horizontal = 8.dp)
+    )
 
     LogLevelFilters(
       selectedLevel = selectedLevel,
       onLevelSelected = onLevelSelected
-    )
-  }
-}
-
-/**
- * Badge showing the current log source (e.g., "System Logcat" or "Timber").
- */
-@Composable
-private fun LogSourceIndicator(sourceName: String, modifier: Modifier = Modifier) {
-  val displayName = sourceName.ifEmpty { stringResource(R.string.debugoverlay_log_source_logcat) }
-  val sourceDescription = stringResource(R.string.debugoverlay_log_source_description, displayName)
-
-  Surface(
-    modifier = modifier.semantics {
-      contentDescription = sourceDescription
-    },
-    shape = MaterialTheme.shapes.extraSmall,
-    color = MaterialTheme.colorScheme.tertiaryContainer
-  ) {
-    Text(
-      text = displayName,
-      style = MaterialTheme.typography.labelSmall,
-      color = MaterialTheme.colorScheme.onTertiaryContainer,
-      modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
     )
   }
 }

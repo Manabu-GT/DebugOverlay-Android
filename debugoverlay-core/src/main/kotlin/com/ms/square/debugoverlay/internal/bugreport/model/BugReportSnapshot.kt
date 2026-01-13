@@ -17,7 +17,9 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  * @param timestampMs The time when the snapshot was captured (epoch millis)
  * @param screenshot Screenshot of the app (null if capture failed)
  * @param deviceInfo Device hardware, system, battery, and network information
- * @param logs Recent log entries
+ * @param logcatLogs Recent logcat entries (always present)
+ * @param customTrackerLogs Logs from custom tracker (null if no tracker registered)
+ * @param customTrackerSourceName Name of custom tracker (e.g., "Timber")
  * @param networkRequests Recent network requests
  * @param jankStats Frame rendering statistics
  * @param appExitInfos Recent app exit reasons
@@ -28,7 +30,9 @@ internal class BugReportSnapshot(
   val timestampMs: Long,
   val screenshot: Bitmap?,
   val deviceInfo: DeviceInfo?,
-  val logs: List<LogEntry>,
+  val logcatLogs: List<LogEntry>,
+  val customTrackerLogs: List<LogEntry>?,
+  val customTrackerSourceName: String?,
   val networkRequests: List<NetworkRequest>,
   val jankStats: JankStatsUiState?,
   val appExitInfos: List<AppExitInfo>,
@@ -46,7 +50,9 @@ internal class BugReportSnapshot(
     userInput = userInput,
     screenshot = screenshot,
     deviceInfo = deviceInfo,
-    logs = logs,
+    logcatLogs = logcatLogs,
+    customTrackerLogs = customTrackerLogs,
+    customTrackerSourceName = customTrackerSourceName,
     networkRequests = networkRequests,
     jankStats = jankStats,
     appExitInfos = appExitInfos,

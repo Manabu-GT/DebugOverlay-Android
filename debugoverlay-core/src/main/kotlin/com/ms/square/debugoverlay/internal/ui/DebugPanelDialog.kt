@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,11 +50,14 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
+import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_TRACKER_NAME
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
-  LOG(R.string.debugoverlay_tab_log),
+  LOGCAT(R.string.debugoverlay_tab_logcat),
+  CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from tracker
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
@@ -218,24 +222,49 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
-  var selectedTab by remember { mutableStateOf(DebugTab.LOG) }
+  val repository = DebugOverlay.overlayDataRepository
+  val hasCustomTracker by repository.hasCustomTracker.collectAsStateWithLifecycle()
+  val customTrackerName by repository.customTrackerSourceName.collectAsStateWithLifecycle()
+
+  // Build visible tabs: hide CUSTOM_LOG when no custom tracker is registered
+  val visibleTabs = remember(hasCustomTracker) {
+    DebugTab.entries.filter { tab ->
+      tab != DebugTab.CUSTOM_LOG || hasCustomTracker
+    }
+  }
+
+  // Use rememberSaveable to persist tab selection across configuration changes
+  var selectedTab by rememberSaveable { mutableStateOf(DebugTab.LOGCAT) }
+
+  // Validate selection when tabs change (e.g., custom tracker removed)
+  LaunchedEffect(visibleTabs) {
+    if (selectedTab !in visibleTabs) {
+      selectedTab = DebugTab.LOGCAT
+    }
+  }
+
+  val selectedTabIndex = visibleTabs.indexOf(selectedTab).coerceAtLeast(0)
 
   Column(
     modifier = modifier.fillMaxSize()
   ) {
     // Tabs
     PrimaryScrollableTabRow(
-      selectedTabIndex = selectedTab.ordinal,
+      selectedTabIndex = selectedTabIndex,
       modifier = Modifier.fillMaxWidth(),
       containerColor = Color.Transparent
     ) {
-      DebugTab.entries.forEach { tab ->
+      visibleTabs.forEach { tab ->
         Tab(
           selected = selectedTab == tab,
           onClick = { selectedTab = tab },
           text = {
             Text(
-              text = stringResource(tab.titleResId),
+              text = if (tab == DebugTab.CUSTOM_LOG) {
+                customTrackerName ?: DEFAULT_CUSTOM_TRACKER_NAME
+              } else {
+                stringResource(tab.titleResId)
+              },
               style = MaterialTheme.typography.labelLarge
             )
           }
@@ -244,23 +273,25 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     }
     // Tab content
     when (selectedTab) {
-      DebugTab.LOG -> LogTabContent(
-        logsFlow = DebugOverlay.overlayDataRepository.logs,
-        logSourceNameFlow = DebugOverlay.overlayDataRepository.logSourceName
+      DebugTab.LOGCAT -> LogTabContent(
+        logsFlow = repository.logcatLogs
+      )
+      DebugTab.CUSTOM_LOG -> LogTabContent(
+        logsFlow = repository.customTrackerLogs.filterNotNull()
       )
       DebugTab.APP_EXITS -> AppExitTabContent(
-        exitInfosFlow = DebugOverlay.overlayDataRepository.appExitInfos,
-        isSupported = DebugOverlay.overlayDataRepository.isAppExitSupported
+        exitInfosFlow = repository.appExitInfos,
+        isSupported = repository.isAppExitSupported
       )
       DebugTab.NETWORK -> NetworkTabContent(
-        netStatsFlow = DebugOverlay.overlayDataRepository.netStats,
-        networkRequestsFlow = DebugOverlay.overlayDataRepository.networkRequests
+        netStatsFlow = repository.netStats,
+        networkRequestsFlow = repository.networkRequests
       )
       DebugTab.JANKSTATS -> JankStatsTabContent(
-        jankStatsFlow = DebugOverlay.overlayDataRepository.jankStats
+        jankStatsFlow = repository.jankStats
       )
       DebugTab.UI -> UiTabContent()
-      DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
+      DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
     }
   }
 }

@@ -10,6 +10,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
@@ -34,10 +35,21 @@ internal object BugReportFileWriters {
   // ============================================================================
 
   /**
-   * Writes log entries to a JSON file.
+   * Writes logcat log entries to a JSON file.
    */
-  fun writeLogs(logs: List<LogEntry>, file: File) {
+  fun writeLogcatLogs(logs: List<LogEntry>, file: File) {
     file.writeText(json.encodeToString(logs))
+  }
+
+  /**
+   * Writes custom tracker log entries to a JSON file with source name metadata.
+   */
+  fun writeCustomLogs(logs: List<LogEntry>, sourceName: String, file: File) {
+    val jsonObj = buildJsonObject {
+      put("sourceName", sourceName)
+      put("entries", json.encodeToJsonElement(logs))
+    }
+    file.writeText(json.encodeToString(jsonObj))
   }
 
   /**

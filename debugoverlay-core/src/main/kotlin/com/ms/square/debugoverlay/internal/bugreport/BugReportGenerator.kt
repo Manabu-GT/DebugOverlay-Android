@@ -60,7 +60,9 @@ internal class BugReportGenerator(
           val screenshotDeferred = async {
             activityProvider.activity?.let { ScreenshotCapture.capture(it) }
           }
-          val logsDeferred = async { repository.logs.first() }
+          val logcatLogsDeferred = async { repository.logcatLogs.first() }
+          val customTrackerLogsDeferred = async { repository.customTrackerLogs.first() }
+          val customTrackerNameDeferred = async { repository.customTrackerSourceName.first() }
           val networkRequestsDeferred = async { repository.networkRequests.first() }
           val deviceInfoDeferred = async { repository.queryDeviceInfoSnapshot() }
           val jankStatsDeferred = async { repository.jankStats.first() }
@@ -71,9 +73,11 @@ internal class BugReportGenerator(
             timestampMs = timestampMs,
             // ScreenshotCapture.capture() handles errors internally, returns null on failure
             screenshot = screenshotDeferred.await(),
-            logs = logsDeferred.awaitCatching().getOrDefault(emptyList()),
-            networkRequests = networkRequestsDeferred.awaitCatching().getOrDefault(emptyList()),
             deviceInfo = deviceInfoDeferred.awaitCatching().getOrNull(),
+            logcatLogs = logcatLogsDeferred.awaitCatching().getOrDefault(emptyList()),
+            customTrackerLogs = customTrackerLogsDeferred.awaitCatching().getOrNull(),
+            customTrackerSourceName = customTrackerNameDeferred.awaitCatching().getOrNull(),
+            networkRequests = networkRequestsDeferred.awaitCatching().getOrDefault(emptyList()),
             jankStats = jankStatsDeferred.awaitCatching().getOrNull(),
             appExitInfos = appExitInfosDeferred.awaitCatching().getOrDefault(emptyList()),
             // captureUiHierarchy() handles errors internally, returns null on failure

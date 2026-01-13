@@ -6,6 +6,8 @@
 
   <!-- Tab Titles -->
   <string name="debugoverlay_tab_log">Log</string>
+  <string name="debugoverlay_tab_logcat">Logcat</string>
+  <string name="debugoverlay_tab_custom_log">Custom</string>
   <string name="debugoverlay_tab_app_exits">AppExits</string>
   <string name="debugoverlay_tab_network">Network</string>
   <string name="debugoverlay_tab_jankstats">JankStats</string>
@@ -23,8 +25,6 @@
   <!-- Log Tab -->
   <string name="debugoverlay_no_log_entries">No log entries</string>
   <string name="debugoverlay_search_logs">Search logs…</string>
-  <string name="debugoverlay_log_source_logcat">Logcat</string>
-  <string name="debugoverlay_log_source_description">Log source: %1$s</string>
   <string name="debugoverlay_log_entry_description">Log entry: %1$s, %2$s</string>
   <string name="debugoverlay_filter_chip_description">Filter by %1$s level logs</string>
   <string name="debugoverlay_filter_tag">Filter Tag</string>
