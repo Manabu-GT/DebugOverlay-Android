@@ -5,18 +5,15 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,8 +40,6 @@ internal val FAB_SIZE = 56.dp
 
 private const val FEEDBACK_DISPLAY_DURATION_MS = 1500L
 private const val COLOR_ANIMATION_DURATION_MS = 200
-
-private const val MAX_BADGE_COUNT = 9
 
 /**
  * Floating Action Button for quick bug reporting.
@@ -106,12 +101,7 @@ internal fun BugReporterFab(
       onClick = {
         if (fabState == BugReporterFabState.Idle) {
           if (draftCount > 0) {
-            // Launch activity with draft picker
-            val intent = Intent(context, BugReportActivity::class.java).apply {
-              addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-              putExtra(INTENT_EXTRA_SHOW_DRAFT_PICKER, true)
-            }
-            context.startActivity(intent)
+            BugReportActivity.launchWithDraftPicker(context)
           } else {
             // Start new capture
             scope.launch {
@@ -120,12 +110,7 @@ internal fun BugReporterFab(
                 .onSuccess { folder ->
                   // Check if still active before launching activity
                   if (!isActive) return@onSuccess
-                  // Launch activity with folder path for metadata dialog
-                  val intent = Intent(context, BugReportActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    putExtra(INTENT_EXTRA_CAPTURE_FOLDER, folder.absolutePath)
-                  }
-                  context.startActivity(intent)
+                  BugReportActivity.launchWithMetadataDialog(context, folder.absolutePath)
                   fabState = BugReporterFabState.Idle
                 }.onFailure {
                   val errorMsg = context.getString(R.string.debugoverlay_bug_report_error)
@@ -175,24 +160,6 @@ internal fun BugReporterFab(
         modifier = Modifier.align(Alignment.TopEnd)
       )
     }
-  }
-}
-
-@Composable
-private fun DraftCountBadge(draftCount: Int, modifier: Modifier = Modifier) {
-  Badge(
-    // Offset to fine-tune badge position at top-right (negative y moves up)
-    modifier = modifier.offset(x = 1.dp, y = (-1).dp),
-    // Use error color for "items requiring attention" per M3 badge convention
-    containerColor = MaterialTheme.colorScheme.error,
-    contentColor = MaterialTheme.colorScheme.onError
-  ) {
-    val badgeText = when {
-      draftCount == 1 -> null // Dot only
-      draftCount > MAX_BADGE_COUNT -> "${MAX_BADGE_COUNT}+"
-      else -> draftCount.toString()
-    }
-    badgeText?.let { Text(it) }
   }
 }
 

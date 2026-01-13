@@ -1,5 +1,7 @@
 package com.ms.square.debugoverlay.internal.bugreport.ui
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,11 +35,12 @@ import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.launch
 import java.io.File
 
-internal const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
-internal const val INTENT_EXTRA_SHOW_DRAFT_PICKER = "show_draft_picker"
+private const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
+private const val INTENT_EXTRA_SHOW_DRAFT_PICKER = "show_draft_picker"
 private const val BUNDLE_KEY_CAPTURE_FOLDER = "capture_folder"
 
 /**
@@ -234,7 +237,7 @@ internal class BugReportActivity : ComponentActivity() {
     }
 
     lifecycleScope.launch {
-      runCatching {
+      runCatchingNonCancellation {
         val userInput = UserInput(
           title = currentTitle.trim(),
           description = currentDescription.trim()
@@ -298,6 +301,24 @@ internal class BugReportActivity : ComponentActivity() {
     // Only save captureFolder manually; other state uses rememberSaveable
     captureFolder?.absolutePath?.let {
       outState.putString(BUNDLE_KEY_CAPTURE_FOLDER, it)
+    }
+  }
+
+  companion object {
+    fun launchWithDraftPicker(context: Context) {
+      val intent = Intent(context, BugReportActivity::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        putExtra(INTENT_EXTRA_SHOW_DRAFT_PICKER, true)
+      }
+      context.startActivity(intent)
+    }
+
+    fun launchWithMetadataDialog(context: Context, bugCapturedFolderPath: String) {
+      val intent = Intent(context, BugReportActivity::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        putExtra(INTENT_EXTRA_CAPTURE_FOLDER, bugCapturedFolderPath)
+      }
+      context.startActivity(intent)
     }
   }
 }
