@@ -135,7 +135,9 @@ internal enum class AppExitReason(val value: Int, val label: String, val severit
   enum class Severity { CRITICAL, WARNING, INFO }
 
   companion object {
-    fun fromValue(value: Int): AppExitReason = entries.find { it.value == value } ?: UNKNOWN
+    private val valueMap: Map<Int, AppExitReason> = entries.associateBy(AppExitReason::value)
+
+    fun fromValue(value: Int): AppExitReason = valueMap[value] ?: UNKNOWN
   }
 }
 
@@ -163,6 +165,8 @@ internal enum class ProcessImportance(val value: Int, val label: String) {
   ;
 
   companion object {
-    fun fromValue(value: Int): ProcessImportance = entries.find { it.value == value } ?: UNKNOWN
+    private val valueMap: Map<Int, ProcessImportance> = entries.associateBy(ProcessImportance::value)
+
+    fun fromValue(value: Int): ProcessImportance = valueMap[value] ?: UNKNOWN
   }
 }

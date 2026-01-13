@@ -43,5 +43,10 @@ dependencies {
   implementation(projects.debugoverlayCore)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.okhttp)
+
   testImplementation(libs.junit4)
+  testImplementation(libs.truth)
+  testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.okhttp.mockwebserver)
+  testImplementation(libs.robolectric)
 }
