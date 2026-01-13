@@ -109,17 +109,6 @@ internal fun DraftPickerScreen(
   // Load thumbnails for drafts
   LoadThumbnailsEffect(bugReportGenerator, drafts, thumbnails)
 
-  // Dismiss sheet when all drafts are deleted
-  val visibleDrafts = state.draftSelectionState.filterVisible(drafts)
-  AutoDismissEffect(
-    bugReportGenerator = bugReportGenerator,
-    drafts = drafts,
-    visibleDrafts = visibleDrafts,
-    sheetState = state.sheetState,
-    draftSelectionState = state.draftSelectionState,
-    onDismiss = onDismiss
-  )
-
   // Create callbacks
   val callbacks = rememberDraftSelectionCallbacks(
     bugReportGenerator = bugReportGenerator,
@@ -173,33 +162,6 @@ private fun LoadThumbnailsEffect(
         }.getOrNull()
         thumbnails[draft.folderPath] = thumbnail
       }
-    }
-  }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AutoDismissEffect(
-  bugReportGenerator: BugReportGenerator,
-  drafts: List<DraftInfo>,
-  visibleDrafts: List<DraftInfo>,
-  sheetState: SheetState,
-  draftSelectionState: DraftSelectionState,
-  onDismiss: () -> Unit,
-) {
-  LaunchedEffect(visibleDrafts.size) {
-    if (drafts.isNotEmpty() && visibleDrafts.isEmpty()) {
-      // Delete pending drafts directly here (in suspend context with NonCancellable)
-      // This avoids launching a new coroutine that might not start if scope is cancelled
-      withContext(NonCancellable) {
-        // toList() to avoid ConcurrentModificationException when iterating and removing
-        draftSelectionState.pendingDelete.values.toList().forEach { draft ->
-          bugReportGenerator.deleteCaptureFolder(draft.folder)
-          draftSelectionState.confirmDelete(draft)
-        }
-      }
-      sheetState.hide()
-      onDismiss()
     }
   }
 }
