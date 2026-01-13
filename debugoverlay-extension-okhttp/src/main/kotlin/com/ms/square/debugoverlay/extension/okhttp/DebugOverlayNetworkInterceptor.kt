@@ -21,7 +21,6 @@ import okhttp3.Response
 import okhttp3.internal.http.promisesBody
 import okio.Buffer
 import okio.GzipSource
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.net.HttpURLConnection.HTTP_BAD_GATEWAY
 import java.net.HttpURLConnection.HTTP_BAD_REQUEST
@@ -93,7 +92,6 @@ public class DebugOverlayNetworkInterceptor(
   private val headersNameToRedact: Set<String> = DEFAULT_HEADERS_REDACT,
   private val queryParamsNameToRedact: Set<String> = DEFAULT_QUERY_PARAMS_REDACT,
   private val maxBodySize: Long = DEFAULT_MAX_BODY_SIZE,
-  @VisibleForTesting internal val autoInstall: Boolean = true,
 ) : Interceptor,
   NetworkRequestTracker {
 
@@ -101,10 +99,8 @@ public class DebugOverlayNetworkInterceptor(
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
   init {
-    if (autoInstall) {
-      DebugOverlay.configure {
-        copy(networkRequestTracker = this@DebugOverlayNetworkInterceptor)
-      }
+    DebugOverlay.configure {
+      copy(networkRequestTracker = this@DebugOverlayNetworkInterceptor)
     }
   }
 

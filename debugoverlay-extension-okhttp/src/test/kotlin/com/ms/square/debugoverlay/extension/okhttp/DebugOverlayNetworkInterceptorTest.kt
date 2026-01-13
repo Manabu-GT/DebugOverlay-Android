@@ -21,7 +21,7 @@ import org.robolectric.RobolectricTestRunner
 class DebugOverlayNetworkInterceptorTest {
 
   private val mockWebServer = MockWebServer()
-  private val interceptor = DebugOverlayNetworkInterceptor(autoInstall = false)
+  private val interceptor = DebugOverlayNetworkInterceptor()
   private val client = OkHttpClient.Builder()
     .addInterceptor(interceptor)
     .build()
@@ -182,7 +182,7 @@ class DebugOverlayNetworkInterceptorTest {
 
   @Test
   fun `intercept respects maxStoredRequests limit`() = runTest {
-    val limitedInterceptor = DebugOverlayNetworkInterceptor(maxStoredRequests = 2, autoInstall = false)
+    val limitedInterceptor = DebugOverlayNetworkInterceptor(maxStoredRequests = 2)
     val limitedClient = OkHttpClient.Builder()
       .addInterceptor(limitedInterceptor)
       .build()
