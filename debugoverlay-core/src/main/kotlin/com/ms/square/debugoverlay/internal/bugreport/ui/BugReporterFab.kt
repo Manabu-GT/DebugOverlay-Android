@@ -36,6 +36,7 @@ import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 internal val FAB_SIZE = 56.dp
@@ -117,6 +118,8 @@ internal fun BugReporterFab(
               fabState = BugReporterFabState.Processing
               bugReportGenerator.captureToFolder()
                 .onSuccess { folder ->
+                  // Check if still active before launching activity
+                  if (!isActive) return@onSuccess
                   // Launch activity with folder path for metadata dialog
                   val intent = Intent(context, BugReportActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -22,6 +22,7 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
@@ -121,6 +122,7 @@ internal fun DraftPickerScreen(
 
   // Create callbacks
   val callbacks = rememberDraftSelectionCallbacks(
+    bugReportGenerator = bugReportGenerator,
     state = state,
     onDraftSelected = onDraftSelected,
     onNewCaptureCreated = onNewCaptureCreated,
@@ -150,16 +152,20 @@ private fun LoadThumbnailsEffect(
     val currentPaths = drafts.map { it.folderPath }.toSet()
     thumbnails.keys.filter { it !in currentPaths }.forEach { thumbnails.remove(it) }
 
-    // Determine which drafts need loading BEFORE launching coroutines (prevents race condition)
-    val draftsToLoad = drafts.filter { it.folderPath !in thumbnails }
-
-    // Pre-register with null to prevent duplicate launches on recomposition
-    draftsToLoad.forEach { thumbnails[it.folderPath] = null }
-
+    // Pre-register BEFORE filtering to prevent race
+    drafts.forEach { draft ->
+      if (draft.folderPath !in thumbnails) {
+        thumbnails[draft.folderPath] = null
+      }
+    }
+    // Now launch only for those we just registered
+    val draftsToLoad = drafts.filter { draft ->
+      thumbnails[draft.folderPath] == null && draft.hasScreenshot
+    }
     // Load thumbnails in parallel with error handling
     draftsToLoad.forEach { draft ->
       launch {
-        val thumbnail = runCatching {
+        val thumbnail = runCatchingNonCancellation {
           bugReportGenerator.loadScreenshotPreview(
             draft.folder,
             maxDimension = THUMBNAIL_MAX_DIMENSION
@@ -201,6 +207,7 @@ private fun AutoDismissEffect(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun rememberDraftSelectionCallbacks(
+  bugReportGenerator: BugReportGenerator,
   state: DraftPickerState,
   onDraftSelected: (DraftInfo) -> Unit,
   onNewCaptureCreated: (File) -> Unit,
@@ -220,7 +227,7 @@ private fun rememberDraftSelectionCallbacks(
       onCreateNew = {
         state.scope.launch {
           state.sheetState.hide()
-          DebugOverlay.bugReportGenerator.captureToFolder()
+          bugReportGenerator.captureToFolder()
             .onSuccess { folder -> currentOnNewCaptureCreated(folder) }
             .onFailure {
               Logger.e("Failed to capture new bug report", it)
@@ -231,8 +238,8 @@ private fun rememberDraftSelectionCallbacks(
       },
       onDraftSelected = { draft ->
         state.scope.launch {
-          state.sheetState.hide()
           if (draft.folder.exists()) {
+            state.sheetState.hide()
             currentOnDraftSelected(draft)
           } else {
             state.snackbarHostState.showSnackbar(currentStrings.draftNotFoundMessage)
@@ -249,7 +256,7 @@ private fun rememberDraftSelectionCallbacks(
           when (result) {
             SnackbarResult.ActionPerformed -> state.draftSelectionState.undoDelete(draft)
             SnackbarResult.Dismissed -> withContext(NonCancellable) {
-              DebugOverlay.bugReportGenerator.deleteCaptureFolder(draft.folder)
+              bugReportGenerator.deleteCaptureFolder(draft.folder)
               state.draftSelectionState.confirmDelete(draft)
             }
           }
@@ -260,8 +267,8 @@ private fun rememberDraftSelectionCallbacks(
           // Use NonCancellable to ensure deletions complete even if scope is cancelled
           // (e.g., when Activity finishes during auto-dismiss)
           withContext(NonCancellable) {
-            state.draftSelectionState.pendingDelete.values.forEach { draft ->
-              DebugOverlay.bugReportGenerator.deleteCaptureFolder(draft.folder)
+            state.draftSelectionState.pendingDelete.values.toList().forEach { draft ->
+              bugReportGenerator.deleteCaptureFolder(draft.folder)
             }
           }
           currentOnDismiss()
