@@ -21,6 +21,7 @@ import okhttp3.Response
 import okhttp3.internal.http.promisesBody
 import okio.Buffer
 import okio.GzipSource
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.net.HttpURLConnection.HTTP_BAD_GATEWAY
 import java.net.HttpURLConnection.HTTP_BAD_REQUEST
@@ -92,6 +93,7 @@ public class DebugOverlayNetworkInterceptor(
   private val headersNameToRedact: Set<String> = DEFAULT_HEADERS_REDACT,
   private val queryParamsNameToRedact: Set<String> = DEFAULT_QUERY_PARAMS_REDACT,
   private val maxBodySize: Long = DEFAULT_MAX_BODY_SIZE,
+  @VisibleForTesting internal val autoInstall: Boolean = true,
 ) : Interceptor,
   NetworkRequestTracker {
 
@@ -99,8 +101,10 @@ public class DebugOverlayNetworkInterceptor(
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
   init {
-    DebugOverlay.configure {
-      copy(networkRequestTracker = this@DebugOverlayNetworkInterceptor)
+    if (autoInstall) {
+      DebugOverlay.configure {
+        copy(networkRequestTracker = this@DebugOverlayNetworkInterceptor)
+      }
     }
   }
 
@@ -235,26 +239,19 @@ public class DebugOverlayNetworkInterceptor(
     requestContentType: String?,
     requestContentLength: Long?,
   ): NetworkData {
-    var buffer = Buffer()
-    body.writeTo(buffer)
+    val rawBuffer = Buffer()
+    body.writeTo(rawBuffer)
 
-    var gzippedLength: Long? = null
-    if ("gzip".equals(headers["Content-Encoding"], ignoreCase = true)) {
-      gzippedLength = buffer.size
-      try {
-        val decompressed = Buffer()
-        GzipSource(buffer).use { gzippedSource ->
-          decompressed.writeAll(gzippedSource)
-        }
-        buffer = decompressed
-      } catch (e: IOException) {
-        return NetworkData(
-          headers = requestHeaders,
-          contentType = requestContentType,
-          contentSize = gzippedLength,
-          content = "N/A - [failed to decompress gzip: ${e.message}]"
-        )
-      }
+    val decompressionResult = rawBuffer.decompressIfGzipped(headers["Content-Encoding"])
+
+    val (buffer, gzippedLength) = when (decompressionResult) {
+      is GzipDecompressionResult.Success -> decompressionResult.buffer to decompressionResult.gzippedLength
+      is GzipDecompressionResult.Failure -> return NetworkData(
+        headers = requestHeaders,
+        contentType = requestContentType,
+        contentSize = decompressionResult.gzippedLength,
+        content = "N/A - [${decompressionResult.errorMessage}]"
+      )
     }
 
     // Reports compressed size when gzipped
@@ -356,24 +353,17 @@ public class DebugOverlayNetworkInterceptor(
     }
 
     // Clone buffer to preserve original for OkHttp to read
-    var buffer = source.buffer.clone()
-    var gzippedLength: Long? = null
+    val rawBuffer = source.buffer.clone()
+    val decompressionResult = rawBuffer.decompressIfGzipped(response.headers["Content-Encoding"])
 
-    if ("gzip".equals(response.headers["Content-Encoding"], ignoreCase = true)) {
-      gzippedLength = buffer.size
-      try {
-        GzipSource(buffer).use { gzippedSource ->
-          buffer = Buffer()
-          buffer.writeAll(gzippedSource)
-        }
-      } catch (e: IOException) {
-        return NetworkData(
-          headers = responseHeaders,
-          contentType = responseContentType,
-          contentSize = gzippedLength,
-          content = "N/A - [failed to decompress gzip: ${e.message}]"
-        )
-      }
+    val (buffer, gzippedLength) = when (decompressionResult) {
+      is GzipDecompressionResult.Success -> decompressionResult.buffer to decompressionResult.gzippedLength
+      is GzipDecompressionResult.Failure -> return NetworkData(
+        headers = responseHeaders,
+        contentType = responseContentType,
+        contentSize = decompressionResult.gzippedLength,
+        content = "N/A - [${decompressionResult.errorMessage}]"
+      )
     }
 
     // Reports compressed size when gzipped
@@ -529,3 +519,51 @@ private data class NetworkData(
   val contentSize: Long?,
   val content: String?,
 )
+
+/**
+ * Result of attempting to decompress a gzip-encoded buffer.
+ */
+private sealed interface GzipDecompressionResult {
+  /**
+   * Successfully decompressed (or no decompression needed).
+   * @param buffer The (possibly decompressed) buffer
+   * @param gzippedLength Original compressed size if gzipped, null if not gzipped
+   */
+  data class Success(val buffer: Buffer, val gzippedLength: Long?) : GzipDecompressionResult
+
+  /**
+   * Decompression failed.
+   * @param gzippedLength Original compressed size
+   * @param errorMessage Error description for display
+   */
+  data class Failure(val gzippedLength: Long, val errorMessage: String) : GzipDecompressionResult
+}
+
+/**
+ * Attempts to decompress a gzip-encoded buffer if Content-Encoding indicates gzip.
+ *
+ * **Note:** This buffer is consumed during decompression. Clone before calling if the
+ * original buffer needs to be preserved.
+ *
+ * @param contentEncoding The Content-Encoding header value
+ * @return [GzipDecompressionResult.Success] with decompressed buffer, or [GzipDecompressionResult.Failure] on error
+ */
+private fun Buffer.decompressIfGzipped(contentEncoding: String?): GzipDecompressionResult {
+  if (!"gzip".equals(contentEncoding, ignoreCase = true)) {
+    return GzipDecompressionResult.Success(buffer = this, gzippedLength = null)
+  }
+
+  val gzippedLength = size
+  return try {
+    val decompressed = Buffer()
+    GzipSource(this).use { gzippedSource ->
+      decompressed.writeAll(gzippedSource)
+    }
+    GzipDecompressionResult.Success(buffer = decompressed, gzippedLength = gzippedLength)
+  } catch (e: IOException) {
+    GzipDecompressionResult.Failure(
+      gzippedLength = gzippedLength,
+      errorMessage = "failed to decompress gzip: ${e.message}"
+    )
+  }
+}
