@@ -1,5 +1,7 @@
 package com.ms.square.debugoverlay.internal.bugreport.ui
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -22,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -36,8 +39,8 @@ import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import kotlinx.coroutines.launch
 import java.io.File
 
-internal const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
-internal const val INTENT_EXTRA_SHOW_DRAFT_PICKER = "show_draft_picker"
+private const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
+private const val INTENT_EXTRA_SHOW_DRAFT_PICKER = "show_draft_picker"
 private const val BUNDLE_KEY_CAPTURE_FOLDER = "capture_folder"
 
 /**
@@ -298,6 +301,24 @@ internal class BugReportActivity : ComponentActivity() {
     // Only save captureFolder manually; other state uses rememberSaveable
     captureFolder?.absolutePath?.let {
       outState.putString(BUNDLE_KEY_CAPTURE_FOLDER, it)
+    }
+  }
+
+  companion object {
+    fun launchWithDraftPicker(context: Context) {
+      val intent = Intent(context, BugReportActivity::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        putExtra(INTENT_EXTRA_SHOW_DRAFT_PICKER, true)
+      }
+      context.startActivity(intent)
+    }
+
+    fun launchWithMetadataDialog(context: Context, bugCapturedFolderPath: String) {
+      val intent = Intent(context, BugReportActivity::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        putExtra(INTENT_EXTRA_CAPTURE_FOLDER, bugCapturedFolderPath)
+      }
+      context.startActivity(intent)
     }
   }
 }

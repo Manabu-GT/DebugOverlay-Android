@@ -1,8 +1,8 @@
 package com.ms.square.debugoverlay.internal.ui
 
-import android.content.Intent
 import android.view.View
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,18 +32,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
-import com.ms.square.debugoverlay.internal.bugreport.ui.INTENT_EXTRA_CAPTURE_FOLDER
+import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
@@ -108,10 +114,17 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss: () -> Unit) {
+private fun DebugPanelTopAppBar(
+  bugReportGenerator: BugReportGenerator = DebugOverlay.bugReportGenerator,
+  snackBarHostState: SnackbarHostState,
+  onDismiss: () -> Unit,
+) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var isCapturing by remember { mutableStateOf(false) }
+
+  // Observe draft count for badge and click behavior
+  val draftCount by bugReportGenerator.draftCount.collectAsStateWithLifecycle(initialValue = 0)
 
   TopAppBar(
     title = {
@@ -122,24 +135,28 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
     },
     actions = {
       BugReportButton(
-        isGenerating = isCapturing,
-        onGenerateReport = {
-          scope.launch {
-            isCapturing = true
-            try {
-              DebugOverlay.bugReportGenerator.captureToFolder()
-                .onSuccess { folder ->
-                  // Launch BugReportActivity for metadata dialog
-                  val intent = Intent(context, BugReportActivity::class.java).apply {
-                    putExtra(INTENT_EXTRA_CAPTURE_FOLDER, folder.absolutePath)
+        isCapturing = isCapturing,
+        draftCount = draftCount,
+        onClick = {
+          if (draftCount > 0) {
+            BugReportActivity.launchWithDraftPicker(context)
+          } else {
+            // Start new capture
+            scope.launch {
+              isCapturing = true
+              try {
+                bugReportGenerator.captureToFolder()
+                  .onSuccess { folder ->
+                    // Check if still active before launching activity
+                    if (!isActive) return@onSuccess
+                    BugReportActivity.launchWithMetadataDialog(context, folder.absolutePath)
+                  }.onFailure {
+                    snackBarHostState
+                      .showSnackbar(context.getString(R.string.debugoverlay_bug_report_error))
                   }
-                  context.startActivity(intent)
-                }.onFailure {
-                  snackBarHostState
-                    .showSnackbar(context.getString(R.string.debugoverlay_bug_report_error))
-                }
-            } finally {
-              isCapturing = false
+              } finally {
+                isCapturing = false
+              }
             }
           }
         }
@@ -158,23 +175,45 @@ private fun DebugPanelTopAppBar(snackBarHostState: SnackbarHostState, onDismiss:
 }
 
 @Composable
-private fun BugReportButton(isGenerating: Boolean, onGenerateReport: () -> Unit) {
-  IconButton(
-    onClick = onGenerateReport,
-    enabled = !isGenerating
-  ) {
-    if (isGenerating) {
-      CircularProgressIndicator(
-        modifier = Modifier.size(24.dp),
-        strokeWidth = 2.dp
-      )
-    } else {
-      Icon(
-        imageVector = Icons.Default.BugReport,
-        contentDescription = stringResource(R.string.debugoverlay_bug_report)
+private fun BugReportButton(isCapturing: Boolean, draftCount: Int, onClick: () -> Unit) {
+  // Dynamic accessibility description matching FAB behavior
+  val stateDescription = bugReportButtonDescription(isCapturing, draftCount)
+
+  Box {
+    IconButton(
+      onClick = onClick,
+      enabled = !isCapturing,
+      modifier = Modifier.semantics { contentDescription = stateDescription }
+    ) {
+      if (isCapturing) {
+        CircularProgressIndicator(
+          modifier = Modifier.size(24.dp),
+          strokeWidth = 2.dp
+        )
+      } else {
+        Icon(
+          imageVector = Icons.Default.BugReport,
+          contentDescription = null // Handled by IconButton semantics
+        )
+      }
+    }
+
+    // Badge positioned at top-right corner
+    if (draftCount > 0 && !isCapturing) {
+      DraftCountBadge(
+        draftCount = draftCount,
+        modifier = Modifier.align(Alignment.TopEnd)
       )
     }
   }
+}
+
+/** Returns accessibility description based on button state and draft count. */
+@Composable
+private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = when {
+  isCapturing -> stringResource(R.string.debugoverlay_bug_report_generating)
+  draftCount > 0 -> stringResource(R.string.debugoverlay_bug_report_drafts_badge, draftCount)
+  else -> stringResource(R.string.debugoverlay_bug_report)
 }
 
 @Composable
