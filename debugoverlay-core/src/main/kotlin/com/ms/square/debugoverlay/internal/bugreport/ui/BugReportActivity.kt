@@ -24,7 +24,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -36,6 +35,7 @@ import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -237,7 +237,7 @@ internal class BugReportActivity : ComponentActivity() {
     }
 
     lifecycleScope.launch {
-      runCatching {
+      runCatchingNonCancellation {
         val userInput = UserInput(
           title = currentTitle.trim(),
           description = currentDescription.trim()

@@ -25,6 +25,7 @@ private const val MAX_BADGE_COUNT = 9
  */
 @Composable
 internal fun DraftCountBadge(draftCount: Int, modifier: Modifier = Modifier) {
+  require(draftCount > 0) { "draftCount must be positive, got: $draftCount" }
   Badge(
     // Default offset for top-right corner positioning
     modifier = modifier.offset(x = 1.dp, y = (-1).dp),
