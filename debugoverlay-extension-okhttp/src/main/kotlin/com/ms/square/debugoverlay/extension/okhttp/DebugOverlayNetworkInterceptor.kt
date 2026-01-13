@@ -342,7 +342,20 @@ public class DebugOverlayNetworkInterceptor(
     val body = response.body
     val source = body.source()
     val maxBytesToBuffer = minOf(Long.MAX_VALUE, maxBodySize + 1) // +1 to detect overflow
-    source.request(maxBytesToBuffer)
+
+    // OkHttp's BridgeInterceptor wraps gzip responses with GzipSource, so reading
+    // from corrupt gzip data will throw here before our decompression handling.
+    try {
+      source.request(maxBytesToBuffer)
+    } catch (e: IOException) {
+      return NetworkData(
+        headers = responseHeaders,
+        contentType = responseContentType,
+        contentSize = responseContentLength,
+        content = "N/A - [failed to read response body: ${e.message}]"
+      )
+    }
+
     if (source.buffer.size > maxBodySize) {
       return NetworkData(
         headers = responseHeaders,

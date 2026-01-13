@@ -14,7 +14,10 @@ import okio.GzipSink
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class DebugOverlayNetworkInterceptorTest {
 
   private val mockWebServer = MockWebServer()
@@ -257,5 +260,28 @@ class DebugOverlayNetworkInterceptorTest {
 
     val capturedRequest = requests.first()
     assertThat(capturedRequest.responseBody).isEqualTo(originalBody)
+  }
+
+  @Test
+  fun `intercept handles corrupt gzipped response gracefully`() = runTest {
+    val corruptGzipData = ByteArray(10) { 0x1F.toByte() } // Invalid gzip
+
+    mockWebServer.enqueue(
+      MockResponse()
+        .setResponseCode(200)
+        .setBody(Buffer().write(corruptGzipData))
+        .addHeader("Content-Encoding", "gzip")
+    )
+
+    val request = Request.Builder()
+      .url(mockWebServer.url("/api/corrupt"))
+      .get()
+      .build()
+
+    client.newCall(request).execute().close()
+
+    val requests = interceptor.requests.first()
+    val capturedRequest = requests.first()
+    assertThat(capturedRequest.responseBody).contains("failed to read response body")
   }
 }
