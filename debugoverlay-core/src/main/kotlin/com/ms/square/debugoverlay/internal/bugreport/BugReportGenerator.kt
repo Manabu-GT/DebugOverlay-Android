@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
+import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.awaitCatching
@@ -12,6 +13,7 @@ import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -35,6 +37,12 @@ internal class BugReportGenerator(
   private val storage: BugReportDraftStorage = DefaultBugReportDraftStorage(context),
   private val zipWriter: BugReportZipWriter = BugReportZipWriter(context),
 ) {
+
+  /** Observable list of saved drafts. Used by draft picker UI. */
+  val drafts: Flow<List<DraftInfo>> = storage.drafts
+
+  /** Observable count of saved drafts. Used by FAB to show badge. */
+  val draftCount: Flow<Int> = storage.draftCount
 
   /**
    * Captures all diagnostic data and saves to a temp folder.
@@ -82,9 +90,11 @@ internal class BugReportGenerator(
    * Loads screenshot from capture folder for preview in the metadata dialog.
    *
    * @param captureFolder Folder returned from [captureToFolder]
+   * @param maxDimension Maximum dimension (width or height) for the loaded bitmap. Default is [DEFAULT_MAX_DIMENSION].
    * @return The screenshot bitmap, or null if not available
    */
-  suspend fun loadScreenshotPreview(captureFolder: File): Bitmap? = storage.loadScreenshot(captureFolder)
+  suspend fun loadScreenshotPreview(captureFolder: File, maxDimension: Int = DEFAULT_MAX_DIMENSION): Bitmap? =
+    storage.loadScreenshot(captureFolder, maxDimension)
 
   /**
    * Creates a ZIP file from the captured data in the folder.
