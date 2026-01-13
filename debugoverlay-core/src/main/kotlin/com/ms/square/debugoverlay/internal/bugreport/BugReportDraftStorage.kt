@@ -36,13 +36,15 @@ import java.io.FileOutputStream
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal const val DEFAULT_MAX_DIMENSION = 1920
+
 internal sealed interface BugReportDraftStorage {
   val drafts: Flow<List<DraftInfo>>
   val draftCount: Flow<Int>
 
   suspend fun saveSnapshot(snapshot: BugReportSnapshot): File
   suspend fun saveUserInput(folder: File, userInput: UserInput)
-  suspend fun loadScreenshot(folder: File, maxDimension: Int = 1920): Bitmap?
+  suspend fun loadScreenshot(folder: File, maxDimension: Int = DEFAULT_MAX_DIMENSION): Bitmap?
   suspend fun deleteFolder(folder: File)
 }
 
@@ -230,21 +232,29 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
    * @param folder The capture folder to delete
    */
   override suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
-    folderMutex.withLock {
+    val deleted = folderMutex.withLock {
       // Safety check: only delete folders that are direct children of our cache directory
       if (!isDirectChildOfCacheDir(folder)) {
         Logger.w("Refusing to delete folder outside cache directory: ${folder.absolutePath}")
-        return@withLock
+        return@withLock false
       }
 
       if (folder.exists()) {
-        val deleted = folder.deleteRecursively()
-        if (deleted) {
+        val result = folder.deleteRecursively()
+        if (result) {
           Logger.d("Deleted capture folder: ${folder.absolutePath}")
         } else {
           Logger.w("Failed to delete capture folder: ${folder.absolutePath}")
         }
+        result
+      } else {
+        false
       }
+    }
+
+    // Refresh draft list to remove deleted folder from UI
+    if (deleted) {
+      refreshDrafts()
     }
   }
 

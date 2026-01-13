@@ -157,7 +157,18 @@
   <string name="debugoverlay_bug_report_success">Bug report generated</string>
   <string name="debugoverlay_bug_report_failed">Bug report failed</string>
   <string name="debugoverlay_bug_report_error">Failed to create report</string>
+  <string name="debugoverlay_bug_report_drafts_badge">Report bug, %1$d saved drafts</string>
   <string name="debugoverlay_bug_report_subject">Bug Report - %1$s</string>
+
+  <!-- Draft Management -->
+  <string name="debugoverlay_create_new_report">Create new report</string>
+  <string name="debugoverlay_saved_drafts">Saved drafts (%1$d)</string>
+  <string name="debugoverlay_delete_draft">Delete draft</string>
+  <string name="debugoverlay_draft_deleted">Draft deleted</string>
+  <string name="debugoverlay_undo">Undo</string>
+  <string name="debugoverlay_draft_description">%1$s, saved %2$s</string>
+  <string name="debugoverlay_draft_not_found">Draft no longer available</string>
+  <string name="debugoverlay_no_saved_drafts">No saved drafts</string>
   <string name="debugoverlay_share_bug_report">Share Bug Report</string>
   <string name="debugoverlay_share_bug_report_error">Failed to share report</string>
 
