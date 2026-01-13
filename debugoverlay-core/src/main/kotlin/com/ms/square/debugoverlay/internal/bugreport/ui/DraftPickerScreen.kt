@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -80,6 +81,7 @@ private fun rememberDraftPickerState(): DraftPickerState {
  * - List of saved drafts with thumbnails
  * - Delete button with undo snackbar
  *
+ * @param bugReportGenerator BugReportGenerator to use
  * @param onDraftSelected Called when a saved draft is selected (includes folder + saved userInput)
  * @param onNewCaptureCreated Called when a new capture is created (folder only, no saved metadata)
  * @param onDismiss Called when the sheet is dismissed
@@ -88,6 +90,7 @@ private fun rememberDraftPickerState(): DraftPickerState {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DraftPickerScreen(
+  bugReportGenerator: BugReportGenerator = DebugOverlay.bugReportGenerator,
   onDraftSelected: (DraftInfo) -> Unit,
   onNewCaptureCreated: (File) -> Unit,
   onDismiss: () -> Unit,
@@ -97,17 +100,18 @@ internal fun DraftPickerScreen(
   val strings = rememberDraftPickerStrings()
 
   // Observe drafts from storage
-  val drafts by DebugOverlay.bugReportGenerator.drafts.collectAsState(initial = emptyList())
+  val drafts by bugReportGenerator.drafts.collectAsState(initial = emptyList())
 
   // Track loaded thumbnails
   val thumbnails = remember { mutableStateMapOf<String, Bitmap?>() }
 
   // Load thumbnails for drafts
-  LoadThumbnailsEffect(drafts, thumbnails)
+  LoadThumbnailsEffect(bugReportGenerator, drafts, thumbnails)
 
   // Dismiss sheet when all drafts are deleted
   val visibleDrafts = state.draftSelectionState.filterVisible(drafts)
   AutoDismissEffect(
+    bugReportGenerator = bugReportGenerator,
     drafts = drafts,
     visibleDrafts = visibleDrafts,
     sheetState = state.sheetState,
@@ -136,19 +140,31 @@ internal fun DraftPickerScreen(
 }
 
 @Composable
-private fun LoadThumbnailsEffect(drafts: List<DraftInfo>, thumbnails: MutableMap<String, Bitmap?>) {
+private fun LoadThumbnailsEffect(
+  bugReportGenerator: BugReportGenerator,
+  drafts: List<DraftInfo>,
+  thumbnails: MutableMap<String, Bitmap?>,
+) {
   LaunchedEffect(drafts) {
     // Remove thumbnails for drafts that no longer exist (prevents memory leak)
     val currentPaths = drafts.map { it.folderPath }.toSet()
     thumbnails.keys.filter { it !in currentPaths }.forEach { thumbnails.remove(it) }
 
-    // Load thumbnails for new drafts
-    drafts.forEach { draft ->
-      if (draft.folderPath !in thumbnails) {
-        val thumbnail = DebugOverlay.bugReportGenerator.loadScreenshotPreview(
-          draft.folder,
-          maxDimension = THUMBNAIL_MAX_DIMENSION
-        )
+    // Determine which drafts need loading BEFORE launching coroutines (prevents race condition)
+    val draftsToLoad = drafts.filter { it.folderPath !in thumbnails }
+
+    // Pre-register with null to prevent duplicate launches on recomposition
+    draftsToLoad.forEach { thumbnails[it.folderPath] = null }
+
+    // Load thumbnails in parallel with error handling
+    draftsToLoad.forEach { draft ->
+      launch {
+        val thumbnail = runCatching {
+          bugReportGenerator.loadScreenshotPreview(
+            draft.folder,
+            maxDimension = THUMBNAIL_MAX_DIMENSION
+          )
+        }.getOrNull()
         thumbnails[draft.folderPath] = thumbnail
       }
     }
@@ -158,6 +174,7 @@ private fun LoadThumbnailsEffect(drafts: List<DraftInfo>, thumbnails: MutableMap
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AutoDismissEffect(
+  bugReportGenerator: BugReportGenerator,
   drafts: List<DraftInfo>,
   visibleDrafts: List<DraftInfo>,
   sheetState: SheetState,
@@ -171,7 +188,7 @@ private fun AutoDismissEffect(
       withContext(NonCancellable) {
         // toList() to avoid ConcurrentModificationException when iterating and removing
         draftSelectionState.pendingDelete.values.toList().forEach { draft ->
-          DebugOverlay.bugReportGenerator.deleteCaptureFolder(draft.folder)
+          bugReportGenerator.deleteCaptureFolder(draft.folder)
           draftSelectionState.confirmDelete(draft)
         }
       }

@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,9 +39,6 @@ import java.io.File
 internal const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
 internal const val INTENT_EXTRA_SHOW_DRAFT_PICKER = "show_draft_picker"
 private const val BUNDLE_KEY_CAPTURE_FOLDER = "capture_folder"
-private const val BUNDLE_KEY_TITLE = "title"
-private const val BUNDLE_KEY_DESCRIPTION = "description"
-private const val BUNDLE_KEY_MODE = "mode"
 
 /**
  * Activity for bug report metadata dialog and draft picker.
@@ -69,15 +67,22 @@ private const val BUNDLE_KEY_MODE = "mode"
  * - On cancel: saves metadata.json to mark folder as a draft
  * - On submit: deletes folder after successful ZIP creation
  * - Eviction runs after save to prevent exceeding max drafts
+ *
+ * State Management Note:
+ * Uses [rememberSaveable] for Compose state (title, description, mode) to eliminate manual
+ * Bundle boilerplate while keeping [captureFolder] and [isSubmitted] as Activity fields
+ * since they're accessed in Activity methods.
  */
 internal class BugReportActivity : ComponentActivity() {
 
+  // Activity fields for state accessed in non-Composable methods (handleDismiss, handleConfirm)
   private var captureFolder: File? = null
   private var isSubmitted = false
 
-  private var showDraftPicker by mutableStateOf(false)
-  private var currentTitle by mutableStateOf("")
-  private var currentDescription by mutableStateOf("")
+  // Initial values determined in onCreate, used by rememberSaveable
+  private var initialShowDraftPicker = false
+  private var initialTitle = ""
+  private var initialDescription = ""
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -85,21 +90,16 @@ internal class BugReportActivity : ComponentActivity() {
     // Tag the DecorView so UI hierarchy scan can filter it out
     window.decorView.setTag(R.id.debugoverlay_window_marker, true)
 
-    // Restore or determine mode
-    val savedMode = savedInstanceState?.getString(BUNDLE_KEY_MODE)
-    if (savedMode == "picker") {
-      showDraftPicker = true
-    } else if (savedMode == "folder") {
-      showDraftPicker = false
-      val folderPath = savedInstanceState.getString(BUNDLE_KEY_CAPTURE_FOLDER)
-      if (folderPath != null) {
-        captureFolder = File(folderPath)
-      }
-    } else {
-      // First launch - check intent
+    // Restore captureFolder from savedInstanceState (not using rememberSaveable since it's a File)
+    savedInstanceState?.getString(BUNDLE_KEY_CAPTURE_FOLDER)?.let {
+      captureFolder = File(it)
+    }
+
+    // Determine initial mode and folder from intent (first launch only)
+    if (savedInstanceState == null) {
       when {
         intent.getBooleanExtra(INTENT_EXTRA_SHOW_DRAFT_PICKER, false) -> {
-          showDraftPicker = true
+          initialShowDraftPicker = true
         }
         intent.hasExtra(INTENT_EXTRA_CAPTURE_FOLDER) -> {
           val folderPath = intent.getStringExtra(INTENT_EXTRA_CAPTURE_FOLDER)
@@ -108,7 +108,7 @@ internal class BugReportActivity : ComponentActivity() {
             return
           }
           captureFolder = File(folderPath)
-          showDraftPicker = false
+          initialShowDraftPicker = false
         }
         else -> {
           finish()
@@ -117,16 +117,17 @@ internal class BugReportActivity : ComponentActivity() {
       }
     }
 
-    // Restore title/description from savedInstanceState if available.
-    currentTitle = savedInstanceState?.getString(BUNDLE_KEY_TITLE).orEmpty()
-    currentDescription = savedInstanceState?.getString(BUNDLE_KEY_DESCRIPTION).orEmpty()
-
     setContent { BugReportActivityContent() }
   }
 
   @Composable
   private fun BugReportActivityContent() {
     val isDarkTheme = LocalConfiguration.current.isDarkTheme()
+
+    // Use rememberSaveable for automatic state persistence across config changes
+    var showDraftPicker by rememberSaveable { mutableStateOf(initialShowDraftPicker) }
+    var currentTitle by rememberSaveable { mutableStateOf(initialTitle) }
+    var currentDescription by rememberSaveable { mutableStateOf(initialDescription) }
 
     MaterialTheme(
       colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme()
@@ -151,16 +152,30 @@ internal class BugReportActivity : ComponentActivity() {
           onError = { /* Error handled by DraftPickerScreen snackbar */ }
         )
       } else {
-        BugReportScreen(captureFolder = captureFolder)
+        BugReportScreen(
+          captureFolder = captureFolder,
+          currentTitle = currentTitle,
+          onTitleChange = { currentTitle = it },
+          currentDescription = currentDescription,
+          onDescriptionChange = { currentDescription = it },
+          onDismiss = { handleDismiss(currentTitle, currentDescription) }
+        )
       }
     }
   }
 
   @Composable
-  private fun BugReportScreen(captureFolder: File?) {
+  private fun BugReportScreen(
+    captureFolder: File?,
+    currentTitle: String,
+    onTitleChange: (String) -> Unit,
+    currentDescription: String,
+    onDescriptionChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+  ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var screenshot by remember { mutableStateOf<Bitmap?>(null) }
-    var isSubmitting by remember { mutableStateOf(false) }
+    var isSubmitting by remember { mutableStateOf(false) } // Transient UI state
 
     // Load screenshot preview from folder
     LaunchedEffect(captureFolder) {
@@ -173,9 +188,9 @@ internal class BugReportActivity : ComponentActivity() {
       BugReportMetadataDialog(
         screenshot = screenshot,
         title = currentTitle,
-        onTitleChange = { currentTitle = it },
+        onTitleChange = onTitleChange,
         description = currentDescription,
-        onDescriptionChange = { currentDescription = it },
+        onDescriptionChange = onDescriptionChange,
         isSubmitting = isSubmitting,
         onConfirm = { userInput ->
           handleConfirm(
@@ -185,7 +200,7 @@ internal class BugReportActivity : ComponentActivity() {
             onSubmitEnd = { isSubmitting = false }
           )
         },
-        onDismiss = { handleDismiss() }
+        onDismiss = onDismiss
       )
 
       // Snackbar host at bottom for error messages
@@ -204,7 +219,7 @@ internal class BugReportActivity : ComponentActivity() {
     }
   }
 
-  private fun handleDismiss() {
+  private fun handleDismiss(currentTitle: String, currentDescription: String) {
     if (isSubmitted) {
       // Already submitted successfully, just finish
       finish()
@@ -280,11 +295,9 @@ internal class BugReportActivity : ComponentActivity() {
 
   override fun onSaveInstanceState(outState: Bundle) {
     super.onSaveInstanceState(outState)
-    outState.putString(BUNDLE_KEY_MODE, if (showDraftPicker) "picker" else "folder")
+    // Only save captureFolder manually; other state uses rememberSaveable
     captureFolder?.absolutePath?.let {
       outState.putString(BUNDLE_KEY_CAPTURE_FOLDER, it)
     }
-    outState.putString(BUNDLE_KEY_TITLE, currentTitle)
-    outState.putString(BUNDLE_KEY_DESCRIPTION, currentDescription)
   }
 }
