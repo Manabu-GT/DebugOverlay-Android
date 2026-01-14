@@ -38,13 +38,21 @@ internal object BugReportFileWriters {
    * Writes logcat log entries to a JSON file.
    */
   fun writeLogcatLogs(logs: List<LogEntry>, file: File) {
-    file.writeText(json.encodeToString(logs))
+    writeLogs(logs, "Logcat", file)
   }
 
   /**
-   * Writes custom tracker log entries to a JSON file with source name metadata.
+   * Writes custom tracker log entries to a JSON file.
    */
   fun writeCustomLogs(logs: List<LogEntry>, sourceName: String, file: File) {
+    writeLogs(logs, sourceName, file)
+  }
+
+  /**
+   * Writes log entries to a JSON file with source name metadata.
+   * Format: `{"sourceName": "...", "entries": [...]}`
+   */
+  private fun writeLogs(logs: List<LogEntry>, sourceName: String, file: File) {
     val jsonObj = buildJsonObject {
       put("sourceName", sourceName)
       put("entries", json.encodeToJsonElement(logs))

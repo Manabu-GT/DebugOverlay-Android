@@ -63,9 +63,10 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   // Logcat logs - always available (LogcatDataSource internally uses stateIn)
   val logcatLogs: Flow<List<LogEntry>> = logcatDataSource.logs
 
-  // Custom tracker logs - null when no custom tracker is registered
+  // Custom tracker logs - empty list when no custom tracker is registered
+  // Use hasCustomTracker to determine if a tracker exists (e.g., for bug reports)
   @OptIn(ExperimentalCoroutinesApi::class)
-  val customTrackerLogs: StateFlow<List<LogEntry>?> = customLogTracker
+  val customTrackerLogs: StateFlow<List<LogEntry>> = customLogTracker
     .flatMapLatest { tracker ->
       tracker?.logs
         ?.throttleLatest(500.milliseconds)
@@ -73,9 +74,9 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
           Logger.w("Custom log tracker error", e)
           emit(emptyList())
         }
-        ?: flowOf(null)
+        ?: flowOf(emptyList())
     }
-    .stateIn(scope, SharingStarted.Eagerly, null)
+    .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
   // Custom tracker source name (e.g., "Timber")
   val customTrackerSourceName: StateFlow<String?> = customLogTracker

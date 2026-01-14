@@ -51,7 +51,7 @@ import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
 import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_TRACKER_NAME
-import kotlinx.coroutines.flow.filterNotNull
+import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -245,53 +245,65 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
 
   val selectedTabIndex = visibleTabs.indexOf(selectedTab).coerceAtLeast(0)
 
-  Column(
-    modifier = modifier.fillMaxSize()
-  ) {
-    // Tabs
-    PrimaryScrollableTabRow(
+  Column(modifier = modifier.fillMaxSize()) {
+    DebugPanelTabRow(
+      visibleTabs = visibleTabs,
+      selectedTab = selectedTab,
       selectedTabIndex = selectedTabIndex,
-      modifier = Modifier.fillMaxWidth(),
-      containerColor = Color.Transparent
-    ) {
-      visibleTabs.forEach { tab ->
-        Tab(
-          selected = selectedTab == tab,
-          onClick = { selectedTab = tab },
-          text = {
-            Text(
-              text = if (tab == DebugTab.CUSTOM_LOG) {
-                customTrackerName ?: DEFAULT_CUSTOM_TRACKER_NAME
-              } else {
-                stringResource(tab.titleResId)
-              },
-              style = MaterialTheme.typography.labelLarge
-            )
-          }
-        )
-      }
+      customTrackerName = customTrackerName,
+      onTabSelected = { selectedTab = it }
+    )
+    DebugPanelTabContent(selectedTab = selectedTab, repository = repository)
+  }
+}
+
+@Composable
+private fun DebugPanelTabRow(
+  visibleTabs: List<DebugTab>,
+  selectedTab: DebugTab,
+  selectedTabIndex: Int,
+  customTrackerName: String?,
+  onTabSelected: (DebugTab) -> Unit,
+) {
+  PrimaryScrollableTabRow(
+    selectedTabIndex = selectedTabIndex,
+    modifier = Modifier.fillMaxWidth(),
+    containerColor = Color.Transparent
+  ) {
+    visibleTabs.forEach { tab ->
+      Tab(
+        selected = selectedTab == tab,
+        onClick = { onTabSelected(tab) },
+        text = {
+          Text(
+            text = if (tab == DebugTab.CUSTOM_LOG) {
+              customTrackerName ?: DEFAULT_CUSTOM_TRACKER_NAME
+            } else {
+              stringResource(tab.titleResId)
+            },
+            style = MaterialTheme.typography.labelLarge
+          )
+        }
+      )
     }
-    // Tab content
-    when (selectedTab) {
-      DebugTab.LOGCAT -> LogTabContent(
-        logsFlow = repository.logcatLogs
-      )
-      DebugTab.CUSTOM_LOG -> LogTabContent(
-        logsFlow = repository.customTrackerLogs.filterNotNull()
-      )
-      DebugTab.APP_EXITS -> AppExitTabContent(
-        exitInfosFlow = repository.appExitInfos,
-        isSupported = repository.isAppExitSupported
-      )
-      DebugTab.NETWORK -> NetworkTabContent(
-        netStatsFlow = repository.netStats,
-        networkRequestsFlow = repository.networkRequests
-      )
-      DebugTab.JANKSTATS -> JankStatsTabContent(
-        jankStatsFlow = repository.jankStats
-      )
-      DebugTab.UI -> UiTabContent()
-      DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
-    }
+  }
+}
+
+@Composable
+private fun DebugPanelTabContent(selectedTab: DebugTab, repository: DebugOverlayDataRepository) {
+  when (selectedTab) {
+    DebugTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs)
+    DebugTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customTrackerLogs)
+    DebugTab.APP_EXITS -> AppExitTabContent(
+      exitInfosFlow = repository.appExitInfos,
+      isSupported = repository.isAppExitSupported
+    )
+    DebugTab.NETWORK -> NetworkTabContent(
+      netStatsFlow = repository.netStats,
+      networkRequestsFlow = repository.networkRequests
+    )
+    DebugTab.JANKSTATS -> JankStatsTabContent(jankStatsFlow = repository.jankStats)
+    DebugTab.UI -> UiTabContent()
+    DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
   }
 }

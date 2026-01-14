@@ -19,7 +19,6 @@ import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportState
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
-import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_TRACKER_NAME
 import com.ms.square.debugoverlay.internal.util.checkFolderExists
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
@@ -144,11 +143,11 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
       saveBestEffort("logcat logs") {
         BugReportFileWriters.writeLogcatLogs(snapshot.logcatLogs, File(folder, LOGCAT_LOGS))
       }
-      snapshot.customTrackerLogs?.let { logs ->
+      snapshot.customTrackerData?.let { customData ->
         saveBestEffort("custom logs") {
           BugReportFileWriters.writeCustomLogs(
-            logs,
-            snapshot.customTrackerSourceName ?: DEFAULT_CUSTOM_TRACKER_NAME,
+            customData.logs,
+            customData.sourceName,
             File(folder, CUSTOM_LOGS)
           )
         }

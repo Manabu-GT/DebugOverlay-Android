@@ -50,6 +50,17 @@ import com.ms.square.debugoverlay.model.LogLevel
 import kotlinx.coroutines.flow.Flow
 
 /**
+ * Groups filter-related parameters for [LogListScreen] to reduce parameter count.
+ * Note: Not marked @Stable as lambdas are recreated on each recomposition.
+ */
+private data class LogFilterState(
+  val searchQuery: String,
+  val onSearchQueryChanged: (String) -> Unit,
+  val selectedLevel: LogLevel,
+  val onLevelSelected: (LogLevel) -> Unit,
+)
+
+/**
  * Log tab content displaying filtered log entries with auto-scroll behavior.
  *
  * Features:
@@ -102,10 +113,12 @@ internal fun LogTabContent(logsFlow: Flow<List<LogEntry>>, modifier: Modifier = 
     onBack = { selectedLogEntry = null },
     listContent = {
       LogListScreen(
-        searchQuery = searchQuery,
-        onSearchQueryChanged = { searchQuery = it },
-        selectedLevel = selectedLevel,
-        onLevelSelected = { selectedLevel = it },
+        filterState = LogFilterState(
+          searchQuery = searchQuery,
+          onSearchQueryChanged = { searchQuery = it },
+          selectedLevel = selectedLevel,
+          onLevelSelected = { selectedLevel = it }
+        ),
         filteredEntries = filteredEntries,
         listState = listState,
         onEntryClick = { selectedLogEntry = it },
@@ -131,10 +144,7 @@ internal fun LogTabContent(logsFlow: Flow<List<LogEntry>>, modifier: Modifier = 
  */
 @Composable
 private fun LogListScreen(
-  searchQuery: String,
-  onSearchQueryChanged: (String) -> Unit,
-  selectedLevel: LogLevel,
-  onLevelSelected: (LogLevel) -> Unit,
+  filterState: LogFilterState,
   filteredEntries: List<LogEntry>,
   listState: LazyListState,
   onEntryClick: (LogEntry) -> Unit,
@@ -144,10 +154,10 @@ private fun LogListScreen(
   Box(modifier = modifier.fillMaxWidth()) {
     Column(modifier = Modifier.fillMaxWidth()) {
       LogFilterBar(
-        searchQuery = searchQuery,
-        onSearchQueryChanged = onSearchQueryChanged,
-        selectedLevel = selectedLevel,
-        onLevelSelected = onLevelSelected
+        searchQuery = filterState.searchQuery,
+        onSearchQueryChanged = filterState.onSearchQueryChanged,
+        selectedLevel = filterState.selectedLevel,
+        onLevelSelected = filterState.onLevelSelected
       )
 
       LogContent(

@@ -124,14 +124,8 @@ internal object HtmlReportBuilder {
     appendLogsSection(data.logcatLogs, "System Logcat", "logcat")
 
     // Custom tracker logs section (if tracker registered)
-    // Note: Uses "Application Logs" as fallback (not DEFAULT_CUSTOM_TRACKER_NAME) because
-    // it's more descriptive for readers of the exported HTML report.
-    data.customTrackerLogs?.let { customLogs ->
-      appendLogsSection(
-        customLogs,
-        data.customTrackerSourceName ?: "Application Logs",
-        "custom-logs"
-      )
+    data.customTrackerData?.let { customData ->
+      appendLogsSection(customData.logs, customData.sourceName, "custom-logs")
     }
 
     // Network section
