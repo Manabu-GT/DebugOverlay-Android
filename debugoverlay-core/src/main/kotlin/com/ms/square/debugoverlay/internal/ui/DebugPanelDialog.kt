@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,11 +50,14 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
+import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_TRACKER_NAME
+import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
-  LOG(R.string.debugoverlay_tab_log),
+  LOGCAT(R.string.debugoverlay_tab_logcat),
+  CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from tracker
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
@@ -218,49 +222,88 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
-  var selectedTab by remember { mutableStateOf(DebugTab.LOG) }
+  val repository = DebugOverlay.overlayDataRepository
+  val hasCustomTracker by repository.hasCustomTracker.collectAsStateWithLifecycle()
+  val customTrackerName by repository.customTrackerSourceName.collectAsStateWithLifecycle()
 
-  Column(
-    modifier = modifier.fillMaxSize()
+  // Build visible tabs: hide CUSTOM_LOG when no custom tracker is registered
+  val visibleTabs = remember(hasCustomTracker) {
+    DebugTab.entries.filter { tab ->
+      tab != DebugTab.CUSTOM_LOG || hasCustomTracker
+    }
+  }
+
+  // Use rememberSaveable to persist tab selection across configuration changes
+  var selectedTab by rememberSaveable { mutableStateOf(DebugTab.LOGCAT) }
+
+  // Validate selection when tabs change (e.g., custom tracker removed)
+  LaunchedEffect(visibleTabs) {
+    if (selectedTab !in visibleTabs) {
+      selectedTab = DebugTab.LOGCAT
+    }
+  }
+
+  val selectedTabIndex = visibleTabs.indexOf(selectedTab).coerceAtLeast(0)
+
+  Column(modifier = modifier.fillMaxSize()) {
+    DebugPanelTabRow(
+      visibleTabs = visibleTabs,
+      selectedTab = selectedTab,
+      selectedTabIndex = selectedTabIndex,
+      customTrackerName = customTrackerName,
+      onTabSelected = { selectedTab = it }
+    )
+    DebugPanelTabContent(selectedTab = selectedTab, repository = repository)
+  }
+}
+
+@Composable
+private fun DebugPanelTabRow(
+  visibleTabs: List<DebugTab>,
+  selectedTab: DebugTab,
+  selectedTabIndex: Int,
+  customTrackerName: String?,
+  onTabSelected: (DebugTab) -> Unit,
+) {
+  PrimaryScrollableTabRow(
+    selectedTabIndex = selectedTabIndex,
+    modifier = Modifier.fillMaxWidth(),
+    containerColor = Color.Transparent
   ) {
-    // Tabs
-    PrimaryScrollableTabRow(
-      selectedTabIndex = selectedTab.ordinal,
-      modifier = Modifier.fillMaxWidth(),
-      containerColor = Color.Transparent
-    ) {
-      DebugTab.entries.forEach { tab ->
-        Tab(
-          selected = selectedTab == tab,
-          onClick = { selectedTab = tab },
-          text = {
-            Text(
-              text = stringResource(tab.titleResId),
-              style = MaterialTheme.typography.labelLarge
-            )
-          }
-        )
-      }
+    visibleTabs.forEach { tab ->
+      Tab(
+        selected = selectedTab == tab,
+        onClick = { onTabSelected(tab) },
+        text = {
+          Text(
+            text = if (tab == DebugTab.CUSTOM_LOG) {
+              customTrackerName ?: DEFAULT_CUSTOM_TRACKER_NAME
+            } else {
+              stringResource(tab.titleResId)
+            },
+            style = MaterialTheme.typography.labelLarge
+          )
+        }
+      )
     }
-    // Tab content
-    when (selectedTab) {
-      DebugTab.LOG -> LogTabContent(
-        logsFlow = DebugOverlay.overlayDataRepository.logs,
-        logSourceNameFlow = DebugOverlay.overlayDataRepository.logSourceName
-      )
-      DebugTab.APP_EXITS -> AppExitTabContent(
-        exitInfosFlow = DebugOverlay.overlayDataRepository.appExitInfos,
-        isSupported = DebugOverlay.overlayDataRepository.isAppExitSupported
-      )
-      DebugTab.NETWORK -> NetworkTabContent(
-        netStatsFlow = DebugOverlay.overlayDataRepository.netStats,
-        networkRequestsFlow = DebugOverlay.overlayDataRepository.networkRequests
-      )
-      DebugTab.JANKSTATS -> JankStatsTabContent(
-        jankStatsFlow = DebugOverlay.overlayDataRepository.jankStats
-      )
-      DebugTab.UI -> UiTabContent()
-      DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = DebugOverlay.overlayDataRepository.deviceInfo)
-    }
+  }
+}
+
+@Composable
+private fun DebugPanelTabContent(selectedTab: DebugTab, repository: DebugOverlayDataRepository) {
+  when (selectedTab) {
+    DebugTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs)
+    DebugTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customTrackerLogs)
+    DebugTab.APP_EXITS -> AppExitTabContent(
+      exitInfosFlow = repository.appExitInfos,
+      isSupported = repository.isAppExitSupported
+    )
+    DebugTab.NETWORK -> NetworkTabContent(
+      netStatsFlow = repository.netStats,
+      networkRequestsFlow = repository.networkRequests
+    )
+    DebugTab.JANKSTATS -> JankStatsTabContent(jankStatsFlow = repository.jankStats)
+    DebugTab.UI -> UiTabContent()
+    DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
   }
 }

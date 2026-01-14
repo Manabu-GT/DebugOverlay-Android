@@ -45,7 +45,8 @@ Draggable overlay with real-time metrics and sparklines:
 ### Debug Panel
 Tap the overlay to open a full-screen diagnostic panel:
 
-- **Log** – Live log stream with filtering and search. Supports [Timber](#timber-log-capture)
+- **Logcat** – Live system logcat stream with level filtering and search
+- **[Custom Log]** – Additional tab when using [Timber](#timber-log-capture) or custom log trackers
 - **AppExits** – App exit (e.g., Crash/ANR) history on Android 11+ with stack traces
 - **Network** – Request list with timing and inspection ([setup required](#network-request-tracking))
 - **JankStats** – Frame timing analysis and jank breakdown
@@ -166,7 +167,7 @@ dependencies {
 }
 ```
 
-Auto-plants via AndroidX Startup. The Log tab shows "Timber" as the source with full stack traces.
+Auto-plants via AndroidX Startup. Adds a separate "Timber" tab alongside Logcat with full stack traces.
 
 To disable auto-plant, remove `TimberTreeStartupInitializer` via manifest merger:
 

@@ -14,7 +14,8 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  * @param userInput User-provided title and description (null if skipped)
  * @param screenshot Screenshot of the app at the time of report generation (may be null if capture failed)
  * @param deviceInfo Device hardware, system, battery, and network information
- * @param logs Recent log entries
+ * @param logcatLogs Recent logcat entries (always present)
+ * @param customTrackerData Custom tracker logs with source name (null if no tracker registered)
  * @param networkRequests Recent network requests (if available)
  * @param jankStats Frame rendering statistics from JankStats
  * @param appExitInfos Recent app exit reasons (API 30+)
@@ -25,7 +26,8 @@ internal data class BugReportData(
   val userInput: UserInput?,
   val screenshot: Bitmap?,
   val deviceInfo: DeviceInfo?,
-  val logs: List<LogEntry>,
+  val logcatLogs: List<LogEntry>,
+  val customTrackerData: CustomTrackerData?,
   val networkRequests: List<NetworkRequest>,
   val jankStats: JankStatsUiState?,
   val appExitInfos: List<AppExitInfo>,

@@ -5,10 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.APP_EXITS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.CUSTOM_LOGS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.DEVICE_INFO
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.JANK_STATS
-import com.ms.square.debugoverlay.internal.bugreport.FileNames.LOGS
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.LOGCAT_LOGS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.METADATA
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.NETWORK_REQUESTS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.SCREENSHOT
@@ -139,7 +140,18 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
       }
 
       // Save diagnostic data files
-      saveBestEffort("logs") { BugReportFileWriters.writeLogs(snapshot.logs, File(folder, LOGS)) }
+      saveBestEffort("logcat logs") {
+        BugReportFileWriters.writeLogcatLogs(snapshot.logcatLogs, File(folder, LOGCAT_LOGS))
+      }
+      snapshot.customTrackerData?.let { customData ->
+        saveBestEffort("custom logs") {
+          BugReportFileWriters.writeCustomLogs(
+            customData.logs,
+            customData.sourceName,
+            File(folder, CUSTOM_LOGS)
+          )
+        }
+      }
       saveBestEffort("network requests") {
         BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
       }

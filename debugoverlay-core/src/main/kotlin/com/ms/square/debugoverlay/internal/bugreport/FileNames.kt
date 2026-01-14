@@ -3,7 +3,8 @@ package com.ms.square.debugoverlay.internal.bugreport
 internal object FileNames {
   const val SCREENSHOT = "screenshot.png"
   const val HTML_REPORT = "bug_report.html"
-  const val LOGS = "logs.json"
+  const val LOGCAT_LOGS = "logcat_logs.json"
+  const val CUSTOM_LOGS = "custom_logs.json"
   const val NETWORK_REQUESTS = "network_requests.json"
   const val DEVICE_INFO = "device_info.json"
   const val JANK_STATS = "jank_stats.json"

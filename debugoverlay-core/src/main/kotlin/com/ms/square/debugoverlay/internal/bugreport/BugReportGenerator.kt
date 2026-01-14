@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
+import com.ms.square.debugoverlay.internal.bugreport.model.CustomTrackerData
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
@@ -60,7 +61,19 @@ internal class BugReportGenerator(
           val screenshotDeferred = async {
             activityProvider.activity?.let { ScreenshotCapture.capture(it) }
           }
-          val logsDeferred = async { repository.logs.first() }
+          val logcatLogsDeferred = async { repository.logcatLogs.first() }
+          // Check if custom tracker is registered to determine if custom logs should be included
+          val hasCustomTracker = repository.hasCustomTracker.value
+          val customTrackerDataDeferred = if (hasCustomTracker) {
+            async {
+              val logs = repository.customTrackerLogs.first()
+              val sourceName = repository.customTrackerSourceName.first()
+              // sourceName should never be null when hasCustomTracker is true
+              sourceName?.let { CustomTrackerData(logs, it) }
+            }
+          } else {
+            null
+          }
           val networkRequestsDeferred = async { repository.networkRequests.first() }
           val deviceInfoDeferred = async { repository.queryDeviceInfoSnapshot() }
           val jankStatsDeferred = async { repository.jankStats.first() }
@@ -71,9 +84,10 @@ internal class BugReportGenerator(
             timestampMs = timestampMs,
             // ScreenshotCapture.capture() handles errors internally, returns null on failure
             screenshot = screenshotDeferred.await(),
-            logs = logsDeferred.awaitCatching().getOrDefault(emptyList()),
-            networkRequests = networkRequestsDeferred.awaitCatching().getOrDefault(emptyList()),
             deviceInfo = deviceInfoDeferred.awaitCatching().getOrNull(),
+            logcatLogs = logcatLogsDeferred.awaitCatching().getOrDefault(emptyList()),
+            customTrackerData = customTrackerDataDeferred?.awaitCatching()?.getOrNull(),
+            networkRequests = networkRequestsDeferred.awaitCatching().getOrDefault(emptyList()),
             jankStats = jankStatsDeferred.awaitCatching().getOrNull(),
             appExitInfos = appExitInfosDeferred.awaitCatching().getOrDefault(emptyList()),
             // captureUiHierarchy() handles errors internally, returns null on failure

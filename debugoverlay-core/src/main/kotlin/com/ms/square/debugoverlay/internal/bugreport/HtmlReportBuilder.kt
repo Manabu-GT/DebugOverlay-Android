@@ -120,8 +120,13 @@ internal object HtmlReportBuilder {
     // Device Info section
     appendDeviceInfoSection(data.deviceInfo)
 
-    // Logs section
-    appendLogsSection(data.logs)
+    // Logcat logs section (always present)
+    appendLogsSection(data.logcatLogs, "System Logcat", "logcat")
+
+    // Custom tracker logs section (if tracker registered)
+    data.customTrackerData?.let { customData ->
+      appendLogsSection(customData.logs, customData.sourceName, "custom-logs")
+    }
 
     // Network section
     appendNetworkSection(data.networkRequests)
@@ -478,10 +483,10 @@ internal object HtmlReportBuilder {
     append("          </div>\n")
   }
 
-  private fun StringBuilder.appendLogsSection(logs: List<LogEntry>) {
-    append("    <div class=\"section\">\n")
+  private fun StringBuilder.appendLogsSection(logs: List<LogEntry>, title: String, sectionId: String) {
+    append("    <div class=\"section\" id=\"$sectionId\">\n")
     append("      <div class=\"section-header\" onclick=\"toggleSection(this)\">\n")
-    append("        <h2>Recent Logs</h2>\n")
+    append("        <h2>${title.escapeHtml()}</h2>\n")
     if (logs.isNotEmpty()) {
       append("        <span class=\"count\">${logs.size} entries</span>\n")
     }
