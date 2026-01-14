@@ -5,6 +5,7 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.dexcount)
   alias(libs.plugins.mavenPublish)
+  alias(libs.plugins.bcv)
 }
 
 java {
@@ -15,18 +16,10 @@ java {
 
 kotlin {
   explicitApi()
+}
 
-  @OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)
-  abiValidation {
-    // Use the set() function to ensure compatibility with older Gradle versions
-    enabled.set(true)
-
-    filters {
-      excluded {
-        annotatedWith.add("com.ms.square.debugoverlay.internal.InternalDebugOverlayApi")
-      }
-    }
-  }
+apiValidation {
+  nonPublicMarkers.add("com.ms.square.debugoverlay.internal.InternalDebugOverlayApi")
 }
 
 android {

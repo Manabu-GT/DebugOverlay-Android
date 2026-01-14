@@ -79,7 +79,6 @@ subprojects {
   plugins.withId("com.android.library") {
     hookCheckWhen("io.gitlab.arturbosch.detekt", "detekt")
     hookCheckWhen("com.diffplug.spotless", "spotlessCheck")
-    hookCheckWhen("org.jetbrains.kotlin.android", "checkLegacyAbi")
   }
   plugins.withId("com.android.application") {
     hookCheckWhen("io.gitlab.arturbosch.detekt", "detekt")
