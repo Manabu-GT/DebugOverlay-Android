@@ -14,7 +14,7 @@ Binary compatibility ensures that apps compiled against an older version of the 
 
 Each published module has an `api/<module-name>.api` file that contains a text dump of its public API:
 
-```
+```text
 debugoverlay/api/debugoverlay.api
 debugoverlay-core/api/debugoverlay-core.api
 debugoverlay-extension-okhttp/api/debugoverlay-extension-okhttp.api
@@ -117,7 +117,7 @@ Breaking changes require careful consideration:
 
 ### Example: Safe Deprecation Cycle
 
-```
+```text
 v2.0.0 - Original API
 v2.1.0 - Add new API, deprecate old API (WARNING level)
 v2.2.0 - Change deprecation to ERROR level
@@ -160,7 +160,8 @@ Don't. Instead, design a proper public API or use `@InternalDebugOverlayApi` to 
 
 ### "The API dump shows generated classes like `ComposableSingletons$*`"
 
-These are Compose compiler artifacts. They're harmless noise in the API dump and don't affect consumers.
+In debugoverlay-core, these are filtered out via `apiValidation.ignoredPackages` to reduce noise.
+If you see them in other modules, they're Compose compiler artifacts and don't affect consumers.
 
 ### "Merge conflicts in `.api` files"
 

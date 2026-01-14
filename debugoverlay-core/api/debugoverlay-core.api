@@ -56,13 +56,6 @@ public final class com/ms/square/debugoverlay/OverlayMode$FullMetrics : com/ms/s
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/ms/square/debugoverlay/core/BuildConfig {
-	public static final field BUILD_TYPE Ljava/lang/String;
-	public static final field DEBUG Z
-	public static final field LIBRARY_PACKAGE_NAME Ljava/lang/String;
-	public fun <init> ()V
-}
-
 public abstract interface annotation class com/ms/square/debugoverlay/internal/InternalDebugOverlayApi : java/lang/annotation/Annotation {
 }
 
