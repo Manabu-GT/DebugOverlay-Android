@@ -20,6 +20,9 @@ kotlin {
 
 apiValidation {
   nonPublicMarkers.add("com.ms.square.debugoverlay.internal.InternalDebugOverlayApi")
+  // to ignore ComposableSingletons - unavoidable Compose compiler noise
+  ignoredPackages.add("com.ms.square.debugoverlay.internal.ui")
+  ignoredPackages.add("com.ms.square.debugoverlay.internal.bugreport.ui")
 }
 
 android {
