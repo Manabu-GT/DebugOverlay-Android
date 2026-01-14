@@ -1,0 +1,212 @@
+public final class com/ms/square/debugoverlay/DebugOverlay {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/DebugOverlay;
+	public final fun configure (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class com/ms/square/debugoverlay/DebugOverlay$Config {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;)V
+	public synthetic fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/ms/square/debugoverlay/OverlayMode;
+	public final fun component2 ()Lcom/ms/square/debugoverlay/NetworkRequestTracker;
+	public final fun component3 ()Lcom/ms/square/debugoverlay/LogTracker;
+	public final fun copy (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/DebugOverlay$Config;Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLogTracker ()Lcom/ms/square/debugoverlay/LogTracker;
+	public final fun getNetworkRequestTracker ()Lcom/ms/square/debugoverlay/NetworkRequestTracker;
+	public final fun getOverlayMode ()Lcom/ms/square/debugoverlay/OverlayMode;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/ms/square/debugoverlay/LogTracker {
+	public abstract fun getLogs ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getSourceName ()Ljava/lang/String;
+}
+
+public abstract interface class com/ms/square/debugoverlay/NetworkRequestTracker {
+	public abstract fun getRequests ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/ms/square/debugoverlay/NoOpNetworkRequestTracker : com/ms/square/debugoverlay/NetworkRequestTracker {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/NoOpNetworkRequestTracker;
+	public fun getRequests ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract interface class com/ms/square/debugoverlay/OverlayMode {
+}
+
+public final class com/ms/square/debugoverlay/OverlayMode$BugReporterOnly : com/ms/square/debugoverlay/OverlayMode {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/OverlayMode$BugReporterOnly;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/ms/square/debugoverlay/OverlayMode$FullMetrics : com/ms/square/debugoverlay/OverlayMode {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/OverlayMode$FullMetrics;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface annotation class com/ms/square/debugoverlay/internal/InternalDebugOverlayApi : java/lang/annotation/Annotation {
+}
+
+public final class com/ms/square/debugoverlay/model/LogEntry {
+	public static final field $stable I
+	public static final field Companion Lcom/ms/square/debugoverlay/model/LogEntry$Companion;
+	public fun <init> (JJLcom/ms/square/debugoverlay/model/LogLevel;Ljava/lang/String;IILjava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()Lcom/ms/square/debugoverlay/model/LogLevel;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun copy (JJLcom/ms/square/debugoverlay/model/LogLevel;Ljava/lang/String;IILjava/lang/String;Ljava/lang/String;)Lcom/ms/square/debugoverlay/model/LogEntry;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/LogEntry;JJLcom/ms/square/debugoverlay/model/LogLevel;Ljava/lang/String;IILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/LogEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()J
+	public final fun getLevel ()Lcom/ms/square/debugoverlay/model/LogLevel;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getPid ()I
+	public final fun getTag ()Ljava/lang/String;
+	public final fun getThreadName ()Ljava/lang/String;
+	public final fun getTid ()I
+	public final fun getTimestampMs ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/ms/square/debugoverlay/model/LogEntry$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/model/LogEntry$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/ms/square/debugoverlay/model/LogEntry;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/ms/square/debugoverlay/model/LogEntry;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/ms/square/debugoverlay/model/LogEntry$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/ms/square/debugoverlay/model/LogLevel : java/lang/Enum {
+	public static final field Companion Lcom/ms/square/debugoverlay/model/LogLevel$Companion;
+	public static final field DEBUG Lcom/ms/square/debugoverlay/model/LogLevel;
+	public static final field ERROR Lcom/ms/square/debugoverlay/model/LogLevel;
+	public static final field INFO Lcom/ms/square/debugoverlay/model/LogLevel;
+	public static final field VERBOSE Lcom/ms/square/debugoverlay/model/LogLevel;
+	public static final field WARN Lcom/ms/square/debugoverlay/model/LogLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/ms/square/debugoverlay/model/LogLevel;
+	public static fun values ()[Lcom/ms/square/debugoverlay/model/LogLevel;
+}
+
+public final class com/ms/square/debugoverlay/model/LogLevel$Companion {
+	public final fun fromInt (I)Lcom/ms/square/debugoverlay/model/LogLevel;
+	public final fun fromString (Ljava/lang/String;)Lcom/ms/square/debugoverlay/model/LogLevel;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/ms/square/debugoverlay/model/NetworkError {
+	public static final field $stable I
+	public static final field Companion Lcom/ms/square/debugoverlay/model/NetworkError$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/ms/square/debugoverlay/model/NetworkError;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/NetworkError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/NetworkError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getStackTrace ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/ms/square/debugoverlay/model/NetworkError$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/model/NetworkError$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/ms/square/debugoverlay/model/NetworkError;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/ms/square/debugoverlay/model/NetworkError;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/ms/square/debugoverlay/model/NetworkError$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/ms/square/debugoverlay/model/NetworkRequest {
+	public static final field $stable I
+	public static final field Companion Lcom/ms/square/debugoverlay/model/NetworkRequest$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JLjava/lang/Long;Ljava/lang/Long;JLjava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/NetworkError;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JLjava/lang/Long;Ljava/lang/Long;JLjava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/NetworkError;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/util/Map;
+	public final fun component11 ()Ljava/util/Map;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component14 ()Lcom/ms/square/debugoverlay/model/NetworkError;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()J
+	public final fun component7 ()Ljava/lang/Long;
+	public final fun component8 ()Ljava/lang/Long;
+	public final fun component9 ()J
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JLjava/lang/Long;Ljava/lang/Long;JLjava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/NetworkError;)Lcom/ms/square/debugoverlay/model/NetworkRequest;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/NetworkRequest;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;JLjava/lang/Long;Ljava/lang/Long;JLjava/util/Map;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/NetworkError;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/NetworkRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDurationMs ()J
+	public final fun getError ()Lcom/ms/square/debugoverlay/model/NetworkError;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getMethod ()Ljava/lang/String;
+	public final fun getProtocol ()Ljava/lang/String;
+	public final fun getRequestBody ()Ljava/lang/String;
+	public final fun getRequestHeaders ()Ljava/util/Map;
+	public final fun getRequestSize ()Ljava/lang/Long;
+	public final fun getResponseBody ()Ljava/lang/String;
+	public final fun getResponseHeaders ()Ljava/util/Map;
+	public final fun getResponseSize ()Ljava/lang/Long;
+	public final fun getStatusCode ()Ljava/lang/Integer;
+	public final fun getTimestamp ()J
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class com/ms/square/debugoverlay/model/NetworkRequest$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/model/NetworkRequest$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/ms/square/debugoverlay/model/NetworkRequest;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/ms/square/debugoverlay/model/NetworkRequest;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/ms/square/debugoverlay/model/NetworkRequest$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

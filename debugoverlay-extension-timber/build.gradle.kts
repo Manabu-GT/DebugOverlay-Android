@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.dexcount)
   alias(libs.plugins.mavenPublish)
+  alias(libs.plugins.bcv)
 }
 
 java {
@@ -13,6 +14,10 @@ java {
 
 kotlin {
   explicitApi()
+}
+
+apiValidation {
+  nonPublicMarkers.add("com.ms.square.debugoverlay.internal.InternalDebugOverlayApi")
 }
 
 android {
