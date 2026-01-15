@@ -11,7 +11,7 @@ plugins {
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(17))
+    languageVersion.set(JavaLanguageVersion.of(21))
   }
 }
 
@@ -126,4 +126,14 @@ dependencies {
   debugImplementation(libs.leakcanary.android)
 
   testImplementation(libs.junit4)
+}
+
+// Configure all JavaCompile tasks (including Hilt-generated) to use Java 21 toolchain
+// Workaround as the Hilt Gradle plugin creates its own JavaCompile tasks that don't inherit the project toolchain
+tasks.withType<JavaCompile>().configureEach {
+  javaCompiler.set(
+    javaToolchains.compilerFor {
+      languageVersion.set(JavaLanguageVersion.of(21))
+    }
+  )
 }

@@ -1,16 +1,13 @@
 package com.ms.square.debugoverlay.internal
 
-import android.os.Build
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Build.VERSION_CODES.UPSIDE_DOWN_CAKE]) // API 34 - compatible with Java 17
 class OverlayLifecycleOwnerTest {
 
   private val owner = OverlayLifecycleOwner()
