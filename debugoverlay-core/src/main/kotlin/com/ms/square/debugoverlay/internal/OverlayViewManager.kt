@@ -7,11 +7,14 @@ import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW
 import android.widget.Toast
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -35,10 +38,15 @@ import com.ms.square.debugoverlay.internal.data.source.OverlayPreferences
 import com.ms.square.debugoverlay.internal.data.source.SharedPreferencesOverlayPreferences
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
+import com.ms.square.debugoverlay.internal.util.findActivity
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
+import curtains.Curtains
+import curtains.OnRootViewsChangedListener
+import curtains.phoneWindow
 import kotlinx.coroutines.CoroutineScope
 import java.lang.ref.WeakReference
-import java.util.WeakHashMap
+
+private const val OVERLAY_UPDATE_DEBOUNCE_MS = 100L
 
 internal class OverlayViewManager(
   private val application: Application,
@@ -71,8 +79,84 @@ internal class OverlayViewManager(
   override val activity: Activity?
     get() = lastAppActivityRef?.get()
 
+  private var currentTargetWindowView: View? = null
+  private var currentOverlayView: ViewGroup? = null
+  private var currentLayoutParams: WindowManager.LayoutParams? = null
+  private var currentLifecycleOwner: OverlayLifecycleOwner? = null
+
+  private var pendingUpdate: Runnable? = null
+
+  private val handler = Handler(Looper.getMainLooper())
+
+  private val rootsChangedListener = OnRootViewsChangedListener { view, added ->
+    // skip if it is currentOverlayView as no update is needed for it.
+    if (view === currentOverlayView) {
+      return@OnRootViewsChangedListener
+    }
+    // Hide overlay when its target window is removed to avoid window leaks when an app is dismissed
+    if (view === currentTargetWindowView && !added) {
+      hideOverlay()
+    }
+    pendingUpdate?.let { handler.removeCallbacks(it) }
+    pendingUpdate = Runnable { updateOverlayAttachment() }.also {
+      // If a new window is added or removed, check if we need to move the overlay
+      // We process this on the next frame or immediately to ensure we have the latest state
+      // Small debounce is added to minimize updates when window changes rapidly
+      handler.postDelayed(it, OVERLAY_UPDATE_DEBOUNCE_MS)
+    }
+  }
+
   init {
     application.registerActivityLifecycleCallbacks(ActivityLifecycleHandler())
+
+    // Use Curtains to track window changes and ensure overlay is always on top
+    // Note: We don't remove this listener as OverlayViewManager is scoped to the application/singleton
+    // and mimics the process lifecycle at the moment.
+    Curtains.onRootViewsChangedListeners += rootsChangedListener
+  }
+
+  private fun updateOverlayAttachment() {
+    // if no better target, just return
+    val targetWindowView = findBestTargetWindow() ?: return
+
+    // If already attached to the correct target window, just ensure its lifecycle is resumed.
+    if (currentOverlayView != null &&
+      currentLayoutParams?.token == targetWindowView.windowToken &&
+      currentTargetWindowView === targetWindowView
+    ) {
+      currentLifecycleOwner?.onResume()
+      return
+    }
+
+    // Move to new window
+    hideOverlay()
+    currentTargetWindowView = targetWindowView
+    showOverlay(targetWindowView.windowToken)
+  }
+
+  private fun findBestTargetWindow(): View? {
+    // Get all root views (windows) in the app
+    val rootViews = Curtains.rootViews
+
+    // Find the topmost window that:
+    // 1. Is not our overlay window itself
+    // 2. Is not system window
+    // 3. Is an Activity or Dialog window (has a token we can attach to)
+    // 4. Is visible and has a valid window token
+    return rootViews.lastOrNull { view ->
+      // Exclude our own overlay
+      if (view.getTag(R.id.debugoverlay_window_marker) == true) return@lastOrNull false
+
+      // Avoid system specific windows (>= 2000) as we can't attach to them.
+      val type = (view.layoutParams as? WindowManager.LayoutParams)?.type ?: 0
+      if (type >= FIRST_SYSTEM_WINDOW) return@lastOrNull false
+
+      // Check if it is a phone window we can attach to and skip if not.
+      if (view.phoneWindow == null) {
+        return@lastOrNull false
+      }
+      view.windowToken != null && view.isShown
+    }
   }
 
   private fun createLayoutParams(windowToken: IBinder): WindowManager.LayoutParams =
@@ -107,6 +191,8 @@ internal class OverlayViewManager(
       // Start the lifecycle, call onStart as well for the activity overlay to start collecting data immediately.
       lifecycleOwner.onCreate()
       lifecycleOwner.onStart()
+      // Always resume when creating, ActivityLifecycleHandler handles its update afterwards.
+      lifecycleOwner.onResume()
 
       setContent {
         // Observe configuration changes for theme adaptation
@@ -155,19 +241,66 @@ internal class OverlayViewManager(
     } to lifecycleOwner
   }
 
-  inner class ActivityLifecycleHandler : Application.ActivityLifecycleCallbacks {
+  private fun showOverlay(windowToken: IBinder) {
+    val params = createLayoutParams(windowToken)
+    currentLayoutParams = params
 
-    private val attachStateChangeListeners = WeakHashMap<Activity, OverlayViewAttachStateChangeListener>()
+    createOverlayRoot(
+      onPositionChanged = { x, y ->
+        updatePosition(x, y)
+      }
+    ).also { (root, owner) ->
+      currentOverlayView = root
+      currentLifecycleOwner = owner
+      try {
+        windowManager.addView(root, params)
+      } catch (e: WindowManager.BadTokenException) {
+        // Token might have become invalid in the meantime
+        Logger.w("Failed to add overlay view: ${e.message}")
+        hideOverlay()
+      }
+    }
+  }
+
+  private fun hideOverlay() {
+    currentOverlayView?.let {
+      currentLifecycleOwner?.onDestroy()
+      try {
+        if (it.isAttachedToWindow) {
+          windowManager.removeViewImmediate(it)
+        }
+      } catch (e: IllegalStateException) {
+        // Logs an error in case removing results in an unexpected state.
+        Logger.w("hideOverlay-removeViewImmediate failed", e)
+      }
+      currentOverlayView = null
+      currentLifecycleOwner = null
+      currentLayoutParams = null
+    }
+    currentTargetWindowView = null
+  }
+
+  private fun updatePosition(x: Int, y: Int) {
+    val params = currentLayoutParams ?: return
+    val view = currentOverlayView?.takeIf { it.isAttachedToWindow } ?: return
+
+    if (params.x != x || params.y != y) {
+      params.x = x
+      params.y = y
+      windowManager.updateViewLayout(view, params)
+    }
+  }
+
+  private fun savePosition() {
+    currentLayoutParams?.let { params ->
+      overlayPreferences.saveOverlayPosition(params.x, params.y)
+    }
+  }
+
+  inner class ActivityLifecycleHandler : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
       Logger.d("onCreate() called for ${activity.javaClass.simpleName}")
-      // Don't create overlay for debug-related activities
-      if (!activity.isDebugOverlayActivity()) {
-        OverlayViewAttachStateChangeListener().also {
-          activity.window.decorView.addOnAttachStateChangeListener(it)
-          attachStateChangeListeners[activity] = it
-        }
-      }
     }
 
     override fun onActivityStarted(activity: Activity) {
@@ -178,7 +311,9 @@ internal class OverlayViewManager(
       Logger.d("onResume() called for ${activity.javaClass.simpleName}")
       if (!activity.isDebugOverlayActivity()) {
         lastAppActivityRef = WeakReference(activity)
-        attachStateChangeListeners[activity]?.onActivityResumed()
+        if (isCurrentTarget(activity)) {
+          currentLifecycleOwner?.onResume()
+        }
         DebugOverlay.overlayDataRepository.startOrResumeJankStatsTracking(activity)
       }
     }
@@ -186,15 +321,21 @@ internal class OverlayViewManager(
     override fun onActivityPaused(activity: Activity) {
       Logger.d("onPause() called for ${activity.javaClass.simpleName}")
       if (!activity.isDebugOverlayActivity()) {
-        attachStateChangeListeners[activity]?.onActivityPaused()
+        if (isCurrentTarget(activity)) {
+          currentLifecycleOwner?.onPause()
+        }
         DebugOverlay.overlayDataRepository.pauseJankStatsTracking(activity)
+        // Save position only on pause to avoid excessive writes during drag
+        savePosition()
       }
     }
 
     override fun onActivityStopped(activity: Activity) {
       Logger.d("onStop() called for ${activity.javaClass.simpleName}")
       if (!activity.isDebugOverlayActivity()) {
-        attachStateChangeListeners[activity]?.onActivityStopped()
+        if (isCurrentTarget(activity)) {
+          currentLifecycleOwner?.onStop()
+        }
       }
     }
 
@@ -208,86 +349,12 @@ internal class OverlayViewManager(
         if (lastAppActivityRef?.get() === activity) {
           lastAppActivityRef = null
         }
-        attachStateChangeListeners.remove(activity)
         DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
       }
     }
-
-    /** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
-    private fun Activity.isDebugOverlayActivity(): Boolean = this is DebugPanelActivity || this is BugReportActivity
-  }
-
-  inner class OverlayViewAttachStateChangeListener : View.OnAttachStateChangeListener {
-
-    private var rootView: ViewGroup? = null
-    private var lifecycleOwner: OverlayLifecycleOwner? = null
-    private var layoutParams: WindowManager.LayoutParams? = null
-
-    fun onActivityResumed() {
-      lifecycleOwner?.onResume()
-      updatePosition(overlayPreferences.getOverlayX(), overlayPreferences.getOverlayY())
-    }
-
-    fun onActivityPaused() {
-      lifecycleOwner?.onPause()
-      // Save position only on pause to avoid excessive writes during drag
-      savePosition()
-    }
-
-    fun onActivityStopped() {
-      lifecycleOwner?.onStop()
-    }
-
-    override fun onViewAttachedToWindow(v: View) {
-      showOverlay(v.windowToken)
-    }
-
-    override fun onViewDetachedFromWindow(v: View) {
-      hideOverlay()
-      v.removeOnAttachStateChangeListener(this)
-    }
-
-    private fun showOverlay(windowToken: IBinder) {
-      val params = createLayoutParams(windowToken)
-      layoutParams = params
-
-      createOverlayRoot(
-        onPositionChanged = { x, y ->
-          updatePosition(x, y)
-        }
-      ).also { (root, owner) ->
-        rootView = root
-        lifecycleOwner = owner
-        windowManager.addView(root, params)
-      }
-    }
-
-    private fun updatePosition(x: Int, y: Int) {
-      val params = layoutParams ?: return
-      val view = rootView?.takeIf { it.isAttachedToWindow } ?: return
-
-      if (params.x != x || params.y != y) {
-        params.x = x
-        params.y = y
-        windowManager.updateViewLayout(view, params)
-      }
-    }
-
-    private fun savePosition() {
-      layoutParams?.let { params ->
-        overlayPreferences.saveOverlayPosition(params.x, params.y)
-      }
-    }
-
-    fun hideOverlay() {
-      rootView?.let {
-        lifecycleOwner?.onDestroy()
-        // remove immediately so that WindowLeaked won't trigger
-        windowManager.removeViewImmediate(it)
-        rootView = null
-        lifecycleOwner = null
-        layoutParams = null
-      }
-    }
+    private fun isCurrentTarget(activity: Activity): Boolean = currentTargetWindowView?.findActivity() === activity
   }
 }
+
+/** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
+private fun Activity.isDebugOverlayActivity(): Boolean = this is DebugPanelActivity || this is BugReportActivity

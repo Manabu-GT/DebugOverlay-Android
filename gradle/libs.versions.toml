@@ -40,6 +40,7 @@ metrics-performance = "1.0.0"
 # Other
 timber = "5.0.1"
 radiography = "2.7"
+curtains = "1.2.5"
 leakcanary = "2.14"
 okhttp = "5.3.0"
 coil = "3.3.0"
@@ -94,6 +95,7 @@ androidx-metrics-performance = { module = "androidx.metrics:metrics-performance"
 # Other
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 radiography = { module = "com.squareup.radiography:radiography", version.ref = "radiography" }
+curtains = { module = "com.squareup.curtains:curtains", version.ref = "curtains" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 coil = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }

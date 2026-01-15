@@ -81,6 +81,8 @@ dependencies {
 
   // View hierarchy inspection
   implementation(libs.radiography)
+  // Used for app window overlay management, radiography lib depends on this as well
+  implementation(libs.curtains)
 
   // Frame performance monitoring
   implementation(libs.androidx.metrics.performance)
