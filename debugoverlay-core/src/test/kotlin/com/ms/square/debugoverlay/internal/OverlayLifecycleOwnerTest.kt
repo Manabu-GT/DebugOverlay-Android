@@ -95,9 +95,11 @@ class OverlayLifecycleOwnerTest {
   fun `lifecycle observer receives events in order`() {
     val receivedEvents = mutableListOf<Lifecycle.Event>()
 
-    owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-      receivedEvents.add(event)
-    })
+    owner.lifecycle.addObserver(
+      LifecycleEventObserver { _, event ->
+        receivedEvents.add(event)
+      }
+    )
 
     owner.onCreate()
     owner.onStart()
@@ -121,12 +123,16 @@ class OverlayLifecycleOwnerTest {
     val observer1Events = mutableListOf<Lifecycle.Event>()
     val observer2Events = mutableListOf<Lifecycle.Event>()
 
-    owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-      observer1Events.add(event)
-    })
-    owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-      observer2Events.add(event)
-    })
+    owner.lifecycle.addObserver(
+      LifecycleEventObserver { _, event ->
+        observer1Events.add(event)
+      }
+    )
+    owner.lifecycle.addObserver(
+      LifecycleEventObserver { _, event ->
+        observer2Events.add(event)
+      }
+    )
 
     owner.onCreate()
     owner.onStart()
@@ -160,9 +166,11 @@ class OverlayLifecycleOwnerTest {
     owner.onCreate()
 
     val receivedEvents = mutableListOf<Lifecycle.Event>()
-    owner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
-      receivedEvents.add(event)
-    })
+    owner.lifecycle.addObserver(
+      LifecycleEventObserver { _, event ->
+        receivedEvents.add(event)
+      }
+    )
 
     owner.onStart()
 
