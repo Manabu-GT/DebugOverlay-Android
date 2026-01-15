@@ -46,6 +46,8 @@ import curtains.phoneWindow
 import kotlinx.coroutines.CoroutineScope
 import java.lang.ref.WeakReference
 
+private const val OVERLAY_UPDATE_DEBOUNCE_MS = 100L
+
 internal class OverlayViewManager(
   private val application: Application,
   private val overlayScope: CoroutineScope,
@@ -100,7 +102,7 @@ internal class OverlayViewManager(
       // If a new window is added or removed, check if we need to move the overlay
       // We process this on the next frame or immediately to ensure we have the latest state
       // Small debounce is added to minimize updates when window changes rapidly
-      handler.postDelayed(it, 100)
+      handler.postDelayed(it, OVERLAY_UPDATE_DEBOUNCE_MS)
     }
   }
 
@@ -109,7 +111,7 @@ internal class OverlayViewManager(
 
     // Use Curtains to track window changes and ensure overlay is always on top
     // Note: We don't remove this listener as OverlayViewManager is scoped to the application/singleton
-    // and mimics the process lifecycle.
+    // and mimics the process lifecycle at the moment.
     Curtains.onRootViewsChangedListeners += rootsChangedListener
   }
 
@@ -145,7 +147,7 @@ internal class OverlayViewManager(
       // Exclude our own overlay
       if (view.getTag(R.id.debugoverlay_window_marker) == true) return@lastOrNull false
 
-      // Avoid system windows (>= 2000) as we can't attach to them.
+      // Avoid system specific windows (>= 2000) as we can't attach to them.
       val type = (view.layoutParams as? WindowManager.LayoutParams)?.type ?: 0
       if (type >= FIRST_SYSTEM_WINDOW) return@lastOrNull false
 
@@ -264,7 +266,9 @@ internal class OverlayViewManager(
     currentOverlayView?.let {
       currentLifecycleOwner?.onDestroy()
       try {
-        windowManager.removeViewImmediate(it)
+        if (it.isAttachedToWindow) {
+          windowManager.removeViewImmediate(it)
+        }
       } catch (e: IllegalStateException) {
         // Logs an error in case removing results in an unexpected state.
         Logger.w("hideOverlay-removeViewImmediate failed", e)
@@ -348,9 +352,9 @@ internal class OverlayViewManager(
         DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
       }
     }
-
-    /** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
-    private fun Activity.isDebugOverlayActivity(): Boolean = this is DebugPanelActivity || this is BugReportActivity
     private fun isCurrentTarget(activity: Activity): Boolean = currentTargetWindowView?.findActivity() === activity
   }
 }
+
+/** Returns true for activities that are part of DebugOverlay's UI (not the app's UI). */
+private fun Activity.isDebugOverlayActivity(): Boolean = this is DebugPanelActivity || this is BugReportActivity
