@@ -11,6 +11,7 @@ tools/ai/guides
 # Gradle files
 .gradle/
 build/
+.kotlin/
 
 # Android Studio generated files and folders
 captures/

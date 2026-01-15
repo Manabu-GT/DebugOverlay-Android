@@ -1,4 +1,6 @@
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
+import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
   /**
@@ -22,6 +24,27 @@ plugins {
 val reportMerge by tasks.registering(io.gitlab.arturbosch.detekt.report.ReportMergeTask::class) {
   output.set(rootProject.layout.buildDirectory.file("reports/detekt/merge.sarif"))
 }
+
+val jacocoFileFilter = listOf(
+  // Android generated
+  "**/R.class",
+  "**/R$*.class",
+  "**/BuildConfig.*",
+  "**/Manifest*.*",
+  // Test classes
+  "**/*Test*.*",
+  // Android framework components
+  "**/*Activity.class",
+  "**/*Activity$*.class",
+  "**/*Fragment.class",
+  "**/*Fragment$*.class",
+  // Compose generated
+  "**/*ComposableSingletons*.class",
+  "**/ComposableSingletons*.class",
+  // Composable UI functions
+  "**/ui/**",
+  "**/bugreport/ui/**"
+)
 
 subprojects {
   // Apply only to modules that actually use Kotlin
@@ -84,6 +107,93 @@ subprojects {
     hookCheckWhen("io.gitlab.arturbosch.detekt", "detekt")
     hookCheckWhen("com.diffplug.spotless", "spotlessCheck")
   }
+
+  // Configure JaCoCo when plugin is applied (plugin applied in each module's build.gradle.kts)
+  plugins.withId("jacoco") {
+    configure<JacocoPluginExtension> {
+      toolVersion = libs.versions.jacoco.get()
+    }
+
+    tasks.register<JacocoReport>("jacocoTestReport") {
+      dependsOn("testDebugUnitTest")
+
+      reports {
+        xml.required.set(true)
+        html.required.set(true)
+      }
+
+      val buildDir = project.layout.buildDirectory.get().asFile
+      val kotlinDebugTree = fileTree("$buildDir/tmp/kotlin-classes/debug") {
+        exclude(jacocoFileFilter)
+      }
+      val javaDebugTree = fileTree("$buildDir/intermediates/javac/debug/classes") {
+        exclude(jacocoFileFilter)
+      }
+
+      sourceDirectories.setFrom(
+        files(
+          "${project.projectDir}/src/main/kotlin",
+          "${project.projectDir}/src/main/java"
+        )
+      )
+      classDirectories.setFrom(files(kotlinDebugTree, javaDebugTree))
+      executionData.setFrom(files("$buildDir/jacoco/testDebugUnitTest.exec"))
+    }
+  }
 }
 
 apply(from = "$rootDir/gradle/scripts/code-formatting.gradle")
+
+// Merged JaCoCo Report
+plugins.apply("jacoco")
+
+configure<JacocoPluginExtension> {
+  toolVersion = libs.versions.jacoco.get()
+}
+
+tasks.register<JacocoReport>("mergedJacocoReport") {
+  val jacocoProjects = subprojects.filter { it.name != "sample" }
+
+  // Only depend on jacocoTestReport tasks (which already depend on tests)
+  dependsOn(jacocoProjects.map { it.tasks.withType<JacocoReport>() })
+
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+    csv.required.set(true)
+  }
+
+  classDirectories.setFrom(
+    files(
+      jacocoProjects.flatMap {
+        val buildDir = it.layout.buildDirectory.get().asFile
+        listOf(
+          fileTree("$buildDir/tmp/kotlin-classes/debug") {
+            exclude(jacocoFileFilter)
+          },
+          fileTree("$buildDir/intermediates/javac/debug/classes") {
+            exclude(jacocoFileFilter)
+          }
+        )
+      }
+    )
+  )
+  sourceDirectories.setFrom(
+    files(
+      jacocoProjects.flatMap {
+        listOf(
+          "${it.projectDir}/src/main/kotlin",
+          "${it.projectDir}/src/main/java"
+        )
+      }
+    )
+  )
+  executionData.setFrom(
+    files(
+      jacocoProjects.map {
+        val buildDir = it.layout.buildDirectory.get().asFile
+        "$buildDir/jacoco/testDebugUnitTest.exec"
+      }
+    )
+  )
+}
