@@ -236,8 +236,7 @@ dependencies {
 
 ## Known Limitations
 
-- The debug panel may appear below dialogs due to Android window z-ordering (trade-off to avoid `SYSTEM_ALERT_WINDOW` permission)
-- Data is stored locally only—no cloud sync or team collaboration features
+- Data is stored locally only —> no cloud sync or team collaboration features
 
 ## Sample App
 
