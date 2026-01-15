@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.dexcount)
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.bcv)
+  id("jacoco")
 }
 
 java {

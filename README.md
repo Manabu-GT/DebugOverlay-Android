@@ -1,6 +1,7 @@
 DebugOverlay-Android
 ====================
 [![Maven Central (Snapshots)](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
+[![Android CI](https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml)
 [![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -237,6 +238,16 @@ dependencies {
 ## Known Limitations
 
 - Data is stored locally only —> no cloud sync or team collaboration features
+
+## Code Coverage
+
+To generate a local code coverage report for non-UI code (merging all library modules):
+
+```shell
+./gradlew mergedJacocoReport
+```
+
+The report will be available at `build/reports/jacoco/mergedJacocoReport/html/index.html`.
 
 ## Sample App
 

@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   build-and-test:
     name: Build and Test
@@ -32,7 +36,7 @@ jobs:
       # detekt is hooked into subproject `check` tasks, so it runs automatically
       # reportMerge must run after to collect all SARIF files
       - name: Run checks
-        run: ./gradlew check reportMerge --continue --stacktrace
+        run: ./gradlew check mergedJacocoReport reportMerge --continue --stacktrace
 
       # Upload merged SARIF report to GitHub Code Scanning
       - name: Upload SARIF to GitHub Code Scanning
@@ -42,4 +46,4 @@ jobs:
           sarif_file: build/reports/detekt/merge.sarif
 
       - name: Build Project
-        run: ./gradlew clean assembleDebug --stacktrace
+        run: ./gradlew :sample:assembleDebug --stacktrace
