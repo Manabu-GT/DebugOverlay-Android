@@ -1,9 +1,11 @@
-DebugOverlay-Android
-====================
-[![Maven Central (Snapshots)](https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen)](https://central.sonatype.com/artifact/com.ms-square/debugoverlay)
-[![Android CI](https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml)
-[![API 24+](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://developer.android.com/tools/releases/platforms#7.0)
-[![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+<div align="center">
+  <img src="art/banner.jpg" alt="DebugOverlay Android Library" width="100%" style="max-width: 1456px;" />
+  <br><br>
+  <a href="https://central.sonatype.com/artifact/com.ms-square/debugoverlay"><img src="https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen&style=flat" alt="Maven Central"></a>
+  <a href="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml"><img src="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml/badge.svg" alt="Android CI"></a>
+  <a href="https://developer.android.com/tools/releases/platforms#7.0"><img src="https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat" alt="API 24+"></a>
+  <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202-brightgreen.svg?style=flat" alt="License"></a>
+</div>
 
 **Zero-configuration runtime diagnostics for debug/internal builds—available instantly when you need it.**
 
