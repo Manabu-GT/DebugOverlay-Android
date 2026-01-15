@@ -33,7 +33,7 @@ val jacocoFileFilter = listOf(
   "**/Manifest*.*",
   // Test classes
   "**/*Test*.*",
-  // Android framework components (not unit testable)
+  // Android framework components
   "**/*Activity.class",
   "**/*Activity$*.class",
   "**/*Fragment.class",
@@ -41,7 +41,7 @@ val jacocoFileFilter = listOf(
   // Compose generated
   "**/*ComposableSingletons*.class",
   "**/ComposableSingletons*.class",
-  // Composable UI functions (presentation layer)
+  // Composable UI functions
   "**/ui/**",
   "**/bugreport/ui/**"
 )
@@ -123,7 +123,10 @@ subprojects {
       }
 
       val buildDir = project.layout.buildDirectory.get().asFile
-      val debugTree = fileTree("$buildDir/tmp/kotlin-classes/debug") {
+      val kotlinDebugTree = fileTree("$buildDir/tmp/kotlin-classes/debug") {
+        exclude(jacocoFileFilter)
+      }
+      val javaDebugTree = fileTree("$buildDir/intermediates/javac/debug/classes") {
         exclude(jacocoFileFilter)
       }
 
@@ -133,7 +136,7 @@ subprojects {
           "${project.projectDir}/src/main/java"
         )
       )
-      classDirectories.setFrom(files(debugTree))
+      classDirectories.setFrom(files(kotlinDebugTree, javaDebugTree))
       executionData.setFrom(files("$buildDir/jacoco/testDebugUnitTest.exec"))
     }
   }
@@ -149,8 +152,10 @@ configure<JacocoPluginExtension> {
 }
 
 tasks.register<JacocoReport>("mergedJacocoReport") {
+  val jacocoProjects = subprojects.filter { it.name != "sample" }
+
   // Only depend on jacocoTestReport tasks (which already depend on tests)
-  dependsOn(subprojects.map { it.tasks.withType<JacocoReport>() })
+  dependsOn(jacocoProjects.map { it.tasks.withType<JacocoReport>() })
 
   reports {
     xml.required.set(true)
@@ -158,15 +163,18 @@ tasks.register<JacocoReport>("mergedJacocoReport") {
     csv.required.set(true)
   }
 
-  val jacocoProjects = subprojects.filter { it.name != "sample" }
-
   classDirectories.setFrom(
     files(
-      jacocoProjects.map {
+      jacocoProjects.flatMap {
         val buildDir = it.layout.buildDirectory.get().asFile
-        fileTree("$buildDir/tmp/kotlin-classes/debug") {
-          exclude(jacocoFileFilter)
-        }
+        listOf(
+          fileTree("$buildDir/tmp/kotlin-classes/debug") {
+            exclude(jacocoFileFilter)
+          },
+          fileTree("$buildDir/intermediates/javac/debug/classes") {
+            exclude(jacocoFileFilter)
+          }
+        )
       }
     )
   )
