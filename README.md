@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="art/banner.jpg" alt="DebugOverlay Android Library" width="100%" />
+  <img src="art/banner.jpg" alt="DebugOverlay Android Library" width="100%" style="max-width: 1456px;" />
   <br><br>
   <a href="https://central.sonatype.com/artifact/com.ms-square/debugoverlay"><img src="https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen&style=flat" alt="Maven Central"></a>
   <a href="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml"><img src="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml/badge.svg" alt="Android CI"></a>
