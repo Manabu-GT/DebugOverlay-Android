@@ -1,5 +1,6 @@
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
@@ -112,6 +113,14 @@ subprojects {
   plugins.withId("jacoco") {
     configure<JacocoPluginExtension> {
       toolVersion = libs.versions.jacoco.get()
+    }
+
+    // Enable coverage for Robolectric tests (classes loaded without location info)
+    tasks.withType<Test>().configureEach {
+      extensions.configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+      }
     }
 
     tasks.register<JacocoReport>("jacocoTestReport") {
