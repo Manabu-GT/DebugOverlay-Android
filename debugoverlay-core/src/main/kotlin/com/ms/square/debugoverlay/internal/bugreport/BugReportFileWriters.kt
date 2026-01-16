@@ -42,7 +42,7 @@ internal object BugReportFileWriters {
   }
 
   /**
-   * Writes custom tracker log entries to a JSON file.
+   * Writes custom log source entries to a JSON file.
    */
   fun writeCustomLogs(logs: List<LogEntry>, sourceName: String, file: File) {
     writeLogs(logs, sourceName, file)

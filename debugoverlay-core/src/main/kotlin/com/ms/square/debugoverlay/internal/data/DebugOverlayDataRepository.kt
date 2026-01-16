@@ -2,9 +2,9 @@ package com.ms.square.debugoverlay.internal.data
 
 import android.app.Activity
 import android.content.Context
-import com.ms.square.debugoverlay.LogTracker
-import com.ms.square.debugoverlay.NetworkRequestTracker
-import com.ms.square.debugoverlay.NoOpNetworkRequestTracker
+import com.ms.square.debugoverlay.LogSource
+import com.ms.square.debugoverlay.NetworkRequestSource
+import com.ms.square.debugoverlay.NoOpNetworkRequestSource
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
@@ -34,14 +34,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-/** Default name shown when a custom log tracker doesn't provide a source name. */
-internal const val DEFAULT_CUSTOM_TRACKER_NAME = "Custom"
+/** Default name shown when a custom log source doesn't provide a source name. */
+internal const val DEFAULT_CUSTOM_LOG_SOURCE_NAME = "Custom"
 
 internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScope) {
 
-  private val currentNetworkRequestTracker = MutableStateFlow<NetworkRequestTracker>(NoOpNetworkRequestTracker)
+  private val currentNetworkRequestSource = MutableStateFlow<NetworkRequestSource>(NoOpNetworkRequestSource)
   private val logcatDataSource = LogcatDataSource(scope)
-  private val customLogTracker = MutableStateFlow<LogTracker?>(null)
+  private val customLogSource = MutableStateFlow<LogSource?>(null)
   private val netStatsDataSource = NetStatsDataSource(scope)
   private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
   private val jankStatsDataSource = JankStatsDataSource()
@@ -63,28 +63,28 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   // Logcat logs - always available (LogcatDataSource internally uses stateIn)
   val logcatLogs: Flow<List<LogEntry>> = logcatDataSource.logs
 
-  // Custom tracker logs - empty list when no custom tracker is registered
-  // Use hasCustomTracker to determine if a tracker exists (e.g., for bug reports)
+  // Custom source logs - empty list when no custom source is registered
+  // Use hasCustomLogSource to determine if a source exists (e.g., for bug reports)
   @OptIn(ExperimentalCoroutinesApi::class)
-  val customTrackerLogs: StateFlow<List<LogEntry>> = customLogTracker
-    .flatMapLatest { tracker ->
-      tracker?.logs
+  val customLogSourceLogs: StateFlow<List<LogEntry>> = customLogSource
+    .flatMapLatest { source ->
+      source?.logs
         ?.throttleLatest(500.milliseconds)
         ?.catch { e ->
-          Logger.w("Custom log tracker error", e)
+          Logger.w("Custom log source error", e)
           emit(emptyList())
         }
         ?: flowOf(emptyList())
     }
     .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-  // Custom tracker source name (e.g., "Timber")
-  val customTrackerSourceName: StateFlow<String?> = customLogTracker
+  // Custom source name (e.g., "Timber")
+  val customLogSourceName: StateFlow<String?> = customLogSource
     .map { it?.sourceName }
     .stateIn(scope, SharingStarted.Eagerly, null)
 
-  // Whether a custom tracker is registered
-  val hasCustomTracker: StateFlow<Boolean> = customLogTracker
+  // Whether a custom log source is registered
+  val hasCustomLogSource: StateFlow<Boolean> = customLogSource
     .map { it != null }
     .distinctUntilChanged()
     .stateIn(scope, SharingStarted.Eagerly, false)
@@ -103,15 +103,15 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   suspend fun queryAppExitInfosSnapshot(): List<AppExitInfo> = appExitDataSource.queryAppExitInfosSnapshot()
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestTracker
-    .flatMapLatest { tracker -> tracker.requests }
+  val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestSource
+    .flatMapLatest { source -> source.requests }
 
-  fun setNetworkTracker(tracker: NetworkRequestTracker) {
-    currentNetworkRequestTracker.value = tracker
+  fun setNetworkSource(source: NetworkRequestSource) {
+    currentNetworkRequestSource.value = source
   }
 
-  fun setLogTracker(tracker: LogTracker?) {
-    customLogTracker.value = tracker
+  fun setCustomLogSource(source: LogSource?) {
+    customLogSource.value = source
   }
 
   fun startOrResumeJankStatsTracking(activity: Activity) {

@@ -77,18 +77,20 @@ If CI fails on `apiCheck`:
 
 ### Adding New API (Non-breaking)
 
-Adding new public classes, methods, or properties is safe and backward compatible:
+Adding new public classes or methods is safe and backward compatible.
+
+**Note:** Adding new abstract properties/methods to interfaces is a breaking change for
+existing implementers (they must implement the new member). However, since DebugOverlay
+provides concrete implementations (e.g., `DebugOverlayTimberTree` for `LogSource`),
+consumers typically don't implement these interfaces directly.
 
 ```kotlin
-// Before
-public interface LogTracker {
-    val logs: Flow<List<LogEntry>>
-}
+// Adding a new class (safe)
+public class NewFeature { ... }
 
-// After - new property added (safe)
-public interface LogTracker {
-    val logs: Flow<List<LogEntry>>
-    val sourceName: String  // New - consumers don't need to implement this if using classes
+// Adding a new method to an object (safe)
+public object DebugOverlay {
+    public fun newMethod() { ... }  // New - existing code unaffected
 }
 ```
 

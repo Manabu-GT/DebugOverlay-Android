@@ -1,4 +1,4 @@
-public final class com/ms/square/debugoverlay/extension/okhttp/DebugOverlayNetworkInterceptor : com/ms/square/debugoverlay/NetworkRequestTracker, okhttp3/Interceptor {
+public final class com/ms/square/debugoverlay/extension/okhttp/DebugOverlayNetworkInterceptor : com/ms/square/debugoverlay/NetworkRequestSource, okhttp3/Interceptor {
 	public fun <init> ()V
 	public fun <init> (ILjava/util/Set;Ljava/util/Set;J)V
 	public synthetic fun <init> (ILjava/util/Set;Ljava/util/Set;JILkotlin/jvm/internal/DefaultConstructorMarker;)V

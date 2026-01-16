@@ -49,75 +49,75 @@ class FileNamesTest {
     assertThat(validateFilename("файл.json")).isNotNull()
   }
 
-  // ========== trackerLogsFilename tests ==========
+  // ========== customLogSourceFilename tests ==========
 
   @Test
-  fun `trackerLogsFilename lowercases normal source name`() {
-    assertThat(FileNames.trackerLogsFilename("Timber")).isEqualTo("timber_logs.json")
+  fun `customLogSourceFilename lowercases normal source name`() {
+    assertThat(FileNames.customLogSourceFilename("Timber")).isEqualTo("timber_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename strips path separators`() {
-    assertThat(FileNames.trackerLogsFilename("../etc")).isEqualTo("etc_logs.json")
-    assertThat(FileNames.trackerLogsFilename("foo/bar")).isEqualTo("foobar_logs.json")
-    assertThat(FileNames.trackerLogsFilename("foo\\bar")).isEqualTo("foobar_logs.json")
+  fun `customLogSourceFilename strips path separators`() {
+    assertThat(FileNames.customLogSourceFilename("../etc")).isEqualTo("etc_logs.json")
+    assertThat(FileNames.customLogSourceFilename("foo/bar")).isEqualTo("foobar_logs.json")
+    assertThat(FileNames.customLogSourceFilename("foo\\bar")).isEqualTo("foobar_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename strips leading dots`() {
-    assertThat(FileNames.trackerLogsFilename(".foo")).isEqualTo("foo_logs.json")
+  fun `customLogSourceFilename strips leading dots`() {
+    assertThat(FileNames.customLogSourceFilename(".foo")).isEqualTo("foo_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename falls back for dots only`() {
-    assertThat(FileNames.trackerLogsFilename("..")).isEqualTo("unknown_logs.json")
-    assertThat(FileNames.trackerLogsFilename("...")).isEqualTo("unknown_logs.json")
+  fun `customLogSourceFilename falls back for dots only`() {
+    assertThat(FileNames.customLogSourceFilename("..")).isEqualTo("unknown_logs.json")
+    assertThat(FileNames.customLogSourceFilename("...")).isEqualTo("unknown_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename strips leading dots then keeps rest`() {
-    assertThat(FileNames.trackerLogsFilename("...a")).isEqualTo("a_logs.json")
+  fun `customLogSourceFilename strips leading dots then keeps rest`() {
+    assertThat(FileNames.customLogSourceFilename("...a")).isEqualTo("a_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename falls back for empty input`() {
-    assertThat(FileNames.trackerLogsFilename("")).isEqualTo("unknown_logs.json")
+  fun `customLogSourceFilename falls back for empty input`() {
+    assertThat(FileNames.customLogSourceFilename("")).isEqualTo("unknown_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename falls back for whitespace only`() {
-    assertThat(FileNames.trackerLogsFilename("   ")).isEqualTo("unknown_logs.json")
+  fun `customLogSourceFilename falls back for whitespace only`() {
+    assertThat(FileNames.customLogSourceFilename("   ")).isEqualTo("unknown_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename falls back for special chars only`() {
-    assertThat(FileNames.trackerLogsFilename("@#\$%")).isEqualTo("unknown_logs.json")
+  fun `customLogSourceFilename falls back for special chars only`() {
+    assertThat(FileNames.customLogSourceFilename("@#\$%")).isEqualTo("unknown_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename strips whitespace`() {
-    assertThat(FileNames.trackerLogsFilename("My Tracker")).isEqualTo("mytracker_logs.json")
+  fun `customLogSourceFilename strips whitespace`() {
+    assertThat(FileNames.customLogSourceFilename("My Source")).isEqualTo("mysource_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename strips unicode characters`() {
-    assertThat(FileNames.trackerLogsFilename("Timber📱Logs")).isEqualTo("timberlogs_logs.json")
+  fun `customLogSourceFilename strips unicode characters`() {
+    assertThat(FileNames.customLogSourceFilename("Timber📱Logs")).isEqualTo("timberlogs_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename preserves embedded dots`() {
-    assertThat(FileNames.trackerLogsFilename("foo.bar")).isEqualTo("foo.bar_logs.json")
+  fun `customLogSourceFilename preserves embedded dots`() {
+    assertThat(FileNames.customLogSourceFilename("foo.bar")).isEqualTo("foo.bar_logs.json")
   }
 
   @Test
-  fun `trackerLogsFilename preserves hyphens and underscores`() {
-    assertThat(FileNames.trackerLogsFilename("my-custom_logger")).isEqualTo("my-custom_logger_logs.json")
+  fun `customLogSourceFilename preserves hyphens and underscores`() {
+    assertThat(FileNames.customLogSourceFilename("my-custom_logger")).isEqualTo("my-custom_logger_logs.json")
   }
 
-  // ========== Contract test: trackerLogsFilename output must pass validateFilename ==========
+  // ========== Contract test: customLogSourceFilename output must pass validateFilename ==========
 
   @Test
-  fun `trackerLogsFilename output always passes validateFilename`() {
+  fun `customLogSourceFilename output always passes validateFilename`() {
     val edgeCases = listOf(
       "Normal",
       "../../../etc",
@@ -130,11 +130,11 @@ class FileNamesTest {
       ".hidden",
       "..",
       "foo\\bar",
-      "My Tracker Logs"
+      "My Source Logs"
     )
 
     edgeCases.forEach { input ->
-      val result = FileNames.trackerLogsFilename(input)
+      val result = FileNames.customLogSourceFilename(input)
       val validationError = validateFilename(result)
       assertThat(validationError)
         .isNull()

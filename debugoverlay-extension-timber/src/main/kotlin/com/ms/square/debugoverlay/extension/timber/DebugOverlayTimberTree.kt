@@ -2,7 +2,7 @@ package com.ms.square.debugoverlay.extension.timber
 
 import android.os.Process
 import com.ms.square.debugoverlay.DebugOverlay
-import com.ms.square.debugoverlay.LogTracker
+import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
 import com.ms.square.debugoverlay.model.LogEntry
@@ -24,8 +24,8 @@ private const val DEFAULT_TAG = "Timber"
  * This tree is **automatically planted** via AndroidX Startup when the
  * `debugoverlay-extension-timber` dependency is added. No manual setup required.
  *
- * All logs sent through Timber will be displayed in the DebugOverlay Log tab
- * with "Timber" as the source indicator, replacing the default system logcat reader.
+ * All logs sent through Timber will be displayed in an additional "Timber" tab
+ * in the DebugOverlay debug panel, alongside the built-in Logcat tab.
  *
  * **Usage:** Just add the dependency - no code required!
  * ```kotlin
@@ -45,7 +45,7 @@ private const val DEFAULT_TAG = "Timber"
 @OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   Timber.Tree(),
-  LogTracker {
+  LogSource {
 
   override val sourceName: String = SOURCE_NAME
 
@@ -57,7 +57,7 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
   init {
     // Auto-register with DebugOverlay when tree is created
-    DebugOverlay.configure { copy(logTracker = this@DebugOverlayTimberTree) }
+    DebugOverlay.configure { copy(customLogSource = this@DebugOverlayTimberTree) }
   }
 
   override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {

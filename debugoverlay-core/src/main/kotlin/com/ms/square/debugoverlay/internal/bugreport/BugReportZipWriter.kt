@@ -33,7 +33,7 @@ internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignor
  * - bug_report.html (human-readable report with embedded screenshot)
  * - screenshot.png (if available)
  * - logcat_logs.json (system logcat entries)
- * - custom_logs.json (custom tracker logs, if registered)
+ * - {source}_logs.json (custom log source logs, e.g., timber_logs.json, if registered)
  * - network_requests.json
  * - device_info.json
  * - jank_stats.json

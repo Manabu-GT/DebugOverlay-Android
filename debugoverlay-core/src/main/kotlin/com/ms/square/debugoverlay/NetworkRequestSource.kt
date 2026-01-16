@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * Interface for tracking network requests.
+ * Interface for providing network requests to the debug overlay.
  *
  * This abstraction allows the debug panel to work with any HTTP client
  * (OkHttp, Ktor, Retrofit, custom clients) without being tied to a specific implementation.
@@ -13,17 +13,16 @@ import kotlinx.coroutines.flow.flowOf
  * Usage:
  * ```kotlin
  * // Implement for your HTTP client
- * class MyNetworkTracker : NetworkRequestTracker {
+ * class MyNetworkSource : NetworkRequestSource {
  *     private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
  *     override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()
  * }
  *
- * // Use in DebugOverlay
- *  DebugOverlay.config =
- *       DebugOverlay.config.copy(networkRequestTracker = debugOverlayNetworkInterceptor)
+ * // Register with DebugOverlay
+ * DebugOverlay.configure { copy(networkRequestSource = myNetworkSource) }
  * ```
  */
-public interface NetworkRequestTracker {
+public interface NetworkRequestSource {
 
   /**
    * Flow of network request logs, with newest log at the end.
@@ -36,8 +35,8 @@ public interface NetworkRequestTracker {
 }
 
 /**
- * No-op implementation for when tracking is disabled.
+ * No-op implementation for when network request tracking is disabled.
  */
-public object NoOpNetworkRequestTracker : NetworkRequestTracker {
+public object NoOpNetworkRequestSource : NetworkRequestSource {
   override val requests: Flow<List<NetworkRequest>> = flowOf(emptyList())
 }

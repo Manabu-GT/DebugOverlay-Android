@@ -50,7 +50,7 @@ Draggable overlay with real-time metrics and sparklines:
 Tap the overlay to open a full-screen diagnostic panel:
 
 - **Logcat** – Live system logcat stream with level filtering and search
-- **[Custom Log]** – Additional tab when using [Timber](#timber-log-capture) or custom log trackers
+- **[Custom Log]** – Additional tab when using [Timber](#timber-log-capture) or custom log sources
 - **AppExits** – App exit (e.g., Crash/ANR) history on Android 11+ with stack traces
 - **Network** – Request list with timing and inspection ([setup required](#network-request-tracking))
 - **JankStats** – Frame timing analysis and jank breakdown
