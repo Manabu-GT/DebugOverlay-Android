@@ -61,7 +61,7 @@ internal class BugReportGenerator(
           val screenshotDeferred = async {
             activityProvider.activity?.let { ScreenshotCapture.capture(it) }
           }
-          val logcatLogsDeferred = async { repository.logcatLogs.first() }
+          val logcatLogsDeferred = async { repository.queryLogcatSnapshot() }
           // Check if custom log source is registered to determine if custom logs should be included
           val hasCustomLogSource = repository.hasCustomLogSource.value
           val customLogSourceDataDeferred = if (hasCustomLogSource) {

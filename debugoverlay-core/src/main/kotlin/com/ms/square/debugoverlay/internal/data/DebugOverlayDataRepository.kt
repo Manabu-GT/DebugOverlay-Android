@@ -99,6 +99,7 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   val appExitInfos: Flow<List<AppExitInfo>> = appExitDataSource.appExitInfos
 
   // Snapshot methods for bug reports (use cached value if available, otherwise query directly)
+  suspend fun queryLogcatSnapshot(): List<LogEntry> = logcatDataSource.queryLogcatSnapshot()
   suspend fun queryDeviceInfoSnapshot(): DeviceInfo = deviceInfoDataSource.queryDeviceInfoSnapshot()
   suspend fun queryAppExitInfosSnapshot(): List<AppExitInfo> = appExitDataSource.queryAppExitInfosSnapshot()
 

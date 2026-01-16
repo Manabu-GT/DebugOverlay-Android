@@ -15,11 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.Closeable
 import java.io.File
@@ -39,7 +41,7 @@ private const val THREADNAME_CACHE_SIZE = 100
  * This only reads current app logs, not other apps (such requires a signature-level permission -> READ_LOGS).
  */
 @OptIn(InternalDebugOverlayApi::class)
-internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
+internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: Int = 300) :
   LogSource,
   Closeable {
 
@@ -52,8 +54,9 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
 
   /**
    * Stream logcat entries. Keeps last N entries in memory.
+   * Private StateFlow for direct .value access in [queryLogcatSnapshot].
    */
-  override val logs: Flow<List<LogEntry>> = flow {
+  private val _logs: StateFlow<List<LogEntry>> = flow {
     var id = 1L
     val entries = EvictingQueue<LogEntry>(maxEntries)
     val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
@@ -68,19 +71,15 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
           currentProcess = it
         }
       }
-      reader = BufferedReader(InputStreamReader(process.inputStream))
+      reader = InputStreamReader(process.inputStream).buffered()
 
       while (currentCoroutineContext().isActive) {
-        // readLine() returns null at end of stream, so exit early if a process dies unexpectedly..etc
-        val line = reader.readLine()
-        if (line == null) {
-          break
-        } else {
-          line.trim().parseLogcatEntry(id, threadNameCache)?.let {
-            entries.add(it)
-            id++
-            emit(entries)
-          }
+        // readLine() returns null at end of stream, so exit early if a process dies unexpectedly
+        val line = reader.readLine() ?: break
+        line.trim().parseLogcatEntry(id, threadNameCache)?.let {
+          entries.add(it)
+          id++
+          emit(entries)
         }
       }
     } catch (e: IOException) {
@@ -100,6 +99,48 @@ internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
       started = SharingStarted.WhileSubscribed(),
       initialValue = emptyList()
     )
+
+  /** Public API for [LogSource] interface. */
+  override val logs: Flow<List<LogEntry>> = _logs
+
+  /**
+   * Returns a snapshot of logcat logs for bug reports.
+   * Uses cached value if streaming was active (debug panel was viewed), otherwise captures directly.
+   */
+  suspend fun queryLogcatSnapshot(): List<LogEntry> {
+    val cached = _logs.value
+    if (cached.isNotEmpty()) return cached
+
+    return captureLogcatOnce()
+  }
+
+  private suspend fun captureLogcatOnce(): List<LogEntry> = withContext(Dispatchers.IO) {
+    buildList {
+      val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
+      var id = 1L
+
+      // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
+      val process = Runtime.getRuntime()
+        .exec("logcat -v threadtime,printable,epoch -t $maxEntries")
+
+      try {
+        InputStreamReader(process.inputStream).useLines { lines ->
+          lines.forEach { line ->
+            line.trim().parseLogcatEntry(id, threadNameCache)?.let {
+              add(it)
+              id++
+            }
+          }
+        }
+      } catch (e: IOException) {
+        Logger.e("Failed to capture logcat snapshot", e)
+      } catch (e: SecurityException) {
+        Logger.e("Failed to capture logcat snapshot", e)
+      } finally {
+        process.safeDestroy()
+      }
+    }
+  }
 
   @Suppress("DestructuringDeclarationWithTooManyEntries")
   private fun String.parseLogcatEntry(id: Long, threadNameCache: LruCache<Int, String>): LogEntry? {
