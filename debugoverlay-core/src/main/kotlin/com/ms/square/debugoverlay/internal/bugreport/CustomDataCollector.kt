@@ -5,6 +5,7 @@ import com.ms.square.debugoverlay.internal.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
@@ -68,8 +69,10 @@ private suspend fun collectFromContributor(contributor: BugReportDataContributor
 
   return try {
     withTimeout(DEFAULT_TIMEOUT) {
-      outputFile.outputStream().buffered().use { stream ->
-        contributor.writeTo(stream)
+      runInterruptible {
+        outputFile.outputStream().buffered().use { stream ->
+          contributor.writeTo(stream)
+        }
       }
     }
 
