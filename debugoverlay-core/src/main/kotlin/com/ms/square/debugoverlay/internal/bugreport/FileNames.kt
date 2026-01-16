@@ -46,6 +46,7 @@ internal object FileNames {
   fun trackerLogsFilename(sourceName: String): String {
     val sanitized = sourceName
       .replace(Regex("[^a-zA-Z0-9_.-]"), "")
+      .trimStart('.')
       .lowercase(Locale.ROOT)
       .ifEmpty { DEFAULT_SOURCE_NAME }
     return "${sanitized}_logs.json"
