@@ -24,8 +24,8 @@ private const val DEFAULT_TAG = "Timber"
  * This tree is **automatically planted** via AndroidX Startup when the
  * `debugoverlay-extension-timber` dependency is added. No manual setup required.
  *
- * All logs sent through Timber will be displayed in the DebugOverlay Log tab
- * with "Timber" as the source indicator, replacing the default system logcat reader.
+ * All logs sent through Timber will be displayed in an additional "Timber" tab
+ * in the DebugOverlay debug panel, alongside the built-in Logcat tab.
  *
  * **Usage:** Just add the dependency - no code required!
  * ```kotlin

@@ -18,9 +18,8 @@ import kotlinx.coroutines.flow.flowOf
  *     override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()
  * }
  *
- * // Use in DebugOverlay
- *  DebugOverlay.config =
- *       DebugOverlay.config.copy(networkRequestSource = debugOverlayNetworkInterceptor)
+ * // Register with DebugOverlay
+ * DebugOverlay.configure { copy(networkRequestSource = myNetworkSource) }
  * ```
  */
 public interface NetworkRequestSource {
