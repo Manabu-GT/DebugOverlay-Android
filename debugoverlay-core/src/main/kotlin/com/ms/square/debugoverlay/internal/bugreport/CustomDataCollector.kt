@@ -14,8 +14,6 @@ internal const val CUSTOM_FILE_PREFIX = "custom_"
 private val DEFAULT_TIMEOUT = 5.seconds
 private const val SLOW_THRESHOLD_MS = 3000L
 
-private val VALID_FILENAME_REGEX = Regex("""^[a-zA-Z0-9_.-]+$""")
-
 /**
  * Collects data from all registered [BugReportDataContributor]s.
  *
@@ -35,9 +33,19 @@ internal suspend fun collectCustomData(
   contributors: List<BugReportDataContributor>,
   outputFolder: File,
 ): List<String> = withContext(Dispatchers.IO) {
-  contributors.mapNotNull { contributor ->
+  val results = contributors.mapNotNull { contributor ->
     collectFromContributor(contributor, outputFolder)
   }
+
+  val total = contributors.size
+  val succeeded = results.size
+  if (succeeded < total) {
+    Logger.w("Collected $succeeded/$total custom data files (${total - succeeded} skipped)")
+  } else {
+    Logger.i("Collected $succeeded/$total custom data files")
+  }
+
+  results
 }
 
 // Contributors are external plugin code - we don't control what exceptions they throw
@@ -87,24 +95,4 @@ private suspend fun collectFromContributor(contributor: BugReportDataContributor
     outputFile.delete()
     null
   }
-}
-
-/**
- * Validates a contributor filename.
- * @return Error message if invalid, null if valid
- */
-private fun validateFilename(filename: String): String? {
-  if (filename.isBlank()) {
-    return "Filename cannot be blank"
-  }
-
-  if (!VALID_FILENAME_REGEX.matches(filename)) {
-    return "Filename contains invalid characters (allowed: a-z, A-Z, 0-9, _, ., -)"
-  }
-
-  if (filename.startsWith('.')) {
-    return "Filename cannot start with '.'"
-  }
-
-  return null
 }
