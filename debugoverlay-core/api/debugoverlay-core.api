@@ -1,3 +1,13 @@
+public abstract interface class com/ms/square/debugoverlay/BugReportDataContributor {
+	public static final field Companion Lcom/ms/square/debugoverlay/BugReportDataContributor$Companion;
+	public abstract fun getFilename ()Ljava/lang/String;
+	public abstract fun writeTo (Ljava/io/OutputStream;)V
+}
+
+public final class com/ms/square/debugoverlay/BugReportDataContributor$Companion {
+	public final fun invoke (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/ms/square/debugoverlay/BugReportDataContributor;
+}
+
 public final class com/ms/square/debugoverlay/DebugOverlay {
 	public static final field $stable I
 	public static final field INSTANCE Lcom/ms/square/debugoverlay/DebugOverlay;
@@ -7,14 +17,16 @@ public final class com/ms/square/debugoverlay/DebugOverlay {
 public final class com/ms/square/debugoverlay/DebugOverlay$Config {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;)V
-	public synthetic fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;Ljava/util/List;)V
+	public synthetic fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/ms/square/debugoverlay/OverlayMode;
 	public final fun component2 ()Lcom/ms/square/debugoverlay/NetworkRequestTracker;
 	public final fun component3 ()Lcom/ms/square/debugoverlay/LogTracker;
-	public final fun copy (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
-	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/DebugOverlay$Config;Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;Ljava/util/List;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/DebugOverlay$Config;Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestTracker;Lcom/ms/square/debugoverlay/LogTracker;Ljava/util/List;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBugReportDataContributors ()Ljava/util/List;
 	public final fun getLogTracker ()Lcom/ms/square/debugoverlay/LogTracker;
 	public final fun getNetworkRequestTracker ()Lcom/ms/square/debugoverlay/NetworkRequestTracker;
 	public final fun getOverlayMode ()Lcom/ms/square/debugoverlay/OverlayMode;

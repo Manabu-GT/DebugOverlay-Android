@@ -25,8 +25,8 @@ import kotlinx.coroutines.SupervisorJob
 public object DebugOverlay {
 
   @Volatile
-  private var config: Config = Config()
-    set(newConfig) {
+  internal var config: Config = Config()
+    private set(newConfig) {
       if (field != newConfig) {
         field = newConfig
         _overlayDataRepository?.apply {
@@ -111,12 +111,17 @@ public object DebugOverlay {
    * @property logTracker Custom log tracker to replace system logcat reading.
    *   Default is null which uses the built-in system logcat reader.
    *   Use DebugOverlayTimberTree from debugoverlay-extension-timber for Timber integration.
+   * @property bugReportDataContributors Custom data contributors for bug reports.
+   *   Each contributor can add app-specific diagnostic data (preferences, feature flags, etc.)
+   *   to bug reports. See [BugReportDataContributor] for implementation details.
    *
    * @see configure
+   * @see BugReportDataContributor
    */
   public data class Config(
     val overlayMode: OverlayMode = OverlayMode.FullMetrics,
     val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
     val logTracker: LogTracker? = null,
+    val bugReportDataContributors: List<BugReportDataContributor> = emptyList(),
   )
 }

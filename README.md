@@ -212,6 +212,51 @@ If you dismiss the metadata dialog instead of submitting, DebugOverlay saves the
 <img src="art/readme_bug_report_demo.gif" alt="Sample Bug Report">
 <img src="art/readme_bug_report_drafts.png" alt="Bug Report Draft Picker">
 
+### Custom data in bug reports
+
+Add app-specific diagnostic data (preferences, feature flags, etc.) to bug reports:
+
+```kotlin
+class MyApp : Application() {
+  override fun onCreate() {
+    super.onCreate()
+
+    DebugOverlay.configure {
+      copy(
+        bugReportDataContributors = listOf(
+          // Class-based contributor
+          UserPreferencesContributor(applicationContext),
+          // Lambda-based for simple cases
+          BugReportDataContributor("build_info.txt") { out ->
+            out.write("version=${BuildConfig.VERSION_NAME}\n".toByteArray())
+            out.write("code=${BuildConfig.VERSION_CODE}\n".toByteArray())
+          }
+        )
+      )
+    }
+  }
+}
+
+class UserPreferencesContributor(
+  private val context: Context
+) : BugReportDataContributor {
+  override val filename = "preferences.txt"
+
+  override fun writeTo(outputStream: OutputStream) {
+    PrintWriter(outputStream).use { writer ->
+      context.getSharedPreferences("settings", MODE_PRIVATE)
+        .all
+        .filterNot { it.key.contains("token", ignoreCase = true) } // Filter sensitive data
+        .forEach { (key, value) -> writer.println("$key = $value") }
+    }
+  }
+}
+```
+
+Custom files appear in the bug report ZIP with a `custom_` prefix (e.g., `custom_preferences.txt`).
+
+> **Note:** Contributors have a 5-second timeout. Use Application context to avoid memory leaks.
+
 ## Advanced Setup
 
 ### Release builds with overlay

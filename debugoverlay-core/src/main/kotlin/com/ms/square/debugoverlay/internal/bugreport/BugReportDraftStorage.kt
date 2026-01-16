@@ -3,9 +3,9 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.APP_EXITS
-import com.ms.square.debugoverlay.internal.bugreport.FileNames.CUSTOM_LOGS
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.DEVICE_INFO
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.HTML_REPORT
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.JANK_STATS
@@ -139,40 +139,7 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
         HtmlReportBuilder.build(reportData, File(folder, HTML_REPORT))
       }
 
-      // Save diagnostic data files
-      saveBestEffort("logcat logs") {
-        BugReportFileWriters.writeLogcatLogs(snapshot.logcatLogs, File(folder, LOGCAT_LOGS))
-      }
-      snapshot.customTrackerData?.let { customData ->
-        saveBestEffort("custom logs") {
-          BugReportFileWriters.writeCustomLogs(
-            customData.logs,
-            customData.sourceName,
-            File(folder, CUSTOM_LOGS)
-          )
-        }
-      }
-      saveBestEffort("network requests") {
-        BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
-      }
-      snapshot.deviceInfo?.let { deviceInfo ->
-        saveBestEffort("device info") {
-          BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO))
-        }
-      }
-      snapshot.jankStats?.let { jankStats ->
-        saveBestEffort("jank stats") {
-          BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS))
-        }
-      }
-      saveBestEffort("app exits") {
-        BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS))
-      }
-      snapshot.uiHierarchy?.let { uiHierarchy ->
-        saveBestEffort("UI hierarchy") {
-          BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY))
-        }
-      }
+      saveDiagnosticFiles(snapshot, folder)
     } finally {
       // Recycle bitmap after all saves complete—Activity will reload from disk
       // NOTE: Since the normal GC process will free up this memory when there are
@@ -182,6 +149,45 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
 
     Logger.d("Bug report snapshot saved to: ${folder.absolutePath}")
     folder
+  }
+
+  private suspend fun saveDiagnosticFiles(snapshot: BugReportSnapshot, folder: File) {
+    saveBestEffort("logcat logs") {
+      BugReportFileWriters.writeLogcatLogs(snapshot.logcatLogs, File(folder, LOGCAT_LOGS))
+    }
+    snapshot.customTrackerData?.let { customData ->
+      saveBestEffort("custom logs") {
+        val filename = FileNames.trackerLogsFilename(customData.sourceName)
+        BugReportFileWriters.writeCustomLogs(customData.logs, customData.sourceName, File(folder, filename))
+      }
+    }
+    saveBestEffort("network requests") {
+      BugReportFileWriters.writeNetworkRequests(snapshot.networkRequests, File(folder, NETWORK_REQUESTS))
+    }
+    snapshot.deviceInfo?.let { deviceInfo ->
+      saveBestEffort("device info") {
+        BugReportFileWriters.writeDeviceInfo(deviceInfo, File(folder, DEVICE_INFO))
+      }
+    }
+    snapshot.jankStats?.let { jankStats ->
+      saveBestEffort("jank stats") {
+        BugReportFileWriters.writeJankStats(jankStats, File(folder, JANK_STATS))
+      }
+    }
+    saveBestEffort("app exits") {
+      BugReportFileWriters.writeAppExits(snapshot.appExitInfos, File(folder, APP_EXITS))
+    }
+    snapshot.uiHierarchy?.let { uiHierarchy ->
+      saveBestEffort("UI hierarchy") {
+        BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY))
+      }
+    }
+    val contributors = DebugOverlay.config.bugReportDataContributors
+    if (contributors.isNotEmpty()) {
+      saveBestEffort("custom data") {
+        collectCustomData(contributors, folder)
+      }
+    }
   }
 
   /**

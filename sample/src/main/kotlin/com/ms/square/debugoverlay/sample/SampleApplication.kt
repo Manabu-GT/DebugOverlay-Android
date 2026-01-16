@@ -10,5 +10,6 @@ class SampleApplication : Application() {
   override fun onCreate() {
     super.onCreate()
     Timber.plant(Timber.DebugTree())
+    DebugOverlaySetup.init(this)
   }
 }
