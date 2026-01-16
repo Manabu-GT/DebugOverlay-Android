@@ -81,12 +81,12 @@ Adding new public classes, methods, or properties is safe and backward compatibl
 
 ```kotlin
 // Before
-public interface LogTracker {
+public interface LogSource {
     val logs: Flow<List<LogEntry>>
 }
 
 // After - new property added (safe)
-public interface LogTracker {
+public interface LogSource {
     val logs: Flow<List<LogEntry>>
     val sourceName: String  // New - consumers don't need to implement this if using classes
 }

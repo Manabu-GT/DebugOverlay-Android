@@ -30,8 +30,8 @@ public object DebugOverlay {
       if (field != newConfig) {
         field = newConfig
         _overlayDataRepository?.apply {
-          setNetworkTracker(newConfig.networkRequestTracker)
-          setLogTracker(newConfig.logTracker)
+          setNetworkSource(newConfig.networkRequestSource)
+          setCustomLogSource(newConfig.customLogSource)
         } ?: Logger.d("Config updated before install, will apply during install")
         overlayViewManager?.let { it.overlayMode = newConfig.overlayMode }
           ?: Logger.d("Config updated before install, will apply during install")
@@ -70,8 +70,8 @@ public object DebugOverlay {
 
     overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also { scope ->
       val repository = DebugOverlayDataRepository(application, scope).apply {
-        setNetworkTracker(config.networkRequestTracker)
-        setLogTracker(config.logTracker)
+        setNetworkSource(config.networkRequestSource)
+        setCustomLogSource(config.customLogSource)
       }
       _overlayDataRepository = repository
 
@@ -105,12 +105,13 @@ public object DebugOverlay {
    * @property overlayMode The overlay display mode.
    *   [OverlayMode.FullMetrics] (default) shows real-time metrics panel.
    *   [OverlayMode.BugReporterOnly] shows a minimal FAB for quick bug reporting.
-   * @property networkRequestTracker Tracks HTTP requests for display in Network tab.
-   *   Default is [NoOpNetworkRequestTracker] which disables network tracking.
+   * @property networkRequestSource Provides HTTP requests for display in Network tab.
+   *   Default is [NoOpNetworkRequestSource] which disables network request display.
    *   Use DebugOverlayNetworkInterceptor from debugoverlay-extension-okhttp for OkHttp integration.
-   * @property logTracker Custom log tracker to replace system logcat reading.
-   *   Default is null which uses the built-in system logcat reader.
-   *   Use DebugOverlayTimberTree from debugoverlay-extension-timber for Timber integration.
+   * @property customLogSource Optional custom log source shown as an additional tab.
+   *   Default is null. The built-in Logcat tab is always available.
+   *   When set, a second tab appears showing logs from this custom source.
+   *   Use debugoverlay-extension-timber for Timber integration.
    * @property bugReportDataContributors Custom data contributors for bug reports.
    *   Each contributor can add app-specific diagnostic data (preferences, feature flags, etc.)
    *   to bug reports. See [BugReportDataContributor] for implementation details.
@@ -120,8 +121,8 @@ public object DebugOverlay {
    */
   public data class Config(
     val overlayMode: OverlayMode = OverlayMode.FullMetrics,
-    val networkRequestTracker: NetworkRequestTracker = NoOpNetworkRequestTracker,
-    val logTracker: LogTracker? = null,
+    val networkRequestSource: NetworkRequestSource = NoOpNetworkRequestSource,
+    val customLogSource: LogSource? = null,
     val bugReportDataContributors: List<BugReportDataContributor> = emptyList(),
   )
 }

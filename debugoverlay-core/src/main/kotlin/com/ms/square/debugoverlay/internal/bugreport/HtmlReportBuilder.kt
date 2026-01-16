@@ -123,8 +123,8 @@ internal object HtmlReportBuilder {
     // Logcat logs section (always present)
     appendLogsSection(data.logcatLogs, "System Logcat", "logcat")
 
-    // Custom tracker logs section (if tracker registered)
-    data.customTrackerData?.let { customData ->
+    // Custom log source section (if log source registered)
+    data.customLogSourceData?.let { customData ->
       appendLogsSection(customData.logs, customData.sourceName, "custom-logs")
     }
 

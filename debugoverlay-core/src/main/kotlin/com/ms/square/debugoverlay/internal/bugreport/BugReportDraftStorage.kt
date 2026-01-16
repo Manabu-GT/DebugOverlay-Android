@@ -155,9 +155,9 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
     saveBestEffort("logcat logs") {
       BugReportFileWriters.writeLogcatLogs(snapshot.logcatLogs, File(folder, LOGCAT_LOGS))
     }
-    snapshot.customTrackerData?.let { customData ->
+    snapshot.customLogSourceData?.let { customData ->
       saveBestEffort("custom logs") {
-        val filename = FileNames.trackerLogsFilename(customData.sourceName)
+        val filename = FileNames.customLogSourceFilename(customData.sourceName)
         BugReportFileWriters.writeCustomLogs(customData.logs, customData.sourceName, File(folder, filename))
       }
     }

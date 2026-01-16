@@ -2,7 +2,7 @@ package com.ms.square.debugoverlay.extension.timber
 
 import android.os.Process
 import com.ms.square.debugoverlay.DebugOverlay
-import com.ms.square.debugoverlay.LogTracker
+import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
 import com.ms.square.debugoverlay.model.LogEntry
@@ -45,7 +45,7 @@ private const val DEFAULT_TAG = "Timber"
 @OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   Timber.Tree(),
-  LogTracker {
+  LogSource {
 
   override val sourceName: String = SOURCE_NAME
 
@@ -57,7 +57,7 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
   init {
     // Auto-register with DebugOverlay when tree is created
-    DebugOverlay.configure { copy(logTracker = this@DebugOverlayTimberTree) }
+    DebugOverlay.configure { copy(customLogSource = this@DebugOverlayTimberTree) }
   }
 
   override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {

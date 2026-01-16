@@ -3,7 +3,7 @@ package com.ms.square.debugoverlay.internal.data.source
 import android.os.Build
 import androidx.annotation.GuardedBy
 import androidx.collection.LruCache
-import com.ms.square.debugoverlay.LogTracker
+import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
@@ -40,7 +40,7 @@ private const val THREADNAME_CACHE_SIZE = 100
  */
 @OptIn(InternalDebugOverlayApi::class)
 internal class LogcatDataSource(scope: CoroutineScope, maxEntries: Int = 300) :
-  LogTracker,
+  LogSource,
   Closeable {
 
   override val sourceName: String = "Logcat"

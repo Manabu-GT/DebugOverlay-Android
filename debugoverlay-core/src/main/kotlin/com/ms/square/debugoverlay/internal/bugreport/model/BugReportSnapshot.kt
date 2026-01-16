@@ -8,10 +8,10 @@ import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
 
 /**
- * Bundled custom tracker logs with source name.
+ * Bundled custom log source data.
  * Ensures logs and source name are always provided together.
  */
-internal data class CustomTrackerData(val logs: List<LogEntry>, val sourceName: String)
+internal data class CustomLogSourceData(val logs: List<LogEntry>, val sourceName: String)
 
 /**
  * Immutable snapshot of all diagnostic data captured at a specific moment.
@@ -24,7 +24,7 @@ internal data class CustomTrackerData(val logs: List<LogEntry>, val sourceName: 
  * @param screenshot Screenshot of the app (null if capture failed)
  * @param deviceInfo Device hardware, system, battery, and network information
  * @param logcatLogs Recent logcat entries (always present)
- * @param customTrackerData Custom tracker logs with source name (null if no tracker registered)
+ * @param customLogSourceData Custom log source data with source name (null if no log source registered)
  * @param networkRequests Recent network requests
  * @param jankStats Frame rendering statistics
  * @param appExitInfos Recent app exit reasons
@@ -36,7 +36,7 @@ internal class BugReportSnapshot(
   val screenshot: Bitmap?,
   val deviceInfo: DeviceInfo?,
   val logcatLogs: List<LogEntry>,
-  val customTrackerData: CustomTrackerData?,
+  val customLogSourceData: CustomLogSourceData?,
   val networkRequests: List<NetworkRequest>,
   val jankStats: JankStatsUiState?,
   val appExitInfos: List<AppExitInfo>,
@@ -55,7 +55,7 @@ internal class BugReportSnapshot(
     screenshot = screenshot,
     deviceInfo = deviceInfo,
     logcatLogs = logcatLogs,
-    customTrackerData = customTrackerData,
+    customLogSourceData = customLogSourceData,
     networkRequests = networkRequests,
     jankStats = jankStats,
     appExitInfos = appExitInfos,

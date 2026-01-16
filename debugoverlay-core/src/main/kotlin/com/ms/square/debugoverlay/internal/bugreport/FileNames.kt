@@ -36,14 +36,14 @@ internal object FileNames {
   const val METADATA = "metadata.json"
 
   /**
-   * Generates a sanitized filename for custom tracker logs based on source name.
+   * Generates a sanitized filename for custom log source logs based on source name.
    *
    * Strips invalid characters (keeping only [a-zA-Z0-9_.-]), uses locale-independent
    * lowercase, and falls back to "unknown" if the result is empty.
    *
    * Example: "Timber" -> "timber_logs.json"
    */
-  fun trackerLogsFilename(sourceName: String): String {
+  fun customLogSourceFilename(sourceName: String): String {
     val sanitized = sourceName
       .replace(Regex("[^a-zA-Z0-9_.-]"), "")
       .trimStart('.')

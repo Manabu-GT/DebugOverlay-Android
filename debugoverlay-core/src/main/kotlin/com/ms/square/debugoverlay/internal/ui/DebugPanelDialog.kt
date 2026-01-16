@@ -50,14 +50,14 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
-import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_TRACKER_NAME
+import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_LOG_SOURCE_NAME
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 private enum class DebugTab(@param:StringRes val titleResId: Int) {
   LOGCAT(R.string.debugoverlay_tab_logcat),
-  CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from tracker
+  CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from source
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
@@ -223,20 +223,20 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
   val repository = DebugOverlay.overlayDataRepository
-  val hasCustomTracker by repository.hasCustomTracker.collectAsStateWithLifecycle()
-  val customTrackerName by repository.customTrackerSourceName.collectAsStateWithLifecycle()
+  val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
+  val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
 
-  // Build visible tabs: hide CUSTOM_LOG when no custom tracker is registered
-  val visibleTabs = remember(hasCustomTracker) {
+  // Build visible tabs: hide CUSTOM_LOG when no custom log source is registered
+  val visibleTabs = remember(hasCustomLogSource) {
     DebugTab.entries.filter { tab ->
-      tab != DebugTab.CUSTOM_LOG || hasCustomTracker
+      tab != DebugTab.CUSTOM_LOG || hasCustomLogSource
     }
   }
 
   // Use rememberSaveable to persist tab selection across configuration changes
   var selectedTab by rememberSaveable { mutableStateOf(DebugTab.LOGCAT) }
 
-  // Validate selection when tabs change (e.g., custom tracker removed)
+  // Validate selection when tabs change (e.g., custom log source removed)
   LaunchedEffect(visibleTabs) {
     if (selectedTab !in visibleTabs) {
       selectedTab = DebugTab.LOGCAT
@@ -250,7 +250,7 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
       visibleTabs = visibleTabs,
       selectedTab = selectedTab,
       selectedTabIndex = selectedTabIndex,
-      customTrackerName = customTrackerName,
+      customLogSourceName = customLogSourceName,
       onTabSelected = { selectedTab = it }
     )
     DebugPanelTabContent(selectedTab = selectedTab, repository = repository)
@@ -262,7 +262,7 @@ private fun DebugPanelTabRow(
   visibleTabs: List<DebugTab>,
   selectedTab: DebugTab,
   selectedTabIndex: Int,
-  customTrackerName: String?,
+  customLogSourceName: String?,
   onTabSelected: (DebugTab) -> Unit,
 ) {
   PrimaryScrollableTabRow(
@@ -277,7 +277,7 @@ private fun DebugPanelTabRow(
         text = {
           Text(
             text = if (tab == DebugTab.CUSTOM_LOG) {
-              customTrackerName ?: DEFAULT_CUSTOM_TRACKER_NAME
+              customLogSourceName ?: DEFAULT_CUSTOM_LOG_SOURCE_NAME
             } else {
               stringResource(tab.titleResId)
             },
@@ -293,7 +293,7 @@ private fun DebugPanelTabRow(
 private fun DebugPanelTabContent(selectedTab: DebugTab, repository: DebugOverlayDataRepository) {
   when (selectedTab) {
     DebugTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs)
-    DebugTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customTrackerLogs)
+    DebugTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customLogSourceLogs)
     DebugTab.APP_EXITS -> AppExitTabContent(
       exitInfosFlow = repository.appExitInfos,
       isSupported = repository.isAppExitSupported

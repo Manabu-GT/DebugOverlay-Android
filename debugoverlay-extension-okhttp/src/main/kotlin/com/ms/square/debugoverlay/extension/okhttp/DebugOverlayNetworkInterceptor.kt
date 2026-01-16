@@ -1,7 +1,7 @@
 package com.ms.square.debugoverlay.extension.okhttp
 
 import com.ms.square.debugoverlay.DebugOverlay
-import com.ms.square.debugoverlay.NetworkRequestTracker
+import com.ms.square.debugoverlay.NetworkRequestSource
 import com.ms.square.debugoverlay.extension.okhttp.internal.isProbablyUtf8
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.data.EvictingQueue
@@ -93,14 +93,14 @@ public class DebugOverlayNetworkInterceptor(
   private val queryParamsNameToRedact: Set<String> = DEFAULT_QUERY_PARAMS_REDACT,
   private val maxBodySize: Long = DEFAULT_MAX_BODY_SIZE,
 ) : Interceptor,
-  NetworkRequestTracker {
+  NetworkRequestSource {
 
   private val recentRequests = EvictingQueue<NetworkRequest>(maxStoredRequests)
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
   init {
     DebugOverlay.configure {
-      copy(networkRequestTracker = this@DebugOverlayNetworkInterceptor)
+      copy(networkRequestSource = this@DebugOverlayNetworkInterceptor)
     }
   }
 

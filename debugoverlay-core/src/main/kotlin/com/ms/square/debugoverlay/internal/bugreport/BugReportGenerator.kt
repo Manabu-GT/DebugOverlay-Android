@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
-import com.ms.square.debugoverlay.internal.bugreport.model.CustomTrackerData
+import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
@@ -62,14 +62,14 @@ internal class BugReportGenerator(
             activityProvider.activity?.let { ScreenshotCapture.capture(it) }
           }
           val logcatLogsDeferred = async { repository.logcatLogs.first() }
-          // Check if custom tracker is registered to determine if custom logs should be included
-          val hasCustomTracker = repository.hasCustomTracker.value
-          val customTrackerDataDeferred = if (hasCustomTracker) {
+          // Check if custom log source is registered to determine if custom logs should be included
+          val hasCustomLogSource = repository.hasCustomLogSource.value
+          val customLogSourceDataDeferred = if (hasCustomLogSource) {
             async {
-              val logs = repository.customTrackerLogs.first()
-              val sourceName = repository.customTrackerSourceName.first()
-              // sourceName should never be null when hasCustomTracker is true
-              sourceName?.let { CustomTrackerData(logs, it) }
+              val logs = repository.customLogSourceLogs.first()
+              val sourceName = repository.customLogSourceName.first()
+              // sourceName should never be null when hasCustomLogSource is true
+              sourceName?.let { CustomLogSourceData(logs, it) }
             }
           } else {
             null
@@ -86,7 +86,7 @@ internal class BugReportGenerator(
             screenshot = screenshotDeferred.await(),
             deviceInfo = deviceInfoDeferred.awaitCatching().getOrNull(),
             logcatLogs = logcatLogsDeferred.awaitCatching().getOrDefault(emptyList()),
-            customTrackerData = customTrackerDataDeferred?.awaitCatching()?.getOrNull(),
+            customLogSourceData = customLogSourceDataDeferred?.awaitCatching()?.getOrNull(),
             networkRequests = networkRequestsDeferred.awaitCatching().getOrDefault(emptyList()),
             jankStats = jankStatsDeferred.awaitCatching().getOrNull(),
             appExitInfos = appExitInfosDeferred.awaitCatching().getOrDefault(emptyList()),
