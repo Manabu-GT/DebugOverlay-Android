@@ -22,11 +22,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
-import java.io.Reader
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -60,7 +60,7 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
     var id = 1L
     val entries = EvictingQueue<LogEntry>(maxEntries)
     val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
-    var reader: Reader? = null
+    var reader: BufferedReader? = null
     try {
       /**
        * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
@@ -111,32 +111,34 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
     val cached = _logs.value
     if (cached.isNotEmpty()) return cached
 
-    return withContext(Dispatchers.IO) { captureLogcatOnce() }
+    return captureLogcatOnce()
   }
 
-  private fun captureLogcatOnce(): List<LogEntry> = buildList {
-    val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
-    var id = 1L
+  private suspend fun captureLogcatOnce(): List<LogEntry> = withContext(Dispatchers.IO) {
+    buildList {
+      val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
+      var id = 1L
 
-    // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
-    val process = Runtime.getRuntime()
-      .exec("logcat -v threadtime,printable,epoch -t $maxEntries")
+      // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
+      val process = Runtime.getRuntime()
+        .exec("logcat -v threadtime,printable,epoch -t $maxEntries")
 
-    try {
-      InputStreamReader(process.inputStream).useLines { lines ->
-        lines.forEach { line ->
-          line.trim().parseLogcatEntry(id, threadNameCache)?.let {
-            add(it)
-            id++
+      try {
+        InputStreamReader(process.inputStream).useLines { lines ->
+          lines.forEach { line ->
+            line.trim().parseLogcatEntry(id, threadNameCache)?.let {
+              add(it)
+              id++
+            }
           }
         }
+      } catch (e: IOException) {
+        Logger.e("Failed to capture logcat snapshot", e)
+      } catch (e: SecurityException) {
+        Logger.e("Failed to capture logcat snapshot", e)
+      } finally {
+        process.safeDestroy()
       }
-    } catch (e: IOException) {
-      Logger.e("Failed to capture logcat snapshot", e)
-    } catch (e: SecurityException) {
-      Logger.e("Failed to capture logcat snapshot", e)
-    } finally {
-      process.safeDestroy()
     }
   }
 
