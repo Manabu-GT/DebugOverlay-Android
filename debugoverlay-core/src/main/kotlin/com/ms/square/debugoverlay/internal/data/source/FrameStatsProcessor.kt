@@ -23,7 +23,7 @@ private const val MAX_FRAMES = 500
 private const val RECENT_FRAMES_COUNT = 50
 private const val TOP_STATES_COUNT = 5
 private const val MAX_JANKY_FRAMES_DISPLAY = 20
-private const val STATE_UPDATE_INTERVAL_MS = 500L
+private const val STATE_UPDATE_INTERVAL_MS = 1000L
 
 /**
  * Processes frame timing data and maintains jank statistics.
@@ -108,7 +108,7 @@ internal class FrameStatsProcessor {
       totalDurationMs += durationUiMs
       if (frameData.isJank) jankyFrames++
 
-      // Throttle StateFlow emissions to ~2 updates/sec to reduce UI churn and GC pressure
+      // Throttle StateFlow emissions to ~1 update/sec to reduce UI churn and GC pressure
       val now = SystemClock.elapsedRealtime()
       if (now - lastStateUpdateMs >= STATE_UPDATE_INTERVAL_MS) {
         lastStateUpdateMs = now
@@ -143,7 +143,7 @@ internal class FrameStatsProcessor {
         },
         recentFrameJanks = recentJanksList,
         stateBreakdown = breakdown,
-        jankyFramesList = framesList.filter { it.isJank }.takeLast(MAX_JANKY_FRAMES_DISPLAY).reversed()
+        jankyFramesList = framesList.asReversed().filter { it.isJank }.take(MAX_JANKY_FRAMES_DISPLAY)
       )
     }
   }

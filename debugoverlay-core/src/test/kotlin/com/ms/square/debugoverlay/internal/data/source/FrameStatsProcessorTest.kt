@@ -349,11 +349,12 @@ class FrameStatsProcessorTest {
   // ==========================================================================
 
   /**
-   * Advances the shadow clock past the throttle interval and processes a frame,
+   * Advances the shadow clock past the throttle interval (1000ms) and processes a frame,
    * ensuring state is updated immediately for test assertions.
    */
   private fun processFrame(frameData: FrameData) {
-    ShadowSystemClock.advanceBy(Duration.ofMillis(501))
+    // Advance past STATE_UPDATE_INTERVAL_MS (1000ms) to bypass throttling
+    ShadowSystemClock.advanceBy(Duration.ofMillis(1001))
     processor.processFrame(frameData)
   }
 
