@@ -1,71 +1,123 @@
 # Publishing Guide
 
-This project uses the Vanniktech Maven Publish plugin to deploy artifacts to Maven Central. The steps below capture everything you need to do for a new release (e.g., `1.1.4`). Keep your git working tree clean before starting.
+This project uses the [Vanniktech Maven Publish plugin](https://github.com/vanniktech/gradle-maven-publish-plugin) to deploy artifacts to Maven Central.
 
 ---
 
-## Prerequisites
+## Publishing via CI (Recommended)
 
-1. **Credentials & signing**
-   Provide the following properties either in `~/.gradle/gradle.properties` (local) or as CI environment variables (`ORG_GRADLE_PROJECT_*`):
+The recommended way to publish is via the GitHub Actions workflow. This ensures consistent, auditable releases.
 
-   ```properties
-   mavenCentralUsername=YOUR_MAVEN_CENTRAL_USERNAME
-   mavenCentralPassword=YOUR_MAVEN_CENTRAL_PASSWORD
-   signing.keyId=YOUR_KEY_ID
-   signing.password=YOUR_KEY_PASSPHRASE
-   signing.secretKeyRingFile=YOUR_PRIVATE_KEY_FILE
-   ```
+> **Note:** Only the repository owner can trigger the release workflow.
 
-2. **Version metadata**
-   Update `gradle.properties` with the new `VERSION_NAME`, refresh `CHANGELOG.md`, README badges, etc., and commit those changes.
+### One-time Setup
+
+Add these secrets to your repository (Settings → Secrets and variables → Actions):
+
+| Secret | Description |
+|--------|-------------|
+| `MAVEN_CENTRAL_USERNAME` | Maven Central Portal username |
+| `MAVEN_CENTRAL_PASSWORD` | Maven Central Portal token |
+| `SIGNING_KEY` | GPG private key (ASCII-armored, base64 encoded) |
+| `SIGNING_KEY_PASSWORD` | GPG key passphrase |
+
+To generate `SIGNING_KEY`:
+```bash
+# Linux
+gpg --armor --export-secret-keys YOUR_KEY_ID | base64 -w 0
+
+# macOS
+gpg --armor --export-secret-keys YOUR_KEY_ID | base64
+```
+
+### Release Steps
+
+1. Go to **Actions** → **Release** workflow
+2. Click **Run workflow**
+3. Enter the version (e.g., `2.0.0` or `2.0.0-SNAPSHOT`)
+4. Optionally check **Dry run** to test without publishing
+5. Click **Run workflow**
+
+The workflow will:
+- Run all checks (tests, lint, detekt, spotless)
+- Publish to Maven Central
+- Create a git tag and GitHub Release (for non-SNAPSHOT versions)
+- Auto-generate release notes from merged PRs
+
+### SNAPSHOT vs Release
+
+| Version | Example | Behavior |
+|---------|---------|----------|
+| SNAPSHOT | `2.0.0-SNAPSHOT` | Publishes to snapshots repo, no tag/release created |
+| Release | `2.0.0`, `2.0.0-beta01` | Publishes and closes staging, creates tag and GitHub Release |
 
 ---
 
-## Release Steps
+## Publishing Locally
 
-1. **Smoke-test the build**
+Use local publishing only when needed (e.g., testing the publish process, debugging issues).
+
+### Prerequisites
+
+Add credentials to `~/.gradle/gradle.properties` (not the project's):
+
+```properties
+mavenCentralUsername=YOUR_MAVEN_CENTRAL_USERNAME
+mavenCentralPassword=YOUR_MAVEN_CENTRAL_PASSWORD
+
+# File-based signing (recommended for local)
+signing.keyId=LAST_8_CHARS_OF_KEY_ID
+signing.password=YOUR_KEY_PASSPHRASE
+signing.secretKeyRingFile=~/.gradle/secring.gpg
+```
+
+To export your GPG key:
+```bash
+# Find your key ID
+gpg --list-secret-keys --keyid-format SHORT
+
+# Export to file
+gpg --export-secret-keys YOUR_KEY_ID > ~/.gradle/secring.gpg
+```
+
+### Local Release Steps
+
+1. **Run checks**
    ```bash
-   # Run comprehensive checks before publishing
    ./gradlew clean check
-    # check includes:
-    # - assembleDebug + assembleRelease
-    # - test (unit tests)
-    # - lint (Android lint)
-    # - detekt (Kotlin static analysis)
-    # - spotlessCheck (code formatting)
    ```
 
-2. **Optional: inspect the artifacts locally**
+2. **Test locally (optional)**
    ```bash
    ./gradlew publishToMavenLocal
    ```
-   Check `~/.m2/repository/com/ms-square/...` for the generated AARs, POMs, and signatures.
+   Check `~/.m2/repository/com/ms-square/...` for generated artifacts.
 
-3. **Publish to MavenCentral staging**
+   > **Note:** This does not require Maven Central credentials or GPG signing.
+
+3. **Publish to Maven Central**
    ```bash
-   ./gradlew publishAllPublicationsToMavenCentralRepository
-   ```
-   This uploads the release publications and leaves the staging repository open (automatic release is disabled on purpose).
-
-4. **Close & release the staging repository**
-   - Log in to https://central.sonatype.com/publishing.
-   - Locate the new staging repository, review the artifacts, then click **Publish**.
-     (If something is wrong, drop the staging repository and fix the build before retrying.)
-
-5. **Tag the release and push**
-   ```bash
-   git tag -a v1.1.4 -m "Release 1.1.4"
-   git push origin main v1.1.4
+   # Set version via command line
+   ./gradlew publishAndReleaseToMavenCentral -PVERSION_NAME=2.0.0
    ```
 
-6. **Create the GitHub release**
-   Use https://github.com/Manabu-GT/DebugOverlay-Android/releases to draft a new release referencing the tag and changelog highlights.
-
-7. **Verify Maven Central sync**
-   After Sonatype finishes syncing (usually within a couple of hours), confirm the artifact appears at https://central.sonatype.com/artifact/com.ms-square/debugoverlay.
-   Also verify companion artifacts like `com.ms-square:debugoverlay-core` and `com.ms-square:debugoverlay-extension-okhttp` are synced.
+4. **Create tag and GitHub Release manually**
+   ```bash
+   git tag -a v2.0.0 -m "Release 2.0.0"
+   git push origin v2.0.0
+   ```
+   Then create the GitHub Release from the repository's Releases page.
 
 ---
 
-Following these steps ensures every release is signed, staged, and published consistently. Update this guide if the plugin configuration or maven central publishing process changes.
+## Verify Release
+
+After publishing, verify artifacts appear on Maven Central:
+- Search is typically available within **15-30 minutes**
+- Full CDN propagation may take **up to 4 hours**
+
+Artifact URLs:
+- https://central.sonatype.com/artifact/com.ms-square/debugoverlay
+- https://central.sonatype.com/artifact/com.ms-square/debugoverlay-core
+- https://central.sonatype.com/artifact/com.ms-square/debugoverlay-extension-okhttp
+- https://central.sonatype.com/artifact/com.ms-square/debugoverlay-extension-timber
