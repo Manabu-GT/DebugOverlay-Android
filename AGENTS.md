@@ -27,11 +27,11 @@ Welcome! This guide defines how automation and human agents should collaborate i
   - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
 
 - **Java Toolchain**
-  - All modules target Java 17. Build scripts should include:
+  - All modules target Java 21. Build scripts should include:
     ```kotlin
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
     ```
@@ -87,6 +87,69 @@ Welcome! This guide defines how automation and human agents should collaborate i
 | Extension modules        | `./gradlew :debugoverlay-extension-okhttp:check` or `./gradlew :debugoverlay-extension-timber:check` |
 | Sample app UX/UI         | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
 | Documentation only       | No build, but ensure links and code snippets compile conceptually |
+
+### Test Scope: What to Test
+
+**DO test** (project's own logic):
+- Business logic: calculations, transformations, aggregations
+- Edge case handling in your code
+- State management and data flow
+- Error handling and fallback behavior
+- Custom data structures (e.g., `EvictingQueue`)
+- Integration between your own components
+
+**DO NOT test** (framework/library behavior):
+- Kotlin stdlib behavior (e.g., that `forEach` iterates, `List.contains()` works)
+- AndroidX/Jetpack internals (e.g., that `LifecycleRegistry` transitions states correctly)
+- Third-party library internals (e.g., that OkHttp builds requests correctly)
+- Android framework behavior (e.g., that `StateFlow.update` is atomic)
+
+**Rule of thumb:** If you're verifying that a framework API does what its documentation says, you're testing the framework, not your code. Instead, test how *your code* uses that framework.
+
+**Example - Good vs Bad:**
+```kotlin
+// GOOD: Tests our calculation logic
+@Test
+fun `percentage calculated correctly for mixed inputs`() {
+  repeat(7) { processor.process(createData(flag = false)) }
+  repeat(3) { processor.process(createData(flag = true)) }
+  assertThat(processor.state.value.percentage).isEqualTo(0.3f)
+}
+
+// BAD: Tests that Kotlin's forEach iterates correctly
+@Test
+fun `handles multiple items`() {
+  // If this just verifies forEach works, it's testing Kotlin stdlib
+}
+
+// GOOD: Tests our wrapper's initialization choice
+@Test
+fun `initial state is INITIALIZED`() {
+  val owner = CustomLifecycleOwner()
+  assertThat(owner.lifecycle.currentState).isEqualTo(Lifecycle.State.INITIALIZED)
+}
+
+// BAD: Tests that AndroidX LifecycleRegistry transitions states
+@Test
+fun `onCreate moves state to CREATED`() {
+  registry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+  assertThat(registry.currentState).isEqualTo(Lifecycle.State.CREATED)  // Testing AndroidX
+}
+
+// GOOD: Tests our interceptor's redaction logic
+@Test
+fun `redacts Authorization header`() {
+  val result = interceptor.captureHeaders(mapOf("Authorization" to "Bearer secret"))
+  assertThat(result["Authorization"]).isEqualTo("[REDACTED]")
+}
+
+// BAD: Tests that OkHttp MockWebServer returns responses
+@Test
+fun `server returns 200`() {
+  server.enqueue(MockResponse().setResponseCode(200))
+  // Just testing MockWebServer works, not our code
+}
+```
 
 ### Test Naming Convention
 
