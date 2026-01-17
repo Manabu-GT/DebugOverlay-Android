@@ -27,7 +27,7 @@ To generate `SIGNING_KEY`:
 gpg --armor --export-secret-keys YOUR_KEY_ID | base64 -w 0
 
 # macOS
-gpg --armor --export-secret-keys YOUR_KEY_ID | base64
+gpg --armor --export-secret-keys YOUR_KEY_ID | base64 | tr -d '\n'
 ```
 
 ### Release Steps
@@ -97,9 +97,9 @@ gpg --export-secret-keys YOUR_KEY_ID > ~/.gradle/secring.gpg
 
 3. **Publish to Maven Central**
    ```bash
-   # Set version via command line
    ./gradlew publishAndReleaseToMavenCentral -PVERSION_NAME=2.0.0
    ```
+   > **Note:** The version override keeps `gradle.properties` unchanged, matching how CI handles versioning.
 
 4. **Create tag and GitHub Release manually**
    ```bash
@@ -117,7 +117,7 @@ After publishing, verify artifacts appear on Maven Central:
 - Full CDN propagation may take **up to 4 hours**
 
 Artifact URLs:
-- https://central.sonatype.com/artifact/com.ms-square/debugoverlay
-- https://central.sonatype.com/artifact/com.ms-square/debugoverlay-core
-- https://central.sonatype.com/artifact/com.ms-square/debugoverlay-extension-okhttp
-- https://central.sonatype.com/artifact/com.ms-square/debugoverlay-extension-timber
+- <https://central.sonatype.com/artifact/com.ms-square/debugoverlay>
+- <https://central.sonatype.com/artifact/com.ms-square/debugoverlay-core>
+- <https://central.sonatype.com/artifact/com.ms-square/debugoverlay-extension-okhttp>
+- <https://central.sonatype.com/artifact/com.ms-square/debugoverlay-extension-timber>
