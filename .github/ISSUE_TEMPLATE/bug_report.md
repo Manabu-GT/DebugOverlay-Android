@@ -34,3 +34,4 @@ Add any other context about the problem here.
 **Stacktrace / Logs**
 ```text
 Paste the crash stacktrace or relevant logcat output here.
+```
