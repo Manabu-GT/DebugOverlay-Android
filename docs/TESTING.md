@@ -10,7 +10,7 @@
 | OkHttp extension | `./gradlew :debugoverlay-extension-okhttp:check` |
 | Timber extension | `./gradlew :debugoverlay-extension-timber:check` |
 | Sample app | `./gradlew :sample:assembleDebug` |
-| Documentation only | No build required |
+| Documentation only       | No build/test required - verify links and accuracy |
 
 ## What to Test
 

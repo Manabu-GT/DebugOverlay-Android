@@ -25,7 +25,7 @@ A Jetpack Compose library that displays real-time debug information as an overla
 ./gradlew :sample:assembleDebug
 ```
 
-**Important:** Always run `spotlessApply` after code changes, before `check`.
+**Important:** Always run `spotlessApply` after making code changes and before running `check`.
 
 ## Output Format
 
