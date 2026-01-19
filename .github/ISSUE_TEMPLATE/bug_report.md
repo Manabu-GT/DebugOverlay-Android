@@ -26,7 +26,7 @@ If applicable, add screenshots to help explain your problem.
 **Smartphone (please complete the following information):**
  - Device: [e.g. Pixel 6 Pro]
  - OS: [e.g. Android 14]
- - DebugOverlay Version: [e.g. 2.0.0-SNAPSHOT]
+ - DebugOverlay Version: [e.g. 2.0.0]
 
 **Additional context**
 Add any other context about the problem here.
