@@ -12,7 +12,7 @@ Thank you for considering contributing to DebugOverlay! This document outlines h
 
 ### Prerequisites
 
-- Android Studio Otter (2025.1.1) or later
+- Android Studio Narwhal (2025.1.1) or later
 - JDK 21+
 - Kotlin 2.2+
 - Basic knowledge of Jetpack Compose
@@ -74,7 +74,7 @@ Example: `feature/add-memory-tracking`, `fix/overlay-crash-on-rotate`
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 type(scope): description
 
 [optional body]
@@ -85,7 +85,7 @@ type(scope): description
 **Scopes:** `core`, `overlay`, `okhttp`, `timber`, `sample`, `build`
 
 Examples:
-```
+```text
 feat(core): add CPU usage tracking module
 fix(overlay): prevent crash when activity is destroyed
 docs(readme): update installation instructions
