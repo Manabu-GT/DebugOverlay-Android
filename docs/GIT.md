@@ -17,12 +17,3 @@ gh pr checks                               # Check CI status
 gh issue create --title "..." --body "..." # Create issue
 gh api repos/{owner}/{repo}/pulls/123/comments  # Read PR comments
 ```
-
-## Planning (for agents without built-in plan mode)
-
-For non-trivial work, optionally create `tools/ai/plans/PLAN_<TASK_NAME>.md`:
-1. Draft proposed steps
-2. Wait for maintainer approval
-3. Update after each approved step
-
-Note: Claude Code users should use the built-in `EnterPlanMode` instead.

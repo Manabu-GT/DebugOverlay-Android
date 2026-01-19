@@ -27,6 +27,13 @@ A Jetpack Compose library that displays real-time debug information as an overla
 
 **Important:** Always run `spotlessApply` after making code changes and before running `check`.
 
+## Planning
+
+For non-trivial work, create `tools/ai/plans/PLAN_<TASK_NAME>.md`:
+1. Draft proposed steps
+2. Wait for maintainer approval
+3. Update after each approved step
+
 ## Output Format
 
 - Reference code locations as `path/to/File.kt:42`
@@ -39,4 +46,4 @@ A Jetpack Compose library that displays real-time debug information as an overla
 - [Build & Gradle](docs/BUILD.md) — toolchain, modules, version catalog
 - [Testing](docs/TESTING.md) — what to test, naming conventions, examples
 - [Code Review](docs/REVIEW.md) — review protocol, analysis dimensions
-- [Git Workflow](docs/GIT.md) — commit hygiene, GitHub CLI, planning
+- [Git Workflow](docs/GIT.md) — commit hygiene, GitHub CLI
