@@ -1,278 +1,42 @@
 # DebugOverlay Agents Guide
 
-Welcome! This guide defines how automation and human agents should collaborate in the DebugOverlay-Android repository. Follow it strictly unless the task explicitly overrides a rule.
+A Jetpack Compose library that displays real-time debug information as an overlay on Android apps.
 
----
+## Quick Reference
 
-## 1. Mission Checklist
+| Module | Description |
+|--------|-------------|
+| `debugoverlay-core` | Compose runtime and shared components |
+| `debugoverlay` | Primary public API |
+| `debugoverlay-extension-okhttp` | OkHttp network tracking |
+| `debugoverlay-extension-timber` | Timber log capture |
+| `sample` | Demo application |
 
-1. Understand the issue or request. If the ticket is vague, pause and ask for clarification.
-2. Inspect the current state: run `git status -sb`, scan recent changes, and note branch naming.
-3. For non-trivial work, draft `tools/ai/plans/PLAN_<TASK_NAME>.md` with the proposed steps and wait for maintainer approval before executing the plan (update the document after each approved step).
-4. Execute the plan while keeping the tree clean—no reverting user edits and no destructive commands (`git reset --hard`, etc.).
-5. **Stay conservative**—only modify what's necessary for the request. Avoid speculative additions (extra features, refactors, or "improvements" beyond scope).
-6. Validate locally (build, lint, or targeted tests) whenever changes touch executable code. Capture command, outcome, and failures.
-7. Summarise the result: describe the change, list validations, and call out risks or follow-ups.
+## Build Commands
 
----
-
-## 2. Code & Build Standards
-
-- **Gradle & AGP**
-  - Project tracks tool versions via `gradle/wrapper/gradle-wrapper.properties` (Gradle) and `gradle/libs.versions.toml` (AGP, plugins, dependencies). Keep those files as the single sources of truth; any wrapper or plugin change must remain compatible with JDK 17+.
-  - When upgrading dependencies or plugins, update the catalog (`gradle/libs.versions.toml`) and keep repository definitions centralised in `settings.gradle.kts`. Avoid reintroducing deprecated repositories (e.g., JCenter).
-
-- **Module Conventions**
-  - Library modules stick to `namespace` declarations and Java 17 compatibility (`compileOptions`).
-  - All modules already use AndroidX; avoid introducing legacy `android.support` dependencies.
-
-- **Java Toolchain**
-  - All modules target Java 21. Build scripts should include:
-    ```kotlin
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
-    ```
-
-- **Project Modules**
-  - `debugoverlay-core` - Compose-based runtime and shared components that power the overlay
-  - `debugoverlay` - Primary public API artifact that most apps depend on
-  - `debugoverlay-extension-okhttp` - OkHttp interceptor for network request tracking
-  - `debugoverlay-extension-timber` - Timber tree for capturing logs directly from Timber
-  - `sample` - Demo application showcasing library features
-
-- **Coding Language**
-  - All new code should be written in Kotlin.
-
-- **Kotlin Coroutines**
-  - In suspend functions, **always use `runCatchingNonCancellation` instead of `runCatching`**.
-  - `runCatching` catches ALL exceptions including `CancellationException`, which breaks structured concurrency and prevents proper coroutine cancellation.
-  - `runCatchingNonCancellation` (defined in `internal/util/Results.kt`) re-throws `CancellationException` while catching other exceptions.
-  - Exception: In non-suspend contexts (regular functions, callbacks), `runCatching` is acceptable.
-
-- **Formatting & Static Analysis**
-  - Respect existing style (4-space Java/Kotlin, XML indentation).
-  - Run relevant formatters (`ktlint`, `spotless`, IDE auto-format) if part of the workflow, but do not introduce sweeping style-only diffs.
-
-- **Resource Handling**
-  - Keep public resource prefixes (`resourcePrefix 'debugoverlay_'`).
-  - For new assets, ensure they live in the correct variant directory and include mdpi/hdpi etc. when required.
-
-- **String Resources vs Hardcoded Strings**
-  - Use **String Resources** for:
-    - UI labels (Copy, Back, Refresh, section headers)
-    - Tab names
-    - Empty state messages ("No AppExit history", "No request headers")
-    - Accessibility descriptions (contentDescription)
-  - **Hardcode** is acceptable for:
-    - Technical explanations (developer-facing diagnostic guidance)
-    - Enum labels that mirror Android API names (e.g., "ANR", "Low Memory")
-    - Code/API references and stack traces
-    - Process importance labels ("Foreground", "Cached")
-    - Emojis used as visual decorations
-    - Preview-only code
-  - **Rule of thumb**: If QA/PM might see it and it reads like UI copy → StringRes. If it's technical content for developers → hardcode is acceptable.
-
----
-
-## 3. Testing Expectations
-
-| Change Type              | Mandatory Checks |
-|--------------------------|------------------|
-| Gradle/build logic       | `./gradlew help`; run the smallest assemble task that exercises your change when artifact wiring is affected |
-| Core runtime code        | `./gradlew :debugoverlay-core:check` (or targeted tests) |
-| Auto Installer w AndroidX Startup        | `./gradlew :debugoverlay:check` |
-| Extension modules        | `./gradlew :debugoverlay-extension-okhttp:check` or `./gradlew :debugoverlay-extension-timber:check` |
-| Sample app UX/UI         | `./gradlew :sample:assembleDebug` plus manual sanity if feasible |
-| Documentation only       | No build, but ensure links and code snippets compile conceptually |
-
-### Test Scope: What to Test
-
-**DO test** (project's own logic):
-- Business logic: calculations, transformations, aggregations
-- Edge case handling in your code
-- State management and data flow
-- Error handling and fallback behavior
-- Custom data structures (e.g., `EvictingQueue`)
-- Integration between your own components
-
-**DO NOT test** (framework/library behavior):
-- Kotlin stdlib behavior (e.g., that `forEach` iterates, `List.contains()` works)
-- AndroidX/Jetpack internals (e.g., that `LifecycleRegistry` transitions states correctly)
-- Third-party library internals (e.g., that OkHttp builds requests correctly)
-- Android framework behavior (e.g., that `StateFlow.update` is atomic)
-
-**Rule of thumb:** If you're verifying that a framework API does what its documentation says, you're testing the framework, not your code. Instead, test how *your code* uses that framework.
-
-**Example - Good vs Bad:**
-```kotlin
-// GOOD: Tests our calculation logic
-@Test
-fun `percentage calculated correctly for mixed inputs`() {
-  repeat(7) { processor.process(createData(flag = false)) }
-  repeat(3) { processor.process(createData(flag = true)) }
-  assertThat(processor.state.value.percentage).isEqualTo(0.3f)
-}
-
-// BAD: Tests that Kotlin's forEach iterates correctly
-@Test
-fun `handles multiple items`() {
-  // If this just verifies forEach works, it's testing Kotlin stdlib
-}
-
-// GOOD: Tests our wrapper's initialization choice
-@Test
-fun `initial state is INITIALIZED`() {
-  val owner = CustomLifecycleOwner()
-  assertThat(owner.lifecycle.currentState).isEqualTo(Lifecycle.State.INITIALIZED)
-}
-
-// BAD: Tests that AndroidX LifecycleRegistry transitions states
-@Test
-fun `onCreate moves state to CREATED`() {
-  registry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-  assertThat(registry.currentState).isEqualTo(Lifecycle.State.CREATED)  // Testing AndroidX
-}
-
-// GOOD: Tests our interceptor's redaction logic
-@Test
-fun `redacts Authorization header`() {
-  val result = interceptor.captureHeaders(mapOf("Authorization" to "Bearer secret"))
-  assertThat(result["Authorization"]).isEqualTo("[REDACTED]")
-}
-
-// BAD: Tests that OkHttp MockWebServer returns responses
-@Test
-fun `server returns 200`() {
-  server.enqueue(MockResponse().setResponseCode(200))
-  // Just testing MockWebServer works, not our code
-}
-```
-
-### Test Naming Convention
-
-**Unit tests** (`src/test`): Use Kotlin backticks with natural English sentences:
-```kotlin
-@Test fun `escapeHtml returns same instance when no special characters`()
-@Test fun `add returns null when queue is not at capacity`()
-```
-
-**Instrumented tests** (`src/androidTest`): Use underscore-separated camelCase (backticks have compatibility issues on API < 30):
-```kotlin
-@Test fun escapeHtml_returnsNull_whenInputIsEmpty()
-```
-
-Guidelines:
-- Start with the method/subject being tested
-- Describe the behavior, not the implementation
-- Include conditions when relevant ("when X", "with Y")
-- No delimiters (commas, colons) in backtick names
-
-Document all executed commands in the hand-off message. If a test is skipped, state why and note the risk. For script/config changes (Gradle `.kts`, `libs.versions.toml`, wrapper updates), run a lightweight task such as `./gradlew help` to ensure the configuration still loads.
-
----
-
-## 4. Git & History Hygiene
-
-- Do not amend or squash existing user commits unless asked.
-- Never commit secrets or local config (`local.properties`, keystores).
-- When adding files, default to ASCII unless non-ASCII already exists and is justified.
-
-### GitHub CLI (`gh`)
-
-Use `gh` for GitHub operations (PRs, issues, comments):
 ```bash
-gh pr create --title "..." --body "..."   # Create PR
-gh pr view 123                             # View PR details
-gh pr checks                               # Check CI status
-gh issue create --title "..." --body "..." # Create issue
-gh api repos/{owner}/{repo}/pulls/123/comments  # Read PR comments
+# Format code (required before check)
+./gradlew spotlessApply
+
+# Run all checks (tests, lint, detekt, spotless)
+./gradlew check
+
+# Build sample app
+./gradlew :sample:assembleDebug
 ```
 
----
+**Important:** Always run `spotlessApply` after code changes, before `check`.
 
-## 5. Review Protocol
+## Output Format
 
-Use the following structured analysis process when performing code reviews:
+- Reference code locations as `path/to/File.kt:42`
+- Include line numbers when showing code snippets
+- Structure responses: **Summary** → **Changes** → **Validation** → **Follow-ups**
 
-**Step 1: Read and Understand**
-- Carefully review the changes and understand their purpose
-- Identify the scope and impact of modifications
-- Note any breaking changes or API modifications
-- External source discovery: when you need deeper context for framework/library behaviour, consult:
-  - **Android Framework** – https://cs.android.com/android
-  - **AndroidX Libraries** – https://cs.android.com/androidx (or GitHub mirrors)
-  - **Third-party Libraries** – the project's GitHub repository or official docs
-  - **Kotlin Standard Library** – https://github.com/JetBrains/kotlin
+## Detailed Guides
 
-
-**Step 2: Comprehensive Analysis**
-- **Functionality:** Does the code work as intended? Are there edge cases, regressions, or unexpected behavior?
-- **Security & Privacy:** Any data leaks, permission issues, unsafe storage, or security vulnerabilities?
-- **Reliability:** Could the change crash, ANR, or degrade performance? Memory leaks or resource issues?
-- **Maintainability:** Is the code readable, idiomatic, and consistent with project patterns?
-- **Testing:** Does the patch include sufficient tests? Are edge cases covered? Manual testing steps documented?
-- **Consistency:** Are there inconsistencies with existing code or design patterns? For Jetpack compose APIs, consult:
-- https://android.googlesource.com/platform/frameworks/support/+/androidx-main/compose/docs/compose-api-guidelines.md
-- https://android.googlesource.com/platform/frameworks/support/+/androidx-main/compose/docs/compose-component-api-guidelines.md
-
-**Step 3: Prioritize Findings**
-- **Critical issues:** Security vulnerabilities, crashes, data loss, breaking changes
-- **Major issues:** Performance degradation, maintainability concerns, missing tests
-- **Minor issues:** Style inconsistencies, documentation gaps, minor optimizations
-
-**Step 4: Formulate Feedback**
-- Provide specific, actionable suggestions with concrete remediation steps
-- Reference exact file paths and line numbers (e.g., `debugoverlay/src/main/java/com/ms_square/debugoverlay/DebugOverlay.java:42`)
-- Order findings by severity; mention residual risks even if no blocking issues
-
-**Step 5: Document and Communicate**
-- Summarize findings in order of severity
-- Ensure feedback is comprehensive and constructive
-- Note any follow-up actions or additional testing needed
-
----
-
-## 6. Security Guidelines
-
-- **Data Protection:** Ensure sensitive data is not logged or exposed in debug overlays
-- **Permission Handling:** Verify that overlay permissions are properly requested and handled
-- **Input Validation:** Validate all user inputs and external data sources
-- **Resource Access:** Ensure proper cleanup of resources and prevent memory leaks
-- **API Security:** Review any new API endpoints for proper authentication and authorization
-
----
-
-## 7. Performance Standards
-
-- **Memory Management:** Avoid memory leaks, especially in long-running overlay services
-- **CPU Usage:** Minimize background processing and optimize rendering performance
-- **Battery Impact:** Consider power consumption for overlay updates and animations
-- **Network Efficiency:** Optimize data fetching and caching strategies
-- **UI Responsiveness:** Ensure overlay interactions don't block the main thread
-
----
-
-## 8. Communication Style
-
-- Provide concise, friendly updates. Use numbered lists when offering options.
-- Reference files with clickable paths (e.g., ``debugoverlay/build.gradle:15``). Avoid line ranges.
-- When unsure, ask before acting. When blocked by tooling/sandbox limits, propose alternatives.
-
-**Final Response Structure:**
-1. **Outcome** — what was changed, fixed, or investigated
-2. **Validation** — commands/tests run, results, skipped checks with reasons
-3. **Follow-ups** — remaining issues, risks, or next steps for the user
-
----
-
-## 9. Incident Handling
-
-- If unexpected local changes appear, halt and request guidance.
-- On build or test failures, share logs, diagnose briefly, and propose fixes instead of silently retrying.
-
----
-
-Keep this guide visible during sessions. Deviations must be justified in the task notes. Happy debugging!
+- [Coding Conventions](docs/CODING.md) — coroutines, string resources, formatting
+- [Build & Gradle](docs/BUILD.md) — toolchain, modules, version catalog
+- [Testing](docs/TESTING.md) — what to test, naming conventions, examples
+- [Code Review](docs/REVIEW.md) — review protocol, analysis dimensions
+- [Git Workflow](docs/GIT.md) — commit hygiene, GitHub CLI, planning
