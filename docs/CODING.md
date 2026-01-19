@@ -34,4 +34,3 @@ In suspend functions, **always use `runCatchingNonCancellation` instead of `runC
 
 - 4-space indentation for Kotlin/Java
 - Run `./gradlew spotlessApply` after code changes
-- Do not introduce sweeping style-only diffs
