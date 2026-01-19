@@ -4,6 +4,8 @@
   <a href="https://central.sonatype.com/artifact/com.ms-square/debugoverlay"><img src="https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen&style=flat" alt="Maven Central"></a>
   <a href="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml"><img src="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml/badge.svg" alt="Android CI"></a>
   <a href="https://developer.android.com/tools/releases/platforms#7.0"><img src="https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat" alt="API 24+"></a>
+  <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.2-7F52FF.svg?style=flat&logo=kotlin&logoColor=white" alt="Kotlin 2.2"></a>
+  <a href="https://developer.android.com/develop/ui/compose/bom/bom-mapping"><img src="https://img.shields.io/badge/Compose%20BOM-2025.11-4285F4.svg?style=flat&logo=jetpackcompose&logoColor=white" alt="Compose BOM 2025.11"></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202-brightgreen.svg?style=flat" alt="License"></a>
   <br><br>
 </div>
