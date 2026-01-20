@@ -21,6 +21,7 @@ internal data class CustomLogSourceData(val logs: List<LogEntry>, val sourceName
  * underlying repository data.
  *
  * @param timestampMs The time when the snapshot was captured (epoch millis)
+ * @param appInfo Information about the host application
  * @param screenshot Screenshot of the app (null if capture failed)
  * @param deviceInfo Device hardware, system, battery, and network information
  * @param logcatLogs Recent logcat entries (always present)
@@ -33,6 +34,7 @@ internal data class CustomLogSourceData(val logs: List<LogEntry>, val sourceName
 @Suppress("LongParameterList")
 internal class BugReportSnapshot(
   val timestampMs: Long,
+  val appInfo: AppInfo,
   val screenshot: Bitmap?,
   val deviceInfo: DeviceInfo?,
   val logcatLogs: List<LogEntry>,
@@ -52,6 +54,7 @@ internal class BugReportSnapshot(
   fun toReportData(userInput: UserInput?): BugReportData = BugReportData(
     timestampMs = timestampMs,
     userInput = userInput,
+    appInfo = appInfo,
     screenshot = screenshot,
     deviceInfo = deviceInfo,
     logcatLogs = logcatLogs,

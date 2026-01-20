@@ -68,7 +68,10 @@ private const val DEFAULT_MAX_DRAFTS = 10
  * @param context Application context for cache directory access
  */
 @Suppress("TooManyFunctions")
-internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftStorage {
+internal class DefaultBugReportDraftStorage(
+  private val context: Context,
+  private val appInfoProvider: AppInfoProvider = DefaultAppInfoProvider,
+) : BugReportDraftStorage {
 
   private val draftsInitialized = AtomicBoolean(false)
 
@@ -123,7 +126,8 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
       // Save metadata first (required for draft detection)
       val metadata = BugReportMetadata(
         capturedAt = snapshot.timestampMs,
-        state = BugReportState.IN_PROGRESS
+        state = BugReportState.IN_PROGRESS,
+        appInfo = snapshot.appInfo
       )
       saveBestEffort("metadata") { saveMetadata(folder, metadata) }
 
@@ -350,7 +354,8 @@ internal class DefaultBugReportDraftStorage(context: Context) : BugReportDraftSt
       ) ?: BugReportMetadata(
         capturedAt = folder.lastModified(),
         state = BugReportState.DRAFT,
-        userInput = userInput
+        userInput = userInput,
+        appInfo = appInfoProvider.getAppInfo(context)
       )
       saveMetadata(folder, updatedMetadata)
       Logger.d("Saved user input to: ${folder.absolutePath}")

@@ -116,7 +116,6 @@ internal object BugReportFileWriters {
         put("uptimeMs", deviceInfo.system.uptimeMs)
         put("isRooted", deviceInfo.system.isRooted)
         put("isEmulator", deviceInfo.system.isEmulator)
-        put("installerPackage", deviceInfo.system.installerPackage)
         put("playServicesVersion", deviceInfo.system.playServicesVersion)
         put("playServicesVersionCode", deviceInfo.system.playServicesVersionCode)
         put("locale", deviceInfo.system.locale)

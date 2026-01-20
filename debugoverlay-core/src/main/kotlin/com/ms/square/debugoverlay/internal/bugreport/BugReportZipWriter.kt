@@ -39,9 +39,12 @@ internal const val UNUSED_PNG_QUALITY = 100 // PNG is lossless, quality is ignor
  * - jank_stats.json
  * - app_exits.txt
  * - ui_hierarchy.txt
- * - metadata.json (contains capturedAt, userInput, etc.)
+ * - metadata.json (contains capturedAt, appInfo, userInput, etc.)
  */
-internal class BugReportZipWriter(context: Context) {
+internal class BugReportZipWriter(
+  private val context: Context,
+  private val appInfoProvider: AppInfoProvider = DefaultAppInfoProvider,
+) {
 
   private val json = Json { ignoreUnknownKeys = true }
 
@@ -103,7 +106,8 @@ internal class BugReportZipWriter(context: Context) {
     ) ?: BugReportMetadata(
       capturedAt = folder.lastModified(),
       state = BugReportState.SUBMITTED,
-      userInput = userInput
+      userInput = userInput,
+      appInfo = appInfoProvider.getAppInfo(context)
     )
 
     try {

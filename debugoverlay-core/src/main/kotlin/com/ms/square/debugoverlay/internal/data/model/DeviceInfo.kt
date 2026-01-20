@@ -82,7 +82,6 @@ internal data class SystemInfo(
   // Security & Services
   val isRooted: Boolean,
   val isEmulator: Boolean,
-  val installerPackage: String?, // null if sideloaded (e.g., "com.android.vending" for Play Store)
   val playServicesVersion: String?, // null if not available (e.g., "24.45.33")
   val playServicesVersionCode: Long?, // null if not available (e.g., 244533000)
 

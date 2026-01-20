@@ -171,10 +171,6 @@ internal fun DeviceInfoTabContent(deviceInfoFlow: Flow<DeviceInfo?>, modifier: M
             positiveIsGood = false
           )
           InfoRow(
-            stringResource(R.string.debugoverlay_device_info_installer),
-            info.system.installerPackage ?: stringResource(R.string.debugoverlay_device_info_sideloaded)
-          )
-          InfoRow(
             stringResource(R.string.debugoverlay_device_info_play_services),
             info.system.playServicesVersion ?: stringResource(R.string.debugoverlay_device_info_not_available)
           )
