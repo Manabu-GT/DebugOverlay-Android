@@ -405,7 +405,7 @@ internal object HtmlReportBuilder {
     // Package & Version
     appendInfoItem("Package", appInfo.packageName)
     appendInfoItem("Version", "${appInfo.versionName ?: "N/A"} (${appInfo.versionCode})")
-    appendInfoItem("Build Type", appInfo.buildType)
+    appendInfoItem("Debuggable", if (appInfo.isDebuggable) "Yes" else "No")
 
     // SDK versions
     appendInfoItem("Target SDK", appInfo.targetSdkVersion.toString())

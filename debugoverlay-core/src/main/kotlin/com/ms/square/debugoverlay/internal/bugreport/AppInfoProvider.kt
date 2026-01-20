@@ -38,7 +38,6 @@ internal data object DefaultAppInfoProvider : AppInfoProvider {
       targetSdkVersion = applicationInfo.targetSdkVersion,
       minSdkVersion = applicationInfo.minSdkVersion,
       isDebuggable = isDebuggable,
-      buildType = if (isDebuggable) "debug" else "release",
       installerStore = mapToInstallerStore(installerPackage),
       installerPackage = installerPackage,
       firstInstallTime = packageInfo.firstInstallTime,

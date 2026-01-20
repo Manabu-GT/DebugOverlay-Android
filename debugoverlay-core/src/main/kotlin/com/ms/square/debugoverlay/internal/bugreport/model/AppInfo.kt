@@ -28,9 +28,6 @@ internal data class AppInfo(
   /** Whether the app is built with debuggable flag enabled. */
   val isDebuggable: Boolean,
 
-  /** Build type: "debug" or "release". */
-  val buildType: String,
-
   /** Human-readable store name (e.g., "Google Play Store", "Unknown", "Sideloaded"). */
   val installerStore: String,
 

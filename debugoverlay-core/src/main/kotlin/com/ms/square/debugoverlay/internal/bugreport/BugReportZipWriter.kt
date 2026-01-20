@@ -103,12 +103,15 @@ internal class BugReportZipWriter(
     val finalMetadata = existingMetadata?.copy(
       state = BugReportState.SUBMITTED,
       userInput = userInput
-    ) ?: BugReportMetadata(
-      capturedAt = folder.lastModified(),
-      state = BugReportState.SUBMITTED,
-      userInput = userInput,
-      appInfo = appInfoProvider.getAppInfo(context)
-    )
+    ) ?: run {
+      Logger.w("metadata.json missing or corrupt in ${folder.name} - using current app info as fallback")
+      BugReportMetadata(
+        capturedAt = folder.lastModified(),
+        state = BugReportState.SUBMITTED,
+        userInput = userInput,
+        appInfo = appInfoProvider.getAppInfo(context)
+      )
+    }
 
     try {
       zip.putNextEntry(ZipEntry(METADATA))
