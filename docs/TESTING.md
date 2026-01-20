@@ -30,6 +30,34 @@
 
 **Rule of thumb:** If you're verifying that a framework API does what its documentation says, you're testing the framework, not your code.
 
+## Avoiding Duplicate Tests
+
+Duplicate tests waste CI time and create maintenance burden when behavior changes require updating multiple tests.
+
+Before writing a new test, verify it tests a **unique behavior**:
+
+1. **Check existing tests** — Search for tests covering the same method/class and review their scenarios
+2. **Distinct behavior per test** — Each test should verify a different behavior, edge case, or failure mode
+3. **Parameterize when appropriate** — For the same logic with many input variations, use parameterized tests
+
+```kotlin
+// DUPLICATE: Same scenario, different names (1s = 1000ms)
+@Test fun `returns FPS when interval elapses`()           // 60 frames at 1s
+@Test fun `handles elapsed time exactly at boundary`()   // 60 frames at 1000ms ← SAME TEST
+
+// DISTINCT: Different behaviors
+@Test fun `returns FPS when interval elapses`()  // Normal calculation
+@Test fun `FPS capped at maxFps`()               // Capping branch
+@Test fun `first frame returns null`()           // Early return path
+
+// PARAMETERIZED: Same logic, multiple inputs
+@ParameterizedTest
+@ValueSource(strings = ["", "invalid", "test@", "@example.com"])
+fun `rejects invalid email format`(email: String) {
+    assertThat(validator.isValid(email)).isFalse()
+}
+```
+
 ## Test Naming
 
 **Unit tests** (`src/test`) — use backticks:
