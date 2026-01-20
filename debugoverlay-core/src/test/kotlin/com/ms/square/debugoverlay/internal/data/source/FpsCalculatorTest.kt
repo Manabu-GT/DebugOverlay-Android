@@ -160,7 +160,7 @@ class FpsCalculatorTest {
 
     // First emission should happen when crossing 1000ms boundary
     assertThat(emittedFps).isNotNull()
-    // 59 frames in 1003ms ≈ 58.8 FPS
-    assertThat(emittedFps).isWithin(1f).of(59f)
+    // 59 frames in 1003ms ≈ 58.82 FPS
+    assertThat(emittedFps).isWithin(0.1f).of(58.82f)
   }
 }
