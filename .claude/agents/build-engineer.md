@@ -112,7 +112,7 @@ Specify the command to verify the fix:
 When working in this repository:
 - Modules: `debugoverlay-core`, `debugoverlay`, `debugoverlay-extension-okhttp`, `debugoverlay-extension-timber`, `sample`
 - All modules use Kotlin DSL and the central version catalog
-- Java 17 toolchain is the default
+- Java 21 toolchain is the default
 - Preserve resource prefixes (`resourcePrefix 'debugoverlay_'`)
 - Stay on AndroidX APIs (no legacy `android.support`)
 - Do not create new modules without explicit approval
