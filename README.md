@@ -1,7 +1,7 @@
 <div align="center">
   <img src="art/banner.jpg" alt="DebugOverlay Android Library" width="100%" style="max-width: 1456px;" />
   <br><br>
-  <a href="https://central.sonatype.com/artifact/com.ms-square/debugoverlay"><img src="https://img.shields.io/maven-metadata/v.svg?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fms-square%2Fdebugoverlay%2Fmaven-metadata.xml&label=maven-central-snapshots&color=brightgreen&style=flat" alt="Maven Central"></a>
+  <a href="https://central.sonatype.com/artifact/com.ms-square/debugoverlay"><img src="https://img.shields.io/maven-central/v/com.ms-square/debugoverlay?color=brightgreen&style=flat" alt="Maven Central"></a>
   <a href="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml"><img src="https://github.com/Manabu-GT/DebugOverlay-Android/actions/workflows/android-ci.yml/badge.svg" alt="Android CI"></a>
   <a href="https://developer.android.com/tools/releases/platforms#7.0"><img src="https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat" alt="API 24+"></a>
   <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.2-7F52FF.svg?style=flat&logo=kotlin&logoColor=white" alt="Kotlin 2.2"></a>
@@ -26,17 +26,12 @@ DebugOverlay gives you a lightweight, always-available look into your app's runt
 ## Quick Start
 
 ```kotlin
-// 1. Add snapshot repository (settings.gradle.kts → repositories block)
-maven(url = "https://central.sonatype.com/repository/maven-snapshots")
-
-// 2. Add dependency (app/build.gradle.kts)
-debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
+// app/build.gradle.kts
+debugImplementation("com.ms-square:debugoverlay:2.0.0")
 
 // That's it! Overlay appears automatically on app launch.
 // Tap to open debug panel. Long-press to drag.
 ```
-
-See [Installation](#installation) for full `settings.gradle.kts` context.
 
 <img src="art/readme_simple_demo.gif" alt="DebugOverlay Demo">
 
@@ -67,26 +62,10 @@ Tap the overlay to open a full-screen diagnostic panel:
 
 **Requirements:** Android 7.0+ (API 24). Pure Java/XML apps work fine—no Compose setup needed in your app.
 
-### 1. Add snapshot repository
-
 ```kotlin
-// settings.gradle.kts
-dependencyResolutionManagement {
-  repositories {
-    google()
-    mavenCentral()
-    maven(url = "https://central.sonatype.com/repository/maven-snapshots")
-  }
-}
-```
-
-> Stable release planned. Remove this repository once 2.0.0 is released on Maven Central.
-
-### 2. Add dependency
-
-```kotlin
+// app/build.gradle.kts
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
+  debugImplementation("com.ms-square:debugoverlay:2.0.0")
 }
 ```
 
@@ -137,8 +116,8 @@ class MyApp : Application() {
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
-  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.0.0-SNAPSHOT")
+  debugImplementation("com.ms-square:debugoverlay:2.0.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.0.0")
 }
 ```
 
@@ -169,8 +148,8 @@ val client = OkHttpClient.Builder()
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
-  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.0.0-SNAPSHOT")
+  debugImplementation("com.ms-square:debugoverlay:2.0.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.0.0")
 }
 ```
 
@@ -275,17 +254,13 @@ android {
 }
 
 dependencies {
-  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.0.0-SNAPSHOT")
+  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.0.0")
 }
 ```
 
 ```bash
 ./gradlew installReleaseWithOverlay
 ```
-
-## Known Limitations
-
-- Data is stored locally only —> no cloud sync or team collaboration features
 
 ## Code Coverage
 
@@ -310,6 +285,10 @@ The sample app includes a `releaseWithOverlay` build type (see [Advanced Setup](
 ```
 
 <img src="art/readme_sample_app_demo.gif" alt="Sample App Demo">
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 
