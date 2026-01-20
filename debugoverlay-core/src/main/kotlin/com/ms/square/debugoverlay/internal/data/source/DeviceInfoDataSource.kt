@@ -148,7 +148,6 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       isEmulator = isEmulator,
       playServicesVersion = playServicesInfo?.first,
       playServicesVersionCode = playServicesInfo?.second,
-      installerPackage = queryInstallerPackage(),
       // Dynamic
       uptimeMs = SystemClock.elapsedRealtime(),
       locale = Locale.getDefault().toString(),
@@ -278,18 +277,6 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       Build.HARDWARE.contains("ranchu") ||
       Build.HARDWARE.contains("vbox86")
     )
-
-  private fun queryInstallerPackage(): String? = runCatching {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
-    } else {
-      @Suppress("DEPRECATION")
-      context.packageManager.getInstallerPackageName(context.packageName)
-    }
-  }.getOrElse { e ->
-    Logger.w("InstallerPackage query failed", e)
-    null
-  }
 
   @Suppress("TooGenericExceptionCaught")
   private fun queryPlayServicesVersion(): Pair<String?, Long>? = try {

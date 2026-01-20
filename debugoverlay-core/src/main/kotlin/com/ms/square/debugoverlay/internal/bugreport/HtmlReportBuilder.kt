@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay.internal.bugreport
 
 import android.graphics.Bitmap
 import android.util.Base64
+import com.ms.square.debugoverlay.internal.bugreport.model.AppInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportData
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
@@ -116,6 +117,9 @@ internal object HtmlReportBuilder {
 
     // Screenshot section
     appendScreenshotSection(data.screenshot)
+
+    // App Info section
+    appendAppInfoSection(data.appInfo)
 
     // Device Info section
     appendDeviceInfoSection(data.deviceInfo)
@@ -389,6 +393,41 @@ internal object HtmlReportBuilder {
     return Base64.encodeToString(bytes, Base64.NO_WRAP)
   }
 
+  private fun StringBuilder.appendAppInfoSection(appInfo: AppInfo) {
+    append("    <div class=\"section\">\n")
+    append("      <div class=\"section-header\" onclick=\"toggleSection(this)\">\n")
+    append("        <h2>App Information</h2>\n")
+    append("        <span class=\"chevron\">&#9660;</span>\n")
+    append("      </div>\n")
+    append("      <div class=\"section-content\">\n")
+    append("        <div class=\"info-grid\">\n")
+
+    // Package & Version
+    appendInfoItem("Package", appInfo.packageName)
+    appendInfoItem("Version", "${appInfo.versionName ?: "N/A"} (${appInfo.versionCode})")
+    appendInfoItem("Debuggable", if (appInfo.isDebuggable) "Yes" else "No")
+
+    // SDK versions
+    appendInfoItem("Target SDK", appInfo.targetSdkVersion.toString())
+    appendInfoItem("Min SDK", appInfo.minSdkVersion.toString())
+
+    // Install source
+    val installerDisplay = if (appInfo.installerPackage != null) {
+      "${appInfo.installerStore} (${appInfo.installerPackage})"
+    } else {
+      appInfo.installerStore
+    }
+    appendInfoItem("Install Source", installerDisplay)
+
+    // Install/Update times
+    appendInfoItem("First Install", formatFullTimestamp(appInfo.firstInstallTime))
+    appendInfoItem("Last Update", formatFullTimestamp(appInfo.lastUpdateTime))
+
+    append("        </div>\n")
+    append("      </div>\n")
+    append("    </div>\n")
+  }
+
   private fun StringBuilder.appendDeviceInfoSection(deviceInfo: DeviceInfo?) {
     append("    <div class=\"section\">\n")
     append("      <div class=\"section-header\" onclick=\"toggleSection(this)\">\n")
@@ -453,7 +492,6 @@ internal object HtmlReportBuilder {
           if (isEmpty()) add("Normal")
         }.joinToString(", ")
       )
-      deviceInfo.system.installerPackage?.let { appendInfoItem("Installer", it) }
       deviceInfo.system.playServicesVersion?.let { appendInfoItem("Play Services", it) }
 
       // Hardware features

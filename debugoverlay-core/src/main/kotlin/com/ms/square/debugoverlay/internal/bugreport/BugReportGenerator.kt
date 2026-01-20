@@ -32,9 +32,10 @@ import java.io.IOException
  * 4. [deleteCaptureFolder] - Cleans up temp folder
  */
 internal class BugReportGenerator(
-  context: Context,
+  private val context: Context,
   private val repository: DebugOverlayDataRepository,
   private val activityProvider: ActivityProvider,
+  private val appInfoProvider: AppInfoProvider = DefaultAppInfoProvider,
   private val storage: BugReportDraftStorage = DefaultBugReportDraftStorage(context),
   private val zipWriter: BugReportZipWriter = BugReportZipWriter(context),
 ) {
@@ -57,6 +58,9 @@ internal class BugReportGenerator(
     val timestampMs = System.currentTimeMillis()
     return runCatchingNonCancellation {
       val snapshot = withContext(Dispatchers.Default) {
+        // Capture app info synchronously (fast, cached by system)
+        val appInfo = appInfoProvider.getAppInfo(context)
+
         supervisorScope {
           val screenshotDeferred = async {
             activityProvider.activity?.let { ScreenshotCapture.capture(it) }
@@ -82,6 +86,7 @@ internal class BugReportGenerator(
 
           BugReportSnapshot(
             timestampMs = timestampMs,
+            appInfo = appInfo,
             // ScreenshotCapture.capture() handles errors internally, returns null on failure
             screenshot = screenshotDeferred.await(),
             deviceInfo = deviceInfoDeferred.awaitCatching().getOrNull(),

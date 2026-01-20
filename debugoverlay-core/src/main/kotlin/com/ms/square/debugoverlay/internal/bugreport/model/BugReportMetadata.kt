@@ -48,6 +48,7 @@ internal fun UserInput?.validatedTitle(defaultTitle: String): String =
  * @param capturedAt Timestamp when the bug report was captured (milliseconds since epoch)
  * @param state Current state of the bug report
  * @param userInput User-provided title and description, null until user saves as draft
+ * @param appInfo Information about the host application
  */
 @Serializable
 internal data class BugReportMetadata(
@@ -55,4 +56,5 @@ internal data class BugReportMetadata(
   val capturedAt: Long,
   val state: BugReportState = BugReportState.IN_PROGRESS,
   val userInput: UserInput? = null,
+  val appInfo: AppInfo,
 )
