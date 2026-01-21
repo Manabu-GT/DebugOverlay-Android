@@ -33,7 +33,7 @@ internal fun TestScenarioCard(
       leadingContent = {
         Icon(
           imageVector = icon,
-          contentDescription = title,
+          contentDescription = null, // Decorative; title is announced by ListItem
           tint = MaterialTheme.colorScheme.primary
         )
       }

@@ -38,13 +38,13 @@ internal fun MainScreen() {
         NavigationBarItem(
           selected = selectedTab == 0,
           onClick = { selectedTab = 0 },
-          icon = { Icon(Icons.Default.RssFeed, contentDescription = "Feed") },
+          icon = { Icon(Icons.Default.RssFeed, contentDescription = null) },
           label = { Text("Feed") }
         )
         NavigationBarItem(
           selected = selectedTab == 1,
           onClick = { selectedTab = 1 },
-          icon = { Icon(Icons.Default.Layers, contentDescription = "Overlay Tests") },
+          icon = { Icon(Icons.Default.Layers, contentDescription = null) },
           label = { Text("Overlay Tests") }
         )
       }

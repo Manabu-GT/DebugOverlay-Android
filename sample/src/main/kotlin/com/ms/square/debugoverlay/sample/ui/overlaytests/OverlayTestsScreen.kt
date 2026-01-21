@@ -30,6 +30,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -50,8 +52,8 @@ internal fun OverlayTestsScreen(modifier: Modifier = Modifier) {
   val fragmentActivity = context as? FragmentActivity
 
   // State for Compose dialogs
-  var showComposeDialog by remember { mutableStateOf(false) }
-  var showComposeBottomSheet by remember { mutableStateOf(false) }
+  var showComposeDialog by rememberSaveable { mutableStateOf(false) }
+  var showComposeBottomSheet by rememberSaveable { mutableStateOf(false) }
   var isFullscreen by rememberSaveable { mutableStateOf(false) }
 
   // Reset fullscreen mode when leaving the screen
@@ -194,7 +196,9 @@ private fun SectionHeader(title: String) {
     text = title,
     style = MaterialTheme.typography.titleMedium,
     color = MaterialTheme.colorScheme.primary,
-    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+    modifier = Modifier
+      .padding(top = 8.dp, bottom = 4.dp)
+      .semantics { heading() }
   )
 }
 
