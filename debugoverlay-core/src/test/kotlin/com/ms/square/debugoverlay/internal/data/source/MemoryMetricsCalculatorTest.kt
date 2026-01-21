@@ -46,6 +46,18 @@ class MemoryMetricsCalculatorTest {
     assertThat(result).isEqualTo(512f)
   }
 
+  @Test
+  fun `calculateMaxPss handles zero memoryClass`() {
+    val result = MemoryMetricsCalculator.calculateMaxPss(
+      memoryClass = 0,
+      largeMemoryClass = 0,
+      isLowRamDevice = false
+    )
+
+    // 0 * 2 = 0MB, clamped to 512MB minimum
+    assertThat(result).isEqualTo(512f)
+  }
+
   // ==========================================================================
   // Heap Usage Calculation
   // ==========================================================================
