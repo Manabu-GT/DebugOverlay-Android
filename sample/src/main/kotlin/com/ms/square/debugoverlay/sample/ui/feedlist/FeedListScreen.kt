@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.metrics.performance.PerformanceMetricsState
 import com.ms.square.debugoverlay.sample.data.model.FeedItem
 import com.ms.square.debugoverlay.sample.ui.components.FeedItemCard
@@ -43,7 +43,7 @@ import com.ms.square.debugoverlay.sample.ui.components.FeedItemCard
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedListScreen(
+internal fun FeedListScreen(
   onFeedClick: (Int) -> Unit,
   modifier: Modifier = Modifier,
   viewModel: FeedListViewModel = hiltViewModel(),

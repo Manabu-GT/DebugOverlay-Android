@@ -21,7 +21,7 @@ import com.ms.square.debugoverlay.sample.data.model.FeedItem
  * @param modifier Optional modifier for the card
  */
 @Composable
-fun FeedItemCard(item: FeedItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun FeedItemCard(item: FeedItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
   Card(
     modifier = modifier
       .fillMaxWidth()

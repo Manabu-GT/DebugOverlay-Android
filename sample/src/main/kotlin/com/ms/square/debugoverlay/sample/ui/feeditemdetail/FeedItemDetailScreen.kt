@@ -39,7 +39,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.core.text.getSpans
 import androidx.core.text.parseAsHtml
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ms.square.debugoverlay.sample.data.model.FeedItem
 
 /**
@@ -52,7 +52,7 @@ import com.ms.square.debugoverlay.sample.data.model.FeedItem
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedDetailScreen(
+internal fun FeedDetailScreen(
   itemId: Int,
   onNavigateBack: () -> Unit,
   modifier: Modifier = Modifier,

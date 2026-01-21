@@ -61,7 +61,7 @@ private val DarkColorScheme = darkColorScheme(
  * @param content The composable content to theme.
  */
 @Composable
-fun AppTheme(
+internal fun AppTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   dynamicColor: Boolean = true,
   content: @Composable () -> Unit,
