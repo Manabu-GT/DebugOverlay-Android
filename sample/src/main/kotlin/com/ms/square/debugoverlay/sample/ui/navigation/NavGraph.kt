@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 /**
  * Type-safe navigation routes for the sample app using Kotlin Serialization.
  */
-sealed interface Route : NavKey {
+internal sealed interface Route : NavKey {
   /**
    * Route for the feed list screen.
    */
@@ -32,13 +32,13 @@ sealed interface Route : NavKey {
 }
 
 /**
- * Main navigation graph for the sample app using Navigation 3 NavDisplay.
+ * Navigation graph for the Feed tab, wrapping the feed-related navigation.
  *
  * @param backStack The Navigation 3 back stack
  * @param modifier Optional modifier for NavDisplay
  */
 @Composable
-fun NavGraph(backStack: NavBackStack<NavKey>, modifier: Modifier = Modifier) {
+internal fun FeedNavDisplay(backStack: NavBackStack<NavKey>, modifier: Modifier = Modifier) {
   NavDisplay(
     entryDecorators = listOf(
       // Add the default decorators for managing scenes and saving state
