@@ -73,3 +73,9 @@ Use `TodoWrite` for any multi-step task:
 - Mark each todo `in_progress` before starting (one at a time)
 - Mark `completed` immediately after finishing
 - Use checklists for migrations or repetitive fixes
+
+---
+
+## 6. Second Opinion via Codex MCP (Optional)
+
+For complex tasks (planning, architecture decisions, major refactors), check if Codex is available via `/mcp` and consider using it for a second opinion before finalizing.

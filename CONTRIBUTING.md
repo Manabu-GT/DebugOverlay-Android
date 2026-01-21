@@ -31,6 +31,16 @@ Thank you for considering contributing to DebugOverlay! This document outlines h
    ```
 4. Open the project in Android Studio and sync Gradle
 
+### Optional: AI Tools Setup
+
+If you use [Claude Code](https://claude.ai/code) with the [Codex CLI](https://github.com/openai/codex), you can enable Codex as an MCP server for code review assistance:
+
+```bash
+cp .mcp.json.example .mcp.json
+```
+
+This is entirely optional and won't affect your ability to contribute.
+
 ## How to Contribute
 
 ### Reporting Bugs
