@@ -38,7 +38,7 @@ public object DebugOverlay {
           setNetworkSource(newConfig.networkRequestSource)
           setCustomLogSource(newConfig.customLogSource)
         }
-        overlayViewManager?.let { it.overlayMode = newConfig.overlayMode }
+        overlayViewManager?.overlayMode?.value = newConfig.overlayMode
       }
     }
 
@@ -46,12 +46,14 @@ public object DebugOverlay {
   @Volatile
   private var _overlayDataRepository: DebugOverlayDataRepository? = null
 
-  private var overlayScope: CoroutineScope? = null
-
   // Held to detect window removal and prevent redundant overlay updates.
   // Not a leak: nulled in hideOverlay() when window is removed.
+  // added volatile as config setter reads it
+  @Volatile
   @SuppressLint("StaticFieldLeak")
   private var overlayViewManager: OverlayViewManager? = null
+
+  private var overlayScope: CoroutineScope? = null
   private var _bugReportGenerator: BugReportGenerator? = null
 
   @get:MainThread
@@ -129,14 +131,16 @@ public object DebugOverlay {
    * DebugOverlay.addBugReportContributor(SharedPreferencesContributor(context))
    * ```
    *
-   * Duplicate instances (same reference) are ignored.
+   * Duplicate filenames are ignored to prevent file overwrites.
    *
    * @param contributor The contributor to register
    * @see BugReportDataContributor
    */
   public fun addBugReportContributor(contributor: BugReportDataContributor) {
-    // Use addIfAbsent for identity-based duplicate check
-    bugReportContributors.addIfAbsent(contributor)
+    // Use filename-based duplicate check to prevent file overwrites
+    if (bugReportContributors.none { it.filename == contributor.filename }) {
+      bugReportContributors.add(contributor)
+    }
   }
 
   /**

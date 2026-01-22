@@ -36,19 +36,26 @@ Duplicate tests waste CI time and create maintenance burden when behavior change
 
 Before writing a new test, verify it tests a **unique behavior**:
 
-1. **Check existing tests** — Search for tests covering the same method/class and review their scenarios
-2. **Distinct behavior per test** — Each test should verify a different behavior, edge case, or failure mode
+1. **One test per behavior** — Group assertions verifying the same logical behavior; multiple assertions are fine when they support one behavior
+2. **Test public API when sufficient** — If internal implementation is fully exercised through public API tests, skip separate internal tests. Test internal classes directly when they have edge cases unreachable through public API.
 3. **Parameterize when appropriate** — For the same logic with many input variations, use parameterized tests
 
 ```kotlin
-// DUPLICATE: Same scenario, different names (1s = 1000ms)
-@Test fun `returns FPS when interval elapses`()           // 60 frames at 1s
-@Test fun `handles elapsed time exactly at boundary`()   // 60 frames at 1000ms ← SAME TEST
+// BAD: Two tests for one behavior (defaults)
+@Test fun `Config has FullMetrics as default overlayMode`()
+@Test fun `Config has NoOpNetworkRequestSource as default`()
 
-// DISTINCT: Different behaviors
+// GOOD: One test, multiple assertions for the same behavior
+@Test fun `Config has correct defaults`() {
+    val config = Config()
+    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics)
+    assertThat(config.networkRequestSource).isEqualTo(NoOpNetworkRequestSource)
+    assertThat(config.customLogSource).isNull()
+}
+
+// GOOD: Separate tests for distinct code paths
 @Test fun `returns FPS when interval elapses`()  // Normal calculation
 @Test fun `FPS capped at maxFps`()               // Capping branch
-@Test fun `first frame returns null`()           // Early return path
 
 // PARAMETERIZED: Same logic, multiple inputs
 @ParameterizedTest
