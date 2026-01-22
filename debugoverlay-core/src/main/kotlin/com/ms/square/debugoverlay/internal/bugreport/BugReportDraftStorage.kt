@@ -49,13 +49,13 @@ internal sealed interface BugReportDraftStorage {
   suspend fun deleteFolder(folder: File)
 }
 
-private const val CACHE_SUBDIR = "debugoverlay_bugreport_drafts"
+private const val DRAFTS_SUBDIR = "debugoverlay_bugreport_drafts"
 private const val DEFAULT_MAX_DRAFTS = 10
 
 /**
- * Default implementation of [BugReportDraftStorage] using the app's cache directory.
+ * Default implementation of [BugReportDraftStorage] using the app's no-backup data directory.
  *
- * Saves captured diagnostic data to a folder in cache, allowing it to be passed
+ * Saves captured diagnostic data to a folder in the app's internal storage, allowing it to be passed
  * between the DebugPanel/FAB and BugReportActivity via folder path.
  *
  * Draft lifecycle:
@@ -63,9 +63,9 @@ private const val DEFAULT_MAX_DRAFTS = 10
  * - A folder becomes a "draft" when its state changes to [BugReportState.DRAFT] (on dialog dismiss)
  * - Drafts are observable via [drafts] and [draftCount] flows
  * - Maximum [DEFAULT_MAX_DRAFTS] drafts retained; oldest evicted automatically
- * - Folders are stored in cache and may be cleared by the system when storage is low
+ * - Folders are stored in the app's no-backup directory for reliable persistence without cloud sync
  *
- * @param context Application context for cache directory access
+ * @param context Application context for no-backup directory access
  */
 @Suppress("TooManyFunctions")
 internal class DefaultBugReportDraftStorage(
@@ -78,8 +78,8 @@ internal class DefaultBugReportDraftStorage(
   private val folderMutex = Mutex()
   private val json = Json { ignoreUnknownKeys = true }
 
-  private val cacheDir by lazy {
-    File(context.cacheDir, CACHE_SUBDIR).also {
+  private val draftsDir by lazy {
+    File(context.noBackupFilesDir, DRAFTS_SUBDIR).also {
       it.checkFolderExists()
     }
   }
@@ -248,16 +248,16 @@ internal class DefaultBugReportDraftStorage(
   /**
    * Deletes a capture folder and all its contents.
    *
-   * Safety: Only deletes folders that are direct children of [cacheDir] to prevent
+   * Safety: Only deletes folders that are direct children of [draftsDir] to prevent
    * accidental deletion of arbitrary paths.
    *
    * @param folder The capture folder to delete
    */
   override suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
     val deleted = folderMutex.withLock {
-      // Safety check: only delete folders that are direct children of our cache directory
-      if (!isDirectChildOfCacheDir(folder)) {
-        Logger.w("Refusing to delete folder outside cache directory: ${folder.absolutePath}")
+      // Safety check: only delete folders that are direct children of our drafts directory
+      if (!isDirectChildOfDraftsDir(folder)) {
+        Logger.w("Refusing to delete folder outside drafts directory: ${folder.absolutePath}")
         return@withLock false
       }
 
@@ -281,14 +281,14 @@ internal class DefaultBugReportDraftStorage(
   }
 
   /**
-   * Checks if the given folder is a direct child of [cacheDir].
+   * Checks if the given folder is a direct child of [draftsDir].
    *
    * Uses canonical paths to resolve symlinks and ".." traversal attacks.
    */
-  private fun isDirectChildOfCacheDir(folder: File): Boolean = runCatching {
+  private fun isDirectChildOfDraftsDir(folder: File): Boolean = runCatching {
     val canonicalFolder = folder.canonicalFile
-    val canonicalCacheDir = cacheDir.canonicalFile
-    canonicalFolder.parentFile == canonicalCacheDir
+    val canonicalDraftsDir = draftsDir.canonicalFile
+    canonicalFolder.parentFile == canonicalDraftsDir
   }.getOrElse { e ->
     Logger.w("Failed to resolve canonical path for safety check: ${e.javaClass.simpleName} - ${e.message}")
     false
@@ -299,7 +299,7 @@ internal class DefaultBugReportDraftStorage(
   /**
    * Refreshes the draft list from disk.
    *
-   * Scans the cache directory for folders with [FileNames.METADATA] files
+   * Scans the drafts directory for folders with [FileNames.METADATA] files
    * that have [BugReportState.DRAFT] state. Updates [drafts] StateFlow atomically.
    *
    * I/O-heavy operations (file existence checks, JSON parsing) are performed
@@ -308,7 +308,7 @@ internal class DefaultBugReportDraftStorage(
   private suspend fun refreshDrafts(): Unit = withContext(Dispatchers.IO) {
     // Step 1: List folder names only (fast, mutex protects concurrent folder creation/deletion)
     val candidates = folderMutex.withLock {
-      cacheDir.listFiles()
+      draftsDir.listFiles()
         ?.filter { it.isDirectory }
         ?.toList() ?: emptyList()
     }
@@ -380,7 +380,7 @@ internal class DefaultBugReportDraftStorage(
   private suspend fun evictOldDrafts(maxDrafts: Int = DEFAULT_MAX_DRAFTS): Unit = withContext(Dispatchers.IO) {
     // Hold mutex for entire operation to prevent race conditions
     folderMutex.withLock {
-      val currentDrafts = cacheDir.listFiles()
+      val currentDrafts = draftsDir.listFiles()
         ?.filter { it.isDirectory }
         ?.mapNotNull { folder ->
           val metadata = loadMetadata(folder) ?: return@mapNotNull null
@@ -424,7 +424,7 @@ internal class DefaultBugReportDraftStorage(
   }
 
   private fun createFolder(): File {
-    val folder = File(cacheDir, UUID.randomUUID().toString())
+    val folder = File(draftsDir, UUID.randomUUID().toString())
     folder.checkFolderExists()
     return folder
   }
