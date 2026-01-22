@@ -207,7 +207,7 @@ In `OverlayMode.FullMetrics`, tap the bug icon in the debug panel toolbar. In `O
 - UI hierarchy
 - Device info
 
-If you dismiss the metadata dialog instead of submitting, DebugOverlay saves the capture as a **draft** (stored in app data). Next time you open Bug Report, you can resume or delete saved drafts.
+If you dismiss the metadata dialog instead of submitting, DebugOverlay saves the capture as a **draft** (stored in internal storage, excluded from backups). Next time you open Bug Report, you can resume or delete saved drafts.
 
 > **Privacy:** Reports contain raw logs and network data. Review before sharing externally. The OkHttp extension supports header redaction and body size limits to minimize sensitive data capture.
 
