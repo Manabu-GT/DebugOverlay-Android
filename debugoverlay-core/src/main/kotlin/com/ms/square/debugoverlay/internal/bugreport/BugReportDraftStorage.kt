@@ -186,7 +186,7 @@ internal class DefaultBugReportDraftStorage(
         BugReportFileWriters.writeUiHierarchy(uiHierarchy, File(folder, UI_HIERARCHY))
       }
     }
-    val contributors = DebugOverlay.config.bugReportDataContributors
+    val contributors = DebugOverlay.bugReportContributors
     if (contributors.isNotEmpty()) {
       saveBestEffort("custom data") {
         collectCustomData(contributors, folder)

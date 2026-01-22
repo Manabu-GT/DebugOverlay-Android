@@ -1,5 +1,6 @@
 package com.ms.square.debugoverlay
 
+import android.annotation.SuppressLint
 import android.app.Application
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
@@ -13,6 +14,7 @@ import com.ms.square.debugoverlay.internal.util.isMainProcess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Internal entry point for DebugOverlay auto-installers.
@@ -29,12 +31,14 @@ public object DebugOverlay {
     private set(newConfig) {
       if (field != newConfig) {
         field = newConfig
+        if (!isInstalled) {
+          Logger.d("Config is getting updated before install, will apply during install")
+        }
         _overlayDataRepository?.apply {
           setNetworkSource(newConfig.networkRequestSource)
           setCustomLogSource(newConfig.customLogSource)
-        } ?: Logger.d("Config updated before install, will apply during install")
+        }
         overlayViewManager?.let { it.overlayMode = newConfig.overlayMode }
-          ?: Logger.d("Config updated before install, will apply during install")
       }
     }
 
@@ -43,6 +47,10 @@ public object DebugOverlay {
   private var _overlayDataRepository: DebugOverlayDataRepository? = null
 
   private var overlayScope: CoroutineScope? = null
+
+  // Held to detect window removal and prevent redundant overlay updates.
+  // Not a leak: nulled in hideOverlay() when window is removed.
+  @SuppressLint("StaticFieldLeak")
   private var overlayViewManager: OverlayViewManager? = null
   private var _bugReportGenerator: BugReportGenerator? = null
 
@@ -86,6 +94,8 @@ public object DebugOverlay {
     }
   }
 
+  internal val bugReportContributors = CopyOnWriteArrayList<BugReportDataContributor>()
+
   /**
    * Configures DebugOverlay settings.
    *
@@ -93,10 +103,81 @@ public object DebugOverlay {
    * Call this function in [Application.onCreate] after dependency injection to
    * configure network tracking or other features.
    *
-   * @param block Configuration builder that receives current [Config] and returns new [Config]
+   * Example:
+   * ```kotlin
+   * DebugOverlay.configure {
+   *   overlayMode = OverlayMode.BugReporterOnly
+   *   networkRequestSource = myOkHttpSource
+   * }
+   * ```
+   *
+   * @param block Configuration DSL that modifies settings via [ConfigBuilder]
    */
-  public fun configure(block: Config.() -> Config) {
-    config = config.block()
+  public fun configure(block: ConfigBuilder.() -> Unit) {
+    config = ConfigBuilder(config).apply(block).build()
+  }
+
+  /**
+   * Registers a custom data contributor for bug reports.
+   *
+   * Contributors add app-specific diagnostic data (preferences, feature flags, etc.)
+   * to bug reports. The library handles threading, timeout enforcement, and error
+   * isolation automatically.
+   *
+   * Example:
+   * ```kotlin
+   * DebugOverlay.addBugReportContributor(SharedPreferencesContributor(context))
+   * ```
+   *
+   * Duplicate instances (same reference) are ignored.
+   *
+   * @param contributor The contributor to register
+   * @see BugReportDataContributor
+   */
+  public fun addBugReportContributor(contributor: BugReportDataContributor) {
+    // Use addIfAbsent for identity-based duplicate check
+    bugReportContributors.addIfAbsent(contributor)
+  }
+
+  /**
+   * DSL builder for [Config].
+   *
+   * Used with [configure] to modify settings:
+   * ```kotlin
+   * DebugOverlay.configure {
+   *   overlayMode = OverlayMode.BugReporterOnly
+   *   networkRequestSource = myOkHttpSource
+   * }
+   * ```
+   */
+  public class ConfigBuilder internal constructor(initial: Config) {
+    /**
+     * The overlay display mode.
+     * [OverlayMode.FullMetrics] (default) shows real-time metrics panel.
+     * [OverlayMode.BugReporterOnly] shows a minimal FAB for quick bug reporting.
+     */
+    public var overlayMode: OverlayMode = initial.overlayMode
+
+    /**
+     * Provides HTTP requests for display in Network tab.
+     * Default is [NoOpNetworkRequestSource] which disables network request display.
+     * Use DebugOverlayNetworkInterceptor from debugoverlay-extension-okhttp for OkHttp integration.
+     */
+    public var networkRequestSource: NetworkRequestSource = initial.networkRequestSource
+
+    /**
+     * Optional custom log source shown as an additional tab.
+     * Default is null. The built-in Logcat tab is always available.
+     * When set, a second tab appears showing logs from this custom source.
+     * Use debugoverlay-extension-timber for Timber integration.
+     */
+    public var customLogSource: LogSource? = initial.customLogSource
+
+    internal fun build(): Config = Config(
+      overlayMode = overlayMode,
+      networkRequestSource = networkRequestSource,
+      customLogSource = customLogSource
+    )
   }
 
   /**
@@ -112,17 +193,12 @@ public object DebugOverlay {
    *   Default is null. The built-in Logcat tab is always available.
    *   When set, a second tab appears showing logs from this custom source.
    *   Use debugoverlay-extension-timber for Timber integration.
-   * @property bugReportDataContributors Custom data contributors for bug reports.
-   *   Each contributor can add app-specific diagnostic data (preferences, feature flags, etc.)
-   *   to bug reports. See [BugReportDataContributor] for implementation details.
    *
    * @see configure
-   * @see BugReportDataContributor
    */
   public data class Config(
     val overlayMode: OverlayMode = OverlayMode.FullMetrics,
     val networkRequestSource: NetworkRequestSource = NoOpNetworkRequestSource,
     val customLogSource: LogSource? = null,
-    val bugReportDataContributors: List<BugReportDataContributor> = emptyList(),
   )
 }

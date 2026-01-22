@@ -57,7 +57,7 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
   init {
     // Auto-register with DebugOverlay when tree is created
-    DebugOverlay.configure { copy(customLogSource = this@DebugOverlayTimberTree) }
+    DebugOverlay.configure { customLogSource = this@DebugOverlayTimberTree }
   }
 
   override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {

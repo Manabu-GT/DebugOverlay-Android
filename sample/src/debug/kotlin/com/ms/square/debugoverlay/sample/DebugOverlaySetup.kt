@@ -12,13 +12,7 @@ import java.io.PrintWriter
  */
 object DebugOverlaySetup {
   fun init(context: Context) {
-    DebugOverlay.configure {
-      copy(
-        bugReportDataContributors = listOf(
-          SharedPreferencesContributor(context.applicationContext)
-        )
-      )
-    }
+    DebugOverlay.addBugReportContributor(SharedPreferencesContributor(context.applicationContext))
   }
 }
 
