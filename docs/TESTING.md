@@ -123,7 +123,7 @@ Prefer `private val` over `lateinit var`. JUnit 4 creates a new test class insta
 | Multiple emissions or timing | Use Turbine's `.test { }` with `awaitItem()` |
 | Interval/timing verification | Inject `StandardTestDispatcher`, use `advanceTimeBy()` |
 
-For infinite Flows tested with Turbine, always end with `cancelAndIgnoreRemainingEvents()`.
+For infinite Flows tested with Turbine, always end with `cancelAndIgnoreRemainingEvents()` (infinite Flows won't complete naturally, so tests hang without explicit cancellation).
 
 ## Testing with Virtual Time
 
@@ -158,7 +158,7 @@ class IntervalFlowTest {
 | Test Dispatcher | Behavior | When to Use |
 |-----------------|----------|-------------|
 | `StandardTestDispatcher` | Queues coroutines; use `advanceTimeBy()` or `advanceUntilIdle()` to progress | Timing-sensitive logic (delays, timeouts, debounce) |
-| `UnconfinedTestDispatcher` | Eagerly executes coroutines until suspension | Simple emission validation, non-timing tests |
+| `UnconfinedTestDispatcher` | Eagerly executes coroutines until suspension; no `advanceTimeBy()` needed | Simple emission validation, non-timing tests |
 
 ## Fakes vs Mocks
 
