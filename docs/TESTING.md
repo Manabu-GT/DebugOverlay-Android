@@ -26,7 +26,7 @@
 - Kotlin stdlib behavior (e.g., that `forEach` iterates)
 - AndroidX/Jetpack internals (e.g., `LifecycleRegistry` transitions)
 - Third-party library internals (e.g., OkHttp request building)
-- Android framework behavior (e.g., `StateFlow.update` atomicity)
+- Coroutines library behavior (e.g., `StateFlow.update` atomicity)
 
 **Rule of thumb:** If you're verifying that a framework API does what its documentation says, you're testing the framework, not your code.
 
@@ -106,4 +106,61 @@ fun `server returns 200`() {
     server.enqueue(MockResponse().setResponseCode(200))
     // Just testing MockWebServer works, not our code
 }
+```
+
+## Test Class Structure
+
+Prefer `private val` over `lateinit var`. JUnit 4 creates a new test class instance per test method, so class-level `val` properties are already isolated. Avoid `@Before` when inline initialization works.
+
+**When `@Before`/`@After` are appropriate:** External resources requiring lifecycle management (e.g., `MockWebServer.start()/shutdown()`).
+
+## Testing Flows
+
+| Scenario | Approach |
+|----------|----------|
+| Single emission (infinite Flow) | Use `.first()` — simpler than Turbine |
+| Single emission (finite Flow) | Use `.single()` to also assert completion |
+| Multiple emissions or timing | Use Turbine's `.test { }` with `awaitItem()` |
+| Interval/timing verification | Inject `StandardTestDispatcher`, use `advanceTimeBy()` |
+
+For infinite Flows tested with Turbine, always end with `cancelAndIgnoreRemainingEvents()`.
+
+## Testing with Virtual Time
+
+`Dispatchers.setMain()` only replaces `Dispatchers.Main` — it does **not** affect `Dispatchers.Default` or `Dispatchers.IO`.
+
+To test interval-based Flows with virtual time:
+1. Accept dispatchers as constructor parameters with production defaults
+2. Inject `StandardTestDispatcher` in tests
+3. **Pass the same dispatcher to `runTest(testDispatcher)`** to share the virtual time scheduler
+4. Use `advanceTimeBy()` to control time
+
+| Test Dispatcher | Behavior | When to Use |
+|-----------------|----------|-------------|
+| `StandardTestDispatcher` | Pauses until explicit advance | Timing-sensitive logic |
+| `UnconfinedTestDispatcher` | Eagerly executes | Simple emission validation |
+
+**Note:** Test dispatcher APIs require `@OptIn(ExperimentalCoroutinesApi::class)` on the test class.
+
+## Fakes vs Mocks
+
+| API Type | Recommendation |
+|----------|----------------|
+| Public/shared interfaces | Prefer fakes (test doubles implementing the interface) — tests behavior, not implementation |
+| `internal` classes | Mocks (MockK) acceptable — simpler setup, internal APIs can change |
+| Android framework (Context, etc.) | Use real Robolectric context unless you need `verify()` |
+
+## Robolectric
+
+Add `@RunWith(RobolectricTestRunner::class)` when your test needs Android `Context` (e.g., `RuntimeEnvironment.getApplication()`). Pure Kotlin logic tests (e.g., `FpsCalculatorTest`) do not need Robolectric.
+
+## Assertions
+
+Use Google Truth for assertions:
+
+```kotlin
+import com.google.common.truth.Truth.assertThat
+
+assertThat(result).isEqualTo(expected)
+assertThat(list).containsExactly(a, b, c).inOrder()
 ```
