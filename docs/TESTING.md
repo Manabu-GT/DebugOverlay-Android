@@ -26,7 +26,7 @@
 - Kotlin stdlib behavior (e.g., that `forEach` iterates)
 - AndroidX/Jetpack internals (e.g., `LifecycleRegistry` transitions)
 - Third-party library internals (e.g., OkHttp request building)
-- Android framework behavior (e.g., `StateFlow.update` atomicity)
+- Coroutines library behavior (e.g., `StateFlow.update` atomicity)
 
 **Rule of thumb:** If you're verifying that a framework API does what its documentation says, you're testing the framework, not your code.
 
@@ -106,4 +106,79 @@ fun `server returns 200`() {
     server.enqueue(MockResponse().setResponseCode(200))
     // Just testing MockWebServer works, not our code
 }
+```
+
+## Test Class Structure
+
+Prefer `private val` over `lateinit var`. JUnit 4 creates a new test class instance per test method, so class-level `val` properties are already isolated. Avoid `@Before` when inline initialization works.
+
+**When `@Before`/`@After` are appropriate:** External resources requiring lifecycle management (e.g., `MockWebServer.start()/shutdown()`).
+
+## Testing Flows
+
+| Scenario | Approach |
+|----------|----------|
+| Single emission (infinite Flow) | Use `.first()` — simpler than Turbine |
+| Single emission (finite Flow) | Use `.single()` to also assert completion |
+| Multiple emissions or timing | Use Turbine's `.test { }` with `awaitItem()` |
+| Interval/timing verification | Inject `StandardTestDispatcher`, use `advanceTimeBy()` |
+
+For infinite Flows tested with Turbine, always end with `cancelAndIgnoreRemainingEvents()` (infinite Flows won't complete naturally, so tests hang without explicit cancellation).
+
+## Testing with Virtual Time
+
+`Dispatchers.setMain()` only replaces `Dispatchers.Main` — it does **not** affect `Dispatchers.Default` or `Dispatchers.IO`.
+
+**For code using only `Dispatchers.Main`:** Call `Dispatchers.setMain(testDispatcher)` before the test (in `@Before` or a `TestRule`). `runTest {}` will automatically use that scheduler—no need to pass the dispatcher explicitly.
+
+**For code using `Dispatchers.Default` or `IO`:** You must inject them so tests can control virtual time and share a scheduler:
+1. Accept dispatchers as constructor parameters with production defaults
+2. Inject `StandardTestDispatcher` in tests
+3. Ensure `runTest` uses the same scheduler (pass the dispatcher to `runTest(testDispatcher)` or build dispatchers with a shared `TestCoroutineScheduler`)
+4. Use `advanceTimeBy()` to control time
+
+```kotlin
+@OptIn(ExperimentalCoroutinesApi::class)
+class IntervalFlowTest {
+    private val testDispatcher = StandardTestDispatcher()
+    private val dataSource = MyDataSource(dispatcher = testDispatcher)
+
+    @Test
+    fun `emits at interval`() = runTest(testDispatcher) {
+        dataSource.values(interval = 100.milliseconds).test {
+            awaitItem() // first emission
+            advanceTimeBy(100.milliseconds)
+            awaitItem() // second emission
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+}
+```
+
+| Test Dispatcher | Behavior | When to Use |
+|-----------------|----------|-------------|
+| `StandardTestDispatcher` | Queues coroutines; use `advanceTimeBy()` or `advanceUntilIdle()` to progress | Timing-sensitive logic (delays, timeouts, debounce) |
+| `UnconfinedTestDispatcher` | Eagerly executes coroutines until suspension; no `advanceTimeBy()` needed | Simple emission validation, non-timing tests |
+
+## Fakes vs Mocks
+
+| API Type | Recommendation |
+|----------|----------------|
+| Public/shared interfaces | Prefer fakes (test doubles implementing the interface) — tests behavior, not implementation |
+| `internal` classes | Mocks (MockK) acceptable — simpler setup, internal APIs can change |
+| Android framework (Context, etc.) | Use real Robolectric context unless you need `verify()` |
+
+## Robolectric
+
+Add `@RunWith(RobolectricTestRunner::class)` when your test needs Android `Context` (e.g., `RuntimeEnvironment.getApplication()`). Pure Kotlin logic tests (e.g., `FpsCalculatorTest`) do not need Robolectric.
+
+## Assertions
+
+Use Google Truth for assertions:
+
+```kotlin
+import com.google.common.truth.Truth.assertThat
+
+assertThat(result).isEqualTo(expected)
+assertThat(list).containsExactly(a, b, c).inOrder()
 ```
