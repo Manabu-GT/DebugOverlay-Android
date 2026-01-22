@@ -129,18 +129,36 @@ For infinite Flows tested with Turbine, always end with `cancelAndIgnoreRemainin
 
 `Dispatchers.setMain()` only replaces `Dispatchers.Main` — it does **not** affect `Dispatchers.Default` or `Dispatchers.IO`.
 
-To test interval-based Flows with virtual time:
+**For code using only `Dispatchers.Main`:** Call `Dispatchers.setMain(testDispatcher)` before the test (in `@Before` or a `TestRule`). `runTest {}` will automatically use that scheduler—no need to pass the dispatcher explicitly.
+
+**For code using `Dispatchers.Default` or `IO`:** You must inject them so tests can control virtual time and share a scheduler:
 1. Accept dispatchers as constructor parameters with production defaults
 2. Inject `StandardTestDispatcher` in tests
-3. **Pass the same dispatcher to `runTest(testDispatcher)`** to share the virtual time scheduler
+3. Ensure `runTest` uses the same scheduler (pass the dispatcher to `runTest(testDispatcher)` or build dispatchers with a shared `TestCoroutineScheduler`)
 4. Use `advanceTimeBy()` to control time
+
+```kotlin
+@OptIn(ExperimentalCoroutinesApi::class)
+class IntervalFlowTest {
+    private val testDispatcher = StandardTestDispatcher()
+    private val dataSource = MyDataSource(dispatcher = testDispatcher)
+
+    @Test
+    fun `emits at interval`() = runTest(testDispatcher) {
+        dataSource.values(interval = 100.milliseconds).test {
+            awaitItem() // first emission
+            advanceTimeBy(100.milliseconds)
+            awaitItem() // second emission
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+}
+```
 
 | Test Dispatcher | Behavior | When to Use |
 |-----------------|----------|-------------|
-| `StandardTestDispatcher` | Pauses until explicit advance | Timing-sensitive logic |
-| `UnconfinedTestDispatcher` | Eagerly executes | Simple emission validation |
-
-**Note:** Test dispatcher APIs require `@OptIn(ExperimentalCoroutinesApi::class)` on the test class.
+| `StandardTestDispatcher` | Queues coroutines; use `advanceTimeBy()` or `advanceUntilIdle()` to progress | Timing-sensitive logic (delays, timeouts, debounce) |
+| `UnconfinedTestDispatcher` | Eagerly executes coroutines until suspension | Simple emission validation, non-timing tests |
 
 ## Fakes vs Mocks
 
