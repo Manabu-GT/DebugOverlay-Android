@@ -8,6 +8,7 @@ import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
+import com.ms.square.debugoverlay.internal.bugreport.validateFilename
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
 import com.ms.square.debugoverlay.internal.util.isMainProcess
@@ -31,9 +32,6 @@ public object DebugOverlay {
     private set(newConfig) {
       if (field != newConfig) {
         field = newConfig
-        if (!isInstalled) {
-          Logger.d("Config is getting updated before install, will apply during install")
-        }
         _overlayDataRepository?.apply {
           setNetworkSource(newConfig.networkRequestSource)
           setCustomLogSource(newConfig.customLogSource)
@@ -131,15 +129,25 @@ public object DebugOverlay {
    * DebugOverlay.addBugReportContributor(SharedPreferencesContributor(context))
    * ```
    *
-   * Duplicate filenames are ignored to prevent file overwrites.
+   * Invalid filenames are rejected with a warning log. Valid characters: a-z, A-Z, 0-9, _, ., -
+   * Duplicate filenames (case-insensitive) are ignored to prevent file overwrites.
    *
    * @param contributor The contributor to register
    * @see BugReportDataContributor
    */
   public fun addBugReportContributor(contributor: BugReportDataContributor) {
-    // Use filename-based duplicate check to prevent file overwrites
-    if (bugReportContributors.none { it.filename == contributor.filename }) {
-      bugReportContributors.add(contributor)
+    val validationError = validateFilename(contributor.filename)
+    if (validationError != null) {
+      Logger.w("BugReportContributor rejected: $validationError (filename='${contributor.filename}')")
+      return
+    }
+
+    synchronized(bugReportContributors) {
+      if (bugReportContributors.none { it.filename.equals(contributor.filename, ignoreCase = true) }) {
+        bugReportContributors.add(contributor)
+      } else {
+        Logger.w("BugReportContributor with filename '${contributor.filename}' already registered, ignoring")
+      }
     }
   }
 

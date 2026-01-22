@@ -76,14 +76,29 @@ class DebugOverlayTest {
   }
 
   @Test
-  fun `addBugReportContributor ignores duplicate filenames`() {
+  fun `addBugReportContributor ignores duplicate filenames case-insensitively`() {
     val contributor = TestBugReportContributor("test.txt")
-    val differentInstanceSameFilename = TestBugReportContributor("test.txt")
+    val upperCaseDuplicate = TestBugReportContributor("TEST.txt")
+    val mixedCaseDuplicate = TestBugReportContributor("Test.TXT")
 
     DebugOverlay.addBugReportContributor(contributor)
-    DebugOverlay.addBugReportContributor(differentInstanceSameFilename) // same filename ignored
+    DebugOverlay.addBugReportContributor(upperCaseDuplicate) // case-insensitive duplicate ignored
+    DebugOverlay.addBugReportContributor(mixedCaseDuplicate) // case-insensitive duplicate ignored
 
     assertThat(DebugOverlay.bugReportContributors).containsExactly(contributor)
+  }
+
+  @Test
+  fun `addBugReportContributor rejects invalid filenames`() {
+    val pathSeparator = TestBugReportContributor("foo/bar.txt")
+    val blank = TestBugReportContributor("")
+    val startsWithDot = TestBugReportContributor(".hidden")
+
+    DebugOverlay.addBugReportContributor(pathSeparator)
+    DebugOverlay.addBugReportContributor(blank)
+    DebugOverlay.addBugReportContributor(startsWithDot)
+
+    assertThat(DebugOverlay.bugReportContributors).isEmpty()
   }
 
   private class TestNetworkRequestSource : NetworkRequestSource {
