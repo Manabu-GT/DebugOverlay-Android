@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,12 +26,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.roundToInt
 
 private val STATUS_COLOR_NORMAL = Color(0xFF4CAF50)
@@ -50,6 +54,7 @@ internal fun DraggableOverlayPanel(
   val view = LocalView.current
   val scope = rememberCoroutineScope()
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
+  val currentOnClick by rememberUpdatedState(onClick)
 
   var panelSize by remember { mutableStateOf(IntSize.Zero) }
   val screenSize = remember(windowInfo.containerSize) {
@@ -68,8 +73,9 @@ internal fun DraggableOverlayPanel(
 
   // Report position changes for WindowManager updates
   LaunchedEffect(Unit) {
-    snapshotFlow { state.offsetX.value to state.offsetY.value }
-      .collect { (x, y) -> currentOnPositionChanged(x.roundToInt(), y.roundToInt()) }
+    snapshotFlow { state.offsetX.value.roundToInt() to state.offsetY.value.roundToInt() }
+      .distinctUntilChanged()
+      .collect { (x, y) -> currentOnPositionChanged(x, y) }
   }
 
   Box(
@@ -87,7 +93,7 @@ internal fun DraggableOverlayPanel(
         detectTapGestures(
           onTap = {
             if (!state.isDragging) {
-              onClick()
+              currentOnClick()
             }
           }
         )
@@ -101,29 +107,38 @@ internal fun DraggableOverlayPanel(
 
 @Composable
 internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Modifier = Modifier) {
-  metrics?.let {
-    Surface(
-      modifier = modifier
-        .padding(all = 8.dp)
-        .border(
-          width = 1.dp,
-          color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-          shape = MaterialTheme.shapes.medium
-        ),
-      shape = MaterialTheme.shapes.medium,
-      color = MaterialTheme.colorScheme.surfaceContainerHigh,
-      tonalElevation = 3.dp
-    ) {
-      Column(
-        modifier = Modifier
+  // Disable font scaling to maintain consistent overlay panel size regardless of system font settings.
+  // Debug overlay panel is for developers, so not supporting font scaling is acceptable atm.
+  CompositionLocalProvider(
+    LocalDensity provides Density(
+      density = LocalDensity.current.density,
+      fontScale = 1f
+    )
+  ) {
+    metrics?.let {
+      Surface(
+        modifier = modifier
           .padding(all = 8.dp)
-          .widthIn(max = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+          .border(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+            shape = MaterialTheme.shapes.medium
+          ),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 3.dp
       ) {
-        CpuRow(it.cpuMetrics)
-        HeapRow(it.heapMetrics)
-        PssRow(it.pssMetrics, it.maxPss)
-        FpsRow(it.fpsMetrics, it.targetFps, it.maxFps)
+        Column(
+          modifier = Modifier
+            .padding(all = 8.dp)
+            .widthIn(max = 120.dp),
+          verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          CpuRow(it.cpuMetrics)
+          HeapRow(it.heapMetrics)
+          PssRow(it.pssMetrics, it.maxPss)
+          FpsRow(it.fpsMetrics, it.targetFps, it.maxFps)
+        }
       }
     }
   }
