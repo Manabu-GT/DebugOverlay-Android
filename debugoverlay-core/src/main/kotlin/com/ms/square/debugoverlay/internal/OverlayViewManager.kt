@@ -328,7 +328,7 @@ internal class OverlayViewManager(
           currentLifecycleOwner?.onPause()
         }
         DebugOverlay.overlayDataRepository.pauseJankStatsTracking(activity)
-        // Save position on pause avoids excessive writes during drag
+        // Save position on pause to avoid excessive writes during active drag gestures
         savePosition()
       }
     }
