@@ -1,58 +1,82 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
-  "schedule": ["before 9am on monday"],
+  "extends": [
+    "config:recommended"
+  ],
+  "schedule": [
+    "before 9am on monday"
+  ],
   "automerge": false,
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
   "prConcurrentLimit": 3,
   "packageRules": [
     {
       "description": "Major updates require dashboard approval",
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "dependencyDashboardApproval": true
     },
     {
       "description": "Compose libraries - all updates require approval",
       "groupName": "Compose",
-      "matchPackagePatterns": ["^androidx\\.compose"],
-      "dependencyDashboardApproval": true
+      "dependencyDashboardApproval": true,
+      "matchPackageNames": [
+        "/^androidx\\.compose/"
+      ]
     },
     {
       "description": "Pin AGP to 8.x until Gradle 9 migration",
-      "matchPackageNames": ["com.android.application", "com.android.library"],
+      "matchPackageNames": [
+        "com.android.application",
+        "com.android.library"
+      ],
       "allowedVersions": "8.x"
     },
     {
       "description": "Maven publish plugin requires manual verification",
-      "matchPackagePatterns": ["com\\.vanniktech\\.maven\\.publish"],
-      "dependencyDashboardApproval": true
+      "dependencyDashboardApproval": true,
+      "matchPackageNames": [
+        "/com\\.vanniktech\\.maven\\.publish/"
+      ]
     },
     {
       "description": "AndroidX libraries (excluding Compose)",
       "groupName": "AndroidX libraries",
-      "matchPackagePatterns": ["^androidx\\."],
-      "excludePackagePatterns": ["^androidx\\.compose"]
+      "matchPackageNames": [
+        "/^androidx\\./",
+        "!/^androidx\\.compose/"
+      ]
     },
     {
       "description": "Square libraries (OkHttp, Radiography, etc)",
       "groupName": "Square libraries",
-      "matchPackagePatterns": ["^com\\.squareup\\."]
+      "matchPackageNames": [
+        "/^com\\.squareup\\./"
+      ]
     },
     {
       "description": "Build tooling plugins",
       "groupName": "Build tooling",
-      "matchPackagePatterns": [
-        "com\\.diffplug\\.spotless",
-        "io\\.gitlab\\.arturbosch\\.detekt",
-        "com\\.getkeepsafe\\.dexcount",
-        "org\\.jetbrains\\.kotlinx\\.binary-compatibility-validator"
+      "matchPackageNames": [
+        "/com\\.diffplug\\.spotless/",
+        "/io\\.gitlab\\.arturbosch\\.detekt/",
+        "/com\\.getkeepsafe\\.dexcount/",
+        "/org\\.jetbrains\\.kotlinx\\.binary-compatibility-validator/"
       ]
     },
     {
       "description": "GitHub Actions - automerge minor/patch",
-      "matchManagers": ["github-actions"],
+      "matchManagers": [
+        "github-actions"
+      ],
       "groupName": "GitHub Actions",
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     }
   ]
