@@ -4,11 +4,66 @@
   "schedule": ["before 9am on monday"],
   "automerge": false,
   "labels": ["dependencies"],
-  "prConcurrentLimit": 5,
+  "prConcurrentLimit": 3,
   "packageRules": [
     {
+      "description": "Major updates require dashboard approval",
       "matchUpdateTypes": ["major"],
       "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Kotlin and KSP must update together",
+      "groupName": "Kotlin ecosystem",
+      "matchPackagePatterns": [
+        "^org\\.jetbrains\\.kotlin",
+        "^com\\.google\\.devtools\\.ksp"
+      ],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Compose libraries - all updates require approval",
+      "groupName": "Compose",
+      "matchPackagePatterns": ["^androidx\\.compose"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Pin AGP to 8.x until Gradle 9 migration",
+      "matchPackagePatterns": ["^com\\.android\\.tools\\.build"],
+      "allowedVersions": "8.x"
+    },
+    {
+      "description": "Maven publish plugin requires manual verification",
+      "matchPackagePatterns": ["com\\.vanniktech\\.maven\\.publish"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "AndroidX libraries (excluding Compose)",
+      "groupName": "AndroidX libraries",
+      "matchPackagePatterns": ["^androidx\\."],
+      "excludePackagePatterns": ["^androidx\\.compose"]
+    },
+    {
+      "description": "Square libraries (OkHttp, Radiography, etc)",
+      "groupName": "Square libraries",
+      "matchPackagePatterns": ["^com\\.squareup\\."]
+    },
+    {
+      "description": "Build tooling plugins",
+      "groupName": "Build tooling",
+      "matchPackagePatterns": [
+        "com\\.diffplug\\.spotless",
+        "io\\.gitlab\\.arturbosch\\.detekt",
+        "com\\.getkeepsafe\\.dexcount",
+        "org\\.jetbrains\\.kotlinx\\.binary-compatibility-validator"
+      ]
+    },
+    {
+      "description": "GitHub Actions - automerge minor/patch",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
     }
   ]
 }
+
