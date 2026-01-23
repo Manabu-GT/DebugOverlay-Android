@@ -19,7 +19,7 @@
     },
     {
       "description": "Pin AGP to 8.x until Gradle 9 migration",
-      "matchPackagePatterns": ["^com\\.android\\.tools\\.build"],
+      "matchPackageNames": ["com.android.application", "com.android.library"],
       "allowedVersions": "8.x"
     },
     {
