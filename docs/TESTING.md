@@ -1,5 +1,14 @@
 # Testing
 
+## Tech Stack
+
+- **Test Framework**: JUnit 4
+- **Assertions**: Google Truth
+- **Mocking**: MockK
+- **Flow Testing**: Turbine
+- **Coroutines Testing**: kotlinx-coroutines-test
+- **Android Unit Testing**: Robolectric
+
 ## Commands by Change Type
 
 | Change Type | Command |
@@ -167,13 +176,28 @@ class IntervalFlowTest {
 | `StandardTestDispatcher` | Queues coroutines; use `advanceTimeBy()` or `advanceUntilIdle()` to progress | Timing-sensitive logic (delays, timeouts, debounce) |
 | `UnconfinedTestDispatcher` | Eagerly executes coroutines until suspension; no `advanceTimeBy()` needed | Simple emission validation, non-timing tests |
 
-## Fakes vs Mocks
+## Mocking & Test Doubles
 
 | API Type | Recommendation |
 |----------|----------------|
-| Public/shared interfaces | Prefer fakes (test doubles implementing the interface) — tests behavior, not implementation |
-| `internal` classes | Mocks (MockK) acceptable — simpler setup, internal APIs can change |
-| Android framework (Context, etc.) | Use real Robolectric context unless you need `verify()` |
+| Public/shared interfaces you own | Prefer **fakes** — tests behavior, not implementation |
+| `internal` classes | **Mocks** (MockK) acceptable — simpler setup, internal APIs can change |
+| Android framework (Context, etc.) | **Real objects** via Robolectric — unless you need `verify()` |
+| External libraries (OkHttp, etc.) | Use their test infra (MockWebServer) over mocking |
+
+**DO Mock:**
+- External API services (network calls, remote data sources)
+- System services hard to trigger (NotificationManager, SensorManager)
+- Platform callbacks difficult to simulate (ActivityResultCallback)
+- I/O operations when verifying interactions
+
+**DON'T Mock:**
+- Your own data classes — construct real instances
+- Kotlin stdlib (Collections, Flow operations)
+- Public interfaces you own — write fakes instead (mocks OK for `internal` classes)
+- Android Context — use Robolectric's `RuntimeEnvironment.getApplication()`
+- Coroutine Dispatchers — inject `TestDispatcher` instead
+- Flow emissions — use Turbine's `.test {}` to observe real behavior
 
 ## Robolectric
 
