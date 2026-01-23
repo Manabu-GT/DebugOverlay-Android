@@ -64,12 +64,27 @@ android {
         signingConfig = signingConfigs.getByName("release")
       }
     }
+    create("releaseWithOverlay") {
+      initWith(getByName("release"))
+      matchingFallbacks += "release"
+      applicationIdSuffix = ".internal"
+    }
   }
 
   buildFeatures {
     compose = true
     // to allow buildConfigField usage within defaultConfig
     buildConfig = true
+  }
+
+  sourceSets {
+    // Shared source set for builds that include DebugOverlay (debug + releaseWithOverlay)
+    named("debug") {
+      java.srcDir("src/debugOverlay/kotlin")
+    }
+    named("releaseWithOverlay") {
+      java.srcDir("src/debugOverlay/kotlin")
+    }
   }
 }
 
@@ -85,6 +100,9 @@ dependencies {
   debugImplementation(project(":debugoverlay"))
   debugImplementation(project(":debugoverlay-extension-okhttp"))
   debugImplementation(project(":debugoverlay-extension-timber"))
+  "releaseWithOverlayImplementation"(project(":debugoverlay"))
+  "releaseWithOverlayImplementation"(project(":debugoverlay-extension-okhttp"))
+  "releaseWithOverlayImplementation"(project(":debugoverlay-extension-timber"))
   implementation(libs.androidx.core)
   implementation(libs.androidx.annotation)
   implementation(libs.material)
