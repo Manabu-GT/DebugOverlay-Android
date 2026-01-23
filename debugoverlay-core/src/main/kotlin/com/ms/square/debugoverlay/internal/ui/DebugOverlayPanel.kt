@@ -108,7 +108,7 @@ internal fun DraggableOverlayPanel(
 @Composable
 internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Modifier = Modifier) {
   // Disable font scaling to maintain consistent overlay panel size regardless of system font settings.
-  // Debug overlay panel is for developers, so not supporting font scaling is acceptable atm.
+  // Debug overlay panel is for developers, so not supporting font scaling is acceptable.
   CompositionLocalProvider(
     LocalDensity provides Density(
       density = LocalDensity.current.density,
