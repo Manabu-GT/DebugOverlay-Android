@@ -143,6 +143,7 @@ internal class OverlayViewManager(
     // 2. Is not system window
     // 3. Is an Activity or Dialog window (has a token we can attach to)
     // 4. Is visible and has a valid window token
+    // 5. Does not belong to a DebugOverlay activity (DebugPanelActivity, BugReportActivity)
     return rootViews.lastOrNull { view ->
       // Exclude our own overlay
       if (view.getTag(R.id.debugoverlay_window_marker) == true) return@lastOrNull false
@@ -155,6 +156,10 @@ internal class OverlayViewManager(
       if (view.phoneWindow == null) {
         return@lastOrNull false
       }
+
+      // Exclude windows belonging to DebugOverlay's own activities
+      if (view.findActivity()?.isDebugOverlayActivity() == true) return@lastOrNull false
+
       view.windowToken != null && view.isShown
     }
   }
