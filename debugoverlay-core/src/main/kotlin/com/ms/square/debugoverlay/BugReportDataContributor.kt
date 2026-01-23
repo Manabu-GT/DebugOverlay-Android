@@ -25,28 +25,18 @@ import java.io.OutputStream
  *   }
  * }
  *
- * // Registration (in Application.onCreate):
- * DebugOverlay.configure {
- *   copy(
- *     bugReportDataContributors = listOf(
- *       UserPreferencesContributor(applicationContext)
- *     )
- *   )
- * }
+ * // Registration (in Application.onCreate as an example):
+ * DebugOverlay.addBugReportContributor(UserPreferencesContributor(applicationContext))
  * ```
  *
  * ## Simple Cases
  * For one-off contributors without creating a class, use the factory function:
  * ```kotlin
- * DebugOverlay.configure {
- *   copy(
- *     bugReportDataContributors = listOf(
- *       BugReportDataContributor("build_info.txt") { out ->
- *         out.write("version=${BuildConfig.VERSION_NAME}".toByteArray())
- *       }
- *     )
- *   )
- * }
+ * DebugOverlay.addBugReportContributor(
+ *   BugReportDataContributor("build_info.txt") { out ->
+ *     out.write("version=${BuildConfig.VERSION_NAME}".toByteArray())
+ *   }
+ * )
  * ```
  *
  * ## Timeout & Error Handling
@@ -81,7 +71,7 @@ import java.io.OutputStream
  *   .forEach { (key, value) -> writer.println("$key = $value") }
  * ```
  *
- * @see DebugOverlay.Config.bugReportDataContributors
+ * @see DebugOverlay.addBugReportContributor
  */
 public interface BugReportDataContributor {
   /**

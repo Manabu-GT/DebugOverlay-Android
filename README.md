@@ -125,7 +125,7 @@ class MyApp : Application() {
     super.onCreate()
 
     DebugOverlay.configure {
-      copy(overlayMode = OverlayMode.BugReporterOnly)
+      overlayMode = OverlayMode.BugReporterOnly
     }
   }
 }
@@ -224,19 +224,16 @@ class MyApp : Application() {
   override fun onCreate() {
     super.onCreate()
 
-    DebugOverlay.configure {
-      copy(
-        bugReportDataContributors = listOf(
-          // Class-based contributor
-          UserPreferencesContributor(applicationContext),
-          // Lambda-based for simple cases
-          BugReportDataContributor("build_info.txt") { out ->
-            out.write("version=${BuildConfig.VERSION_NAME}\n".toByteArray())
-            out.write("code=${BuildConfig.VERSION_CODE}\n".toByteArray())
-          }
-        )
-      )
-    }
+    // Class-based contributor
+    DebugOverlay.addBugReportContributor(UserPreferencesContributor(applicationContext))
+
+    // Lambda-based for simple cases
+    DebugOverlay.addBugReportContributor(
+      BugReportDataContributor("build_info.txt") { out ->
+        out.write("version=${BuildConfig.VERSION_NAME}\n".toByteArray())
+        out.write("code=${BuildConfig.VERSION_CODE}\n".toByteArray())
+      }
+    )
   }
 }
 

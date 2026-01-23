@@ -99,9 +99,7 @@ public class DebugOverlayNetworkInterceptor(
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
   init {
-    DebugOverlay.configure {
-      copy(networkRequestSource = this@DebugOverlayNetworkInterceptor)
-    }
+    DebugOverlay.configure { networkRequestSource = this@DebugOverlayNetworkInterceptor }
   }
 
   override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()

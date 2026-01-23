@@ -1,6 +1,6 @@
 package com.ms.square.debugoverlay.internal.bugreport
 
-import android.content.Context
+import android.app.Application
 import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
@@ -32,7 +32,7 @@ import java.io.IOException
  * 4. [deleteCaptureFolder] - Cleans up temp folder
  */
 internal class BugReportGenerator(
-  private val context: Context,
+  private val context: Application,
   private val repository: DebugOverlayDataRepository,
   private val activityProvider: ActivityProvider,
   private val appInfoProvider: AppInfoProvider = DefaultAppInfoProvider,
