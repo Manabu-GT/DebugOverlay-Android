@@ -127,7 +127,8 @@ internal class OverlayViewManager(
       return
     }
 
-    // Move to new window
+    // Move to new window - save position first so it's preserved across window transitions
+    savePosition()
     hideOverlay()
     currentTargetWindowView = targetWindowView
     showOverlay(targetWindowView.windowToken)
@@ -170,6 +171,8 @@ internal class OverlayViewManager(
       gravity = Gravity.TOP or Gravity.END
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         // disable the move window animation as not needed on Android 14+
+        // Note: Move animation on pre-Android 14 cannot be disabled via public API.
+        // It only occurs during window reparenting (e.g., when dialogs open), so should not be critical.
         setCanPlayMoveAnimation(false)
       }
       x = overlayPreferences.getOverlayX()
@@ -325,7 +328,7 @@ internal class OverlayViewManager(
           currentLifecycleOwner?.onPause()
         }
         DebugOverlay.overlayDataRepository.pauseJankStatsTracking(activity)
-        // Save position only on pause to avoid excessive writes during drag
+        // Save position on pause avoids excessive writes during drag
         savePosition()
       }
     }
