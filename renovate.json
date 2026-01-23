@@ -12,15 +12,6 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Kotlin and KSP must update together",
-      "groupName": "Kotlin ecosystem",
-      "matchPackagePatterns": [
-        "^org\\.jetbrains\\.kotlin",
-        "^com\\.google\\.devtools\\.ksp"
-      ],
-      "dependencyDashboardApproval": true
-    },
-    {
       "description": "Compose libraries - all updates require approval",
       "groupName": "Compose",
       "matchPackagePatterns": ["^androidx\\.compose"],
@@ -66,4 +57,3 @@
     }
   ]
 }
-
