@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay
 
 import android.annotation.SuppressLint
 import android.app.Application
+import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
@@ -94,25 +95,28 @@ public object DebugOverlay {
     }
   }
 
+  // CopyOnWriteArrayList enables lock-free iteration during bug report generation
+  // synchronized block in addBugReportContributor ensures atomic duplicate detection
   internal val bugReportContributors = CopyOnWriteArrayList<BugReportDataContributor>()
 
   /**
    * Configures DebugOverlay settings.
    *
    * Auto-installation happens via AndroidX Startup before [Application.onCreate].
-   * Call this function in [Application.onCreate] after dependency injection to
+   * You typically call this function in [Application.onCreate] after dependency injection to
    * configure network tracking or other features.
    *
    * Example:
    * ```kotlin
    * DebugOverlay.configure {
    *   overlayMode = OverlayMode.BugReporterOnly
-   *   networkRequestSource = myOkHttpSource
+   *   networkRequestSource = yourNetworkRequestSource
    * }
    * ```
    *
    * @param block Configuration DSL that modifies settings via [ConfigBuilder]
    */
+  @AnyThread
   public fun configure(block: ConfigBuilder.() -> Unit) {
     config = ConfigBuilder(config).apply(block).build()
   }
@@ -135,6 +139,7 @@ public object DebugOverlay {
    * @param contributor The contributor to register
    * @see BugReportDataContributor
    */
+  @AnyThread
   public fun addBugReportContributor(contributor: BugReportDataContributor) {
     val validationError = validateFilename(contributor.filename)
     if (validationError != null) {
