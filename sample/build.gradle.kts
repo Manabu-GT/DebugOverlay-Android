@@ -68,6 +68,7 @@ android {
       initWith(getByName("release"))
       matchingFallbacks += "release"
       applicationIdSuffix = ".internal"
+      versionNameSuffix = "-withOverlay"
     }
   }
 
