@@ -33,11 +33,15 @@ Thank you for considering contributing to DebugOverlay! This document outlines h
 
 ### Optional: AI Tools Setup
 
-If you use [Claude Code](https://claude.ai/code) with the [Codex CLI](https://github.com/openai/codex), you can enable Codex as an MCP server for code review assistance:
+If you use [Claude Code](https://claude.ai/code), you can enable MCP servers for enhanced development:
 
 ```bash
 cp .mcp.json.example .mcp.json
 ```
+
+The example config includes:
+- **[Codex CLI](https://github.com/openai/codex)** – Code review assistance
+- **[android-mcp](https://github.com/nicholasrq/android-mcp)** – Automated UI testing on connected Android devices/emulators
 
 This is entirely optional and won't affect your ability to contribute.
 

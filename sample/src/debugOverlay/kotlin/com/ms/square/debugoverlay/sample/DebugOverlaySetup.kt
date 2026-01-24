@@ -8,7 +8,7 @@ import java.io.PrintWriter
 
 /**
  * Configures DebugOverlay with custom contributors.
- * This file is in the debug source set since DebugOverlay is a debug-only dependency.
+ * This file is in the debugOverlay source set, shared by debug and releaseWithOverlay builds.
  */
 object DebugOverlaySetup {
   fun init(context: Context) {

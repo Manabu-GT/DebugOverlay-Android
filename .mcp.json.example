@@ -4,6 +4,11 @@
       "type": "stdio",
       "command": "codex",
       "args": ["mcp-server"]
+    },
+    "android-mcp": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["android-mcp"]
     }
   }
 }
