@@ -30,7 +30,9 @@ import androidx.lifecycle.lifecycleScope
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.bugreport.ExportResult
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportArchiveImpl
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
@@ -276,16 +278,20 @@ internal class BugReportActivity : ComponentActivity() {
 
       when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, validatedUserInput)) {
         is BugReportResult.Success -> {
-          val exported = IntentShareExporter(this@BugReportActivity).export(result.zipFile)
-          if (exported) {
-            isSubmitted = true // Prevent draft save on finish
-            // Delete folder after successful share.
-            // We can't know if it was actually shared successfully, but this is fine for now.
-            DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
-            finish()
-          } else {
-            snackbarHostState.showSnackbar(getString(R.string.debugoverlay_share_bug_report_error))
-            onSubmitEnd()
+          when (IntentShareExporter(this@BugReportActivity).export(BugReportArchiveImpl(result.zipFile))) {
+            is ExportResult.Initiated,
+            is ExportResult.Success,
+            -> {
+              isSubmitted = true // Prevent draft save on finish
+              // Delete folder after successful share.
+              // We can't know if it was actually shared successfully, but this is fine for now.
+              DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
+              finish()
+            }
+            is ExportResult.Failure -> {
+              snackbarHostState.showSnackbar(getString(R.string.debugoverlay_share_bug_report_error))
+              onSubmitEnd()
+            }
           }
         }
         is BugReportResult.Error -> {
