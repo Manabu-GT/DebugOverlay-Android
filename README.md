@@ -69,6 +69,8 @@ dependencies {
 }
 ```
 
+**ProGuard/R8:** No additional rules required. Works with R8 out of the box.
+
 ## Usage
 
 ### Auto-install
