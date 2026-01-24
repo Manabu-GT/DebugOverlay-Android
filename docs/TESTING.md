@@ -180,7 +180,7 @@ class IntervalFlowTest {
 
 | API Type | Recommendation |
 |----------|----------------|
-| Public/shared interfaces you own | Prefer **fakes** — tests behavior, not implementation |
+| Public/shared interfaces you own | Prefer **Fakes** — tests behavior, not implementation |
 | `internal` classes | **Mocks** (MockK) acceptable — simpler setup, internal APIs can change |
 | Android framework (Context, etc.) | **Real objects** via Robolectric — unless you need `verify()` |
 | External libraries (OkHttp, etc.) | Use their test infra (MockWebServer) over mocking |
@@ -188,7 +188,7 @@ class IntervalFlowTest {
 **DO Mock:**
 - External API services (network calls, remote data sources)
 - System services hard to trigger (NotificationManager, SensorManager)
-- Platform callbacks difficult to simulate (ActivityResultCallback)
+- Platform callbacks that are difficult to simulate (ActivityResultCallback)
 - I/O operations when verifying interactions
 
 **DON'T Mock:**
