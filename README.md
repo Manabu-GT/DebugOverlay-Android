@@ -303,6 +303,12 @@ The report will be available at `build/reports/jacoco/mergedJacocoReport/html/in
 ./gradlew :sample:assembleDebug
 ```
 
+The sample app includes a `releaseWithOverlay` build type (see [Advanced Setup](#release-builds-with-overlay)) for including DebugOverlay in an internal release build:
+
+```shell
+./gradlew :sample:installReleaseWithOverlay
+```
+
 <img src="art/readme_sample_app_demo.gif" alt="Sample App Demo">
 
 ## License
