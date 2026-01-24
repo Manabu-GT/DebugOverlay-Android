@@ -19,7 +19,7 @@ Generate unit tests for the specified file(s) following project conventions.
 
 ## Examples
 
-```
+```bash
 /test debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/data/source/MemoryDataSource.kt
 /test --changed
 ```
