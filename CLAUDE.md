@@ -27,6 +27,7 @@ Use specialized subagents to improve quality and efficiency:
 | Compose UI, Material 3, accessibility, adaptive layouts | `ui-designer` | opus |
 | Gradle issues, dependencies, build optimization, CI/CD | `build-engineer` | sonnet |
 | Kotlin patterns, coroutines, KMP, Flow, idiomatic review | `kotlin-specialist` | opus |
+| Writing or reviewing unit tests | Read `docs/TESTING.md` first | — |
 | After completing a feature/fix | `code-reviewer` | opus |
 | Codebase exploration, "where is X?", "how does Y work?" | `Explore` | haiku |
 | Non-trivial implementation planning | `Plan` | inherit |
