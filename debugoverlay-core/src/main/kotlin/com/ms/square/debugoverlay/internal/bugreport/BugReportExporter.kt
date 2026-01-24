@@ -8,6 +8,7 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportArchive
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportArchiveImpl
+import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -71,7 +72,7 @@ private const val PROVIDER_AUTHORITY_SUFFIX = ".debugoverlay.bugreport.provider"
 internal class IntentShareExporter(private val context: Context) : BugReportExporter {
 
   override suspend fun export(report: BugReportArchive): ExportResult {
-    check(report is BugReportArchiveImpl) { "IntentShareExporter requires BugReportArchiveImpl" }
+    require(report is BugReportArchiveImpl) { "IntentShareExporter requires BugReportArchiveImpl" }
     val file = report.file
     val authority = "${context.packageName}$PROVIDER_AUTHORITY_SUFFIX"
     val uri = FileProvider.getUriForFile(context, authority, file)
@@ -87,7 +88,7 @@ internal class IntentShareExporter(private val context: Context) : BugReportExpo
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
-    return runCatching {
+    return runCatchingNonCancellation {
       // Switch to Main for UI operation (startActivity)
       withContext(Dispatchers.Main) {
         context.startActivity(
