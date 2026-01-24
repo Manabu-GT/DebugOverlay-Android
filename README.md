@@ -62,14 +62,41 @@ Tap the overlay to open a full-screen diagnostic panel:
 
 **Requirements:** Android 7.0+ (API 24). Pure Java/XML apps work fine—no Compose setup needed in your app.
 
+**ProGuard/R8:** No additional rules required. Works with R8 out of the box.
+
+### Using Version Catalog
+
+Add to `gradle/libs.versions.toml`:
+
+```toml
+[versions]
+debugoverlay = "2.0.0"
+
+[libraries]
+debugoverlay = { module = "com.ms-square:debugoverlay", version.ref = "debugoverlay" }
+debugoverlay-okhttp = { module = "com.ms-square:debugoverlay-extension-okhttp", version.ref = "debugoverlay" }
+debugoverlay-timber = { module = "com.ms-square:debugoverlay-extension-timber", version.ref = "debugoverlay" }
+```
+
+Then in `app/build.gradle.kts`:
+
+```kotlin
+dependencies {
+  debugImplementation(libs.debugoverlay)
+  // Optional extensions
+  debugImplementation(libs.debugoverlay.okhttp)
+  debugImplementation(libs.debugoverlay.timber)
+}
+```
+
+### Using Kotlin DSL
+
 ```kotlin
 // app/build.gradle.kts
 dependencies {
   debugImplementation("com.ms-square:debugoverlay:2.0.0")
 }
 ```
-
-**ProGuard/R8:** No additional rules required. Works with R8 out of the box.
 
 ## Usage
 
@@ -263,16 +290,6 @@ dependencies {
 ```bash
 ./gradlew installReleaseWithOverlay
 ```
-
-## Code Coverage
-
-To generate a local code coverage report for non-UI code (merging all library modules):
-
-```shell
-./gradlew mergedJacocoReport
-```
-
-The report will be available at `build/reports/jacoco/mergedJacocoReport/html/index.html`.
 
 ## Sample App
 
