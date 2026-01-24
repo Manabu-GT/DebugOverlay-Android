@@ -72,7 +72,9 @@ private const val PROVIDER_AUTHORITY_SUFFIX = ".debugoverlay.bugreport.provider"
 internal class IntentShareExporter(private val context: Context) : BugReportExporter {
 
   override suspend fun export(report: BugReportArchive): ExportResult {
-    require(report is BugReportArchiveImpl) { "IntentShareExporter requires BugReportArchiveImpl" }
+    require(report is BugReportArchiveImpl) {
+      "IntentShareExporter requires file-based BugReportArchive (FileProvider needs direct File access)"
+    }
     val file = report.file
     val authority = "${context.packageName}$PROVIDER_AUTHORITY_SUFFIX"
     val uri = FileProvider.getUriForFile(context, authority, file)
