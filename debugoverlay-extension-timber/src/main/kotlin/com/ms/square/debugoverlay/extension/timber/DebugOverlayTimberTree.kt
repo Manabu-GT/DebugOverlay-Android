@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
-import java.util.concurrent.atomic.AtomicLong
 
 private const val DEFAULT_MAX_LOGS = 300
 private const val SOURCE_NAME = "Timber"
@@ -49,8 +48,6 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
   override val sourceName: String = SOURCE_NAME
 
-  private val idGenerator = AtomicLong(0)
-
   private val recentLogs = EvictingQueue<LogEntry>(maxStoredLogs)
   private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
   override val logs: Flow<List<LogEntry>> = _logs.asStateFlow()
@@ -67,7 +64,6 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
     val fullMessage = if (t != null) "$message\n${t.stackTraceToString()}" else message
 
     val entry = LogEntry(
-      id = idGenerator.getAndIncrement(),
       timestampMs = now,
       level = LogLevel.fromInt(priority),
       tag = tag ?: DEFAULT_TAG,

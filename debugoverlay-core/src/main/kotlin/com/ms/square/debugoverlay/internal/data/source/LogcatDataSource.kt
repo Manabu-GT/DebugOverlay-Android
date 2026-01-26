@@ -57,7 +57,6 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
    * Private StateFlow for direct .value access in [queryLogcatSnapshot].
    */
   private val _logs: StateFlow<List<LogEntry>> = flow {
-    var id = 1L
     val entries = EvictingQueue<LogEntry>(maxEntries)
     val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
     var reader: BufferedReader? = null
@@ -76,9 +75,8 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
       while (currentCoroutineContext().isActive) {
         // readLine() returns null at end of stream, so exit early if a process dies unexpectedly
         val line = reader.readLine() ?: break
-        line.trim().parseLogcatEntry(id, threadNameCache)?.let {
+        line.trim().parseLogcatEntry(threadNameCache)?.let {
           entries.add(it)
-          id++
           emit(entries)
         }
       }
@@ -117,7 +115,6 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
   private suspend fun captureLogcatOnce(): List<LogEntry> = withContext(Dispatchers.IO) {
     buildList {
       val threadNameCache = LruCache<Int, String>(maxSize = THREADNAME_CACHE_SIZE)
-      var id = 1L
 
       // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
       val process = Runtime.getRuntime()
@@ -126,10 +123,7 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
       try {
         InputStreamReader(process.inputStream).useLines { lines ->
           lines.forEach { line ->
-            line.trim().parseLogcatEntry(id, threadNameCache)?.let {
-              add(it)
-              id++
-            }
+            line.trim().parseLogcatEntry(threadNameCache)?.let { add(it) }
           }
         }
       } catch (e: IOException) {
@@ -143,7 +137,7 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
   }
 
   @Suppress("DestructuringDeclarationWithTooManyEntries")
-  private fun String.parseLogcatEntry(id: Long, threadNameCache: LruCache<Int, String>): LogEntry? {
+  private fun String.parseLogcatEntry(threadNameCache: LruCache<Int, String>): LogEntry? {
     // Format with -v threadtime,printable,epoch: "1733921286.215 11744 11744 D Tag: message"
     // Pattern: EPOCH_SECONDS.mmm PID TID LEVEL TAG: MESSAGE
     return LOGCAT_FORMAT_REGEX.matchEntire(this)?.let { match ->
@@ -157,7 +151,6 @@ internal class LogcatDataSource(scope: CoroutineScope, private val maxEntries: I
         System.currentTimeMillis()
       }
       LogEntry(
-        id = id,
         timestampMs = timestampMs,
         level = LogLevel.fromString(level),
         tag = tag.trim(),

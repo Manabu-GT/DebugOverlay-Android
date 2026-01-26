@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay.model
 
 import android.util.Log
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 /**
  * Data class representing a single log entry.
@@ -15,7 +16,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 public data class LogEntry(
-  val id: Long,
+  val id: String = UUID.randomUUID().toString(),
   val timestampMs: Long,
   val level: LogLevel,
   val tag: String,
