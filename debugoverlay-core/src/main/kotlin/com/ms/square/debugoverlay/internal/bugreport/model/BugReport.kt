@@ -17,7 +17,7 @@ internal data class BugReport(
   /** Summary metadata for issue creation. */
   val summary: BugReportSummary,
 ) {
-  companion object {
+  internal companion object {
     /**
      * Creates a [BugReport] from a ZIP file and summary data.
      */

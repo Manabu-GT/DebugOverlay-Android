@@ -99,7 +99,7 @@ internal object HtmlReportBuilder {
   }
 
   private fun buildHtmlString(data: BugReportData): String = buildString {
-    val timestamp = formatFullTimestamp(data.timestampMs)
+    val timestamp = formatFullTimestamp(data.capturedAt)
 
     append("<!DOCTYPE html>\n")
     append("<html lang=\"en\">\n")

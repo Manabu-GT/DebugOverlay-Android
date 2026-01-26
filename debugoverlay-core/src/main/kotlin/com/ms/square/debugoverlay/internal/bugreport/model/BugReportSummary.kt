@@ -20,7 +20,7 @@ internal data class BugReportSummary(
   val appInfo: AppInfoSummary,
   /** Essential device information (null if unavailable). */
   val deviceInfo: DeviceInfoSummary?,
-  /** Timestamp when the bug report was captured (milliseconds since epoch). */
+  /** Timestamp when the bug report was captured (milliseconds since epoch, UTC). */
   val capturedAt: Long,
 )
 
@@ -45,7 +45,7 @@ internal data class AppInfoSummary(
  * Simplified device info for export integrations.
  *
  * Contains only the essential fields needed for issue creation.
- * The full [com.ms.square.debugoverlay.internal.data.model.DeviceInfo]
+ * The full [DeviceInfo]
  * (with nested HardwareInfo, SystemInfo, etc.) is available in the ZIP.
  */
 internal data class DeviceInfoSummary(

@@ -45,7 +45,7 @@ internal fun UserInput?.validatedTitle(defaultTitle: String): String =
  * store timestamps and state.
  *
  * @param version Schema version for forward compatibility
- * @param capturedAt Timestamp when the bug report was captured (milliseconds since epoch)
+ * @param capturedAt Timestamp when the bug report was captured (milliseconds since epoch, UTC)
  * @param state Current state of the bug report
  * @param userInput User-provided title and description, null until user saves as draft
  * @param appInfo Information about the host application

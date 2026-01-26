@@ -67,7 +67,7 @@ internal class BugReportGenerator(
    * @return [Result.success] with the folder path, or [Result.failure] on error
    */
   suspend fun captureToFolder(): Result<File> {
-    val timestampMs = System.currentTimeMillis()
+    val capturedAt = System.currentTimeMillis()
     return runCatchingNonCancellation {
       val snapshot = withContext(Dispatchers.Default) {
         // Capture app info synchronously (fast, cached by system)
@@ -97,7 +97,7 @@ internal class BugReportGenerator(
           val uiHierarchyDeferred = async { captureUiHierarchy() }
 
           BugReportSnapshot(
-            timestampMs = timestampMs,
+            capturedAt = capturedAt,
             appInfo = appInfo,
             // ScreenshotCapture.capture() handles errors internally, returns null on failure
             screenshot = screenshotDeferred.await(),
@@ -150,9 +150,6 @@ internal class BugReportGenerator(
           IOException("metadata.json not found or corrupt in ${captureFolder.name}")
         )
 
-      // Create ZIP file
-      val zipFile = zipWriter.writeFromFolder(captureFolder, userInput)
-
       // Build summary for exporters
       val summary = BugReportSummary(
         title = userInput.validatedTitle(defaultTitle),
@@ -162,6 +159,9 @@ internal class BugReportGenerator(
         capturedAt = metadata.capturedAt
       )
 
+      // Create ZIP file
+      val zipFile = zipWriter.writeFromFolder(captureFolder, userInput)
+
       val report = BugReport.fromFile(zipFile, summary)
       BugReportResult.Success(report)
     } catch (e: IOException) {
@@ -170,6 +170,13 @@ internal class BugReportGenerator(
     }
   }
 
+  /**
+   * Loads metadata from the folder's metadata.json.
+   *
+   * Returns null if the file doesn't exist or can't be parsed.
+   * **Note**: Unlike [loadDeviceInfoSummary], null metadata is treated as an error
+   * since it's critical for report generation.
+   */
   private fun loadMetadata(folder: File): BugReportMetadata? {
     val file = File(folder, METADATA)
     if (!file.exists()) return null

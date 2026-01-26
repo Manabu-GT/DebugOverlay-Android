@@ -125,7 +125,7 @@ internal class DefaultBugReportDraftStorage(
     try {
       // Save metadata first (required for draft detection)
       val metadata = BugReportMetadata(
-        capturedAt = snapshot.timestampMs,
+        capturedAt = snapshot.capturedAt,
         state = BugReportState.IN_PROGRESS,
         appInfo = snapshot.appInfo
       )
