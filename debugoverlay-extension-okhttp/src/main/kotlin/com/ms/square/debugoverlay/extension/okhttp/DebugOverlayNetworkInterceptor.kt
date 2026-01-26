@@ -426,7 +426,7 @@ public class DebugOverlayNetworkInterceptor(
       responseHeaders = responseData?.headers ?: emptyMap(),
       requestBody = requestData?.content,
       responseBody = responseData?.content,
-      timestamp = System.currentTimeMillis(),
+      timestampMs = System.currentTimeMillis(),
       error = error
     )
 

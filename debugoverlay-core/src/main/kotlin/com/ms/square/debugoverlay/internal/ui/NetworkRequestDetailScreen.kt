@@ -202,7 +202,7 @@ private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) 
           InfoRow("Duration", "${request.durationMs} ms")
           InfoRow("Response Size", formatBytes(request.responseSize))
           InfoRow("Request Size", formatBytes(request.requestSize))
-          InfoRow("Timestamp", formatTimestamp(request.timestamp), showDivider = false)
+          InfoRow("Timestamp", formatTimestamp(request.timestampMs), showDivider = false)
         }
       }
     }

@@ -310,7 +310,7 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
 
         NetworkRequestMetadata(
           domain = urlParts.domain,
-          timestamp = request.timestamp,
+          timestampMs = request.timestampMs,
           durationMs = request.durationMs,
           responseSize = request.responseSize
         )
@@ -325,12 +325,12 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
 @Composable
 private fun NetworkRequestMetadata(
   domain: String,
-  timestamp: Long,
+  timestampMs: Long,
   durationMs: Long,
   responseSize: Long?,
   modifier: Modifier = Modifier,
 ) {
-  val formattedTime = remember(timestamp) { formatRelativeTime(timestamp) }
+  val formattedTime = remember(timestampMs) { formatRelativeTime(timestampMs) }
   val formattedBytes = remember(responseSize) { formatBytes(responseSize) }
 
   Column(

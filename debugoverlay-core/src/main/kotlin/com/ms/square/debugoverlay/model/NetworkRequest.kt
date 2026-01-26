@@ -19,7 +19,7 @@ public data class NetworkRequest(
   val durationMs: Long, // 245
   val responseSize: Long?, // bytes
   val requestSize: Long?, // bytes
-  val timestamp: Long = System.currentTimeMillis(),
+  val timestampMs: Long = System.currentTimeMillis(),
   // Extended fields for detail screen
   val requestHeaders: Map<String, String> = emptyMap(),
   val responseHeaders: Map<String, String> = emptyMap(),

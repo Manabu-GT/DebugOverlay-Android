@@ -209,7 +209,7 @@ public final class com/ms/square/debugoverlay/model/NetworkRequest {
 	public final fun getResponseHeaders ()Ljava/util/Map;
 	public final fun getResponseSize ()Ljava/lang/Long;
 	public final fun getStatusCode ()Ljava/lang/Integer;
-	public final fun getTimestamp ()J
+	public final fun getTimestampMs ()J
 	public final fun getUrl ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
