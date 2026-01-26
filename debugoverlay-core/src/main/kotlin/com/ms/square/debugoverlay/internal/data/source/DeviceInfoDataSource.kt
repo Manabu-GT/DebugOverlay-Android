@@ -15,7 +15,7 @@ import android.system.OsConstants
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.data.model.BatteryInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
-import com.ms.square.debugoverlay.internal.data.model.HardwareFeature
+import com.ms.square.debugoverlay.internal.data.model.HardwareFeatures
 import com.ms.square.debugoverlay.internal.data.model.HardwareInfo
 import com.ms.square.debugoverlay.internal.data.model.NetworkInfo
 import com.ms.square.debugoverlay.internal.data.model.NetworkType
@@ -59,7 +59,7 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
   private val supportedAbis: List<String> by lazy { Build.SUPPORTED_ABIS.toList() }
 
   private val hardwareFeatures by lazy {
-    HardwareFeature(
+    HardwareFeatures(
       hasNfc = hasSystemFeature(PackageManager.FEATURE_NFC),
       hasBluetooth = hasSystemFeature(PackageManager.FEATURE_BLUETOOTH),
       hasCamera = hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY),
@@ -117,7 +117,7 @@ internal class DeviceInfoDataSource(private val context: Context, scope: Corouti
       totalRam = totalRam,
       openGlVersion = openGlVersion,
       maxRefreshRate = maxRefreshRate,
-      hardwareFeature = hardwareFeatures,
+      hardwareFeatures = hardwareFeatures,
 
       // Config-dependent - queried fresh to reflect runtime changes (rotation, font scaling)
       // Could be cached with config change listener for efficiency in the future if needed.

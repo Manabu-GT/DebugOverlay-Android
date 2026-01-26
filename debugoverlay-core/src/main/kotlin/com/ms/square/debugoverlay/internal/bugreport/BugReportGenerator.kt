@@ -3,12 +3,21 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.app.Application
 import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.DEVICE_INFO
+import com.ms.square.debugoverlay.internal.bugreport.FileNames.METADATA
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReport
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSummary
 import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
+import com.ms.square.debugoverlay.internal.bugreport.model.DeviceInfoSummary
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
+import com.ms.square.debugoverlay.internal.bugreport.model.toSummary
+import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
+import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.util.awaitCatching
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
@@ -18,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
 
@@ -45,6 +55,8 @@ internal class BugReportGenerator(
 
   /** Observable count of saved drafts. Used by FAB to show badge. */
   val draftCount: Flow<Int> = storage.draftCount
+
+  private val json = Json { ignoreUnknownKeys = true }
 
   /**
    * Captures all diagnostic data and saves to a temp folder.
@@ -116,18 +128,73 @@ internal class BugReportGenerator(
     storage.loadScreenshot(captureFolder, maxDimension)
 
   /**
-   * Creates a ZIP file from the captured data in the folder.
+   * Creates a bug report from the captured data in the folder.
+   *
+   * Constructs a [BugReport] containing both the ZIP archive and summary metadata
+   * for export integrations.
    *
    * @param captureFolder Folder returned from [captureToFolder]
+   * @param defaultTitle Default title to use if userInput.title is blank (should be localized)
    * @param userInput Optional user-provided title and description
-   * @return [BugReportResult.Success] with the ZIP file, or [BugReportResult.Error] on failure
+   * @return [BugReportResult.Success] with the bug report, or [BugReportResult.Error] on failure
    */
-  suspend fun createReportFromFolder(captureFolder: File, userInput: UserInput? = null): BugReportResult = try {
-    val zipFile = zipWriter.writeFromFolder(captureFolder, userInput)
-    BugReportResult.Success(zipFile)
-  } catch (e: IOException) {
-    Logger.e("Bug report write failed", e)
-    BugReportResult.Error.IoError(e)
+  suspend fun createReportFromFolder(
+    captureFolder: File,
+    defaultTitle: String,
+    userInput: UserInput? = null,
+  ): BugReportResult = withContext(Dispatchers.IO) {
+    try {
+      // Load metadata from folder
+      val metadata = loadMetadata(captureFolder)
+        ?: return@withContext BugReportResult.Error.IoError(
+          IOException("metadata.json not found or corrupt in ${captureFolder.name}")
+        )
+
+      // Create ZIP file
+      val zipFile = zipWriter.writeFromFolder(captureFolder, userInput)
+
+      // Build summary for exporters
+      val summary = BugReportSummary(
+        title = userInput.validatedTitle(defaultTitle),
+        description = userInput?.description,
+        appInfo = metadata.appInfo.toSummary(),
+        deviceInfo = loadDeviceInfoSummary(captureFolder),
+        capturedAt = metadata.capturedAt
+      )
+
+      val report = BugReport.fromFile(zipFile, summary)
+      BugReportResult.Success(report)
+    } catch (e: IOException) {
+      Logger.e("Bug report write failed", e)
+      BugReportResult.Error.IoError(e)
+    }
+  }
+
+  private fun loadMetadata(folder: File): BugReportMetadata? {
+    val file = File(folder, METADATA)
+    if (!file.exists()) return null
+    return runCatching {
+      json.decodeFromString(BugReportMetadata.serializer(), file.readText())
+    }.getOrNull()
+  }
+
+  /**
+   * Loads device info summary from the folder's device_info.json.
+   * Returns null if the file doesn't exist or can't be parsed.
+   */
+  private fun loadDeviceInfoSummary(folder: File): DeviceInfoSummary? {
+    val file = File(folder, DEVICE_INFO)
+    if (!file.exists()) {
+      Logger.w("device_info.json not found in ${folder.name}")
+      return null
+    }
+
+    return runCatching {
+      json.decodeFromString<DeviceInfo>(file.readText()).toSummary()
+    }.getOrElse { e ->
+      Logger.w("Failed to parse device_info.json: ${e.message}")
+      null
+    }
   }
 
   /**

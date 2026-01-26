@@ -70,7 +70,7 @@ internal object HtmlReportBuilder {
     var result = html.replace(TITLE_PLACEHOLDER, title.escapeHtml())
 
     // Replace description placeholder with section or empty string
-    val descriptionHtml = userInput.description.takeIf { it.isNotBlank() }
+    val descriptionHtml = userInput.description?.takeIf { it.isNotBlank() }
       ?.let { buildDescriptionSection(it) }
       ?: ""
     result = result.replace(DESCRIPTION_PLACEHOLDER, descriptionHtml)
@@ -498,10 +498,10 @@ internal object HtmlReportBuilder {
       appendInfoItem(
         "Features",
         buildList {
-          if (deviceInfo.hardware.hardwareFeature.hasNfc) add("NFC")
-          if (deviceInfo.hardware.hardwareFeature.hasBluetooth) add("Bluetooth")
-          if (deviceInfo.hardware.hardwareFeature.hasCamera) add("Camera")
-          if (deviceInfo.hardware.hardwareFeature.hasFingerprint) add("Fingerprint")
+          if (deviceInfo.hardware.hardwareFeatures.hasNfc) add("NFC")
+          if (deviceInfo.hardware.hardwareFeatures.hasBluetooth) add("Bluetooth")
+          if (deviceInfo.hardware.hardwareFeatures.hasCamera) add("Camera")
+          if (deviceInfo.hardware.hardwareFeatures.hasFingerprint) add("Fingerprint")
         }.joinToString(", ").ifEmpty { "None" }
       )
 

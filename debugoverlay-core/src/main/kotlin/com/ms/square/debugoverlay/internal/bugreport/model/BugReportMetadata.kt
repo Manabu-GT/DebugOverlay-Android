@@ -21,10 +21,10 @@ internal enum class BugReportState {
  * User-provided input for a bug report.
  *
  * @param title Short summary of the issue (may be blank)
- * @param description Detailed description of the issue (optional)
+ * @param description Detailed description of the issue (null if not provided)
  */
 @Serializable
-internal data class UserInput(val title: String = "", val description: String = "")
+internal data class UserInput(val title: String = "", val description: String? = null)
 
 /**
  * Returns a validated title, falling back to [defaultTitle] if blank or null.

@@ -68,67 +68,10 @@ internal object BugReportFileWriters {
   }
 
   /**
-   * Writes device information to a JSON file using buildJsonObject.
+   * Writes device information to a JSON file.
    */
-  @Suppress("LongMethod") // Length is from data fields, not complexity
   fun writeDeviceInfo(deviceInfo: DeviceInfo, file: File) {
-    val jsonObj = buildJsonObject {
-      putJsonObject("hardware") {
-        put("manufacturer", deviceInfo.hardware.manufacturer)
-        put("model", deviceInfo.hardware.model)
-        put("brand", deviceInfo.hardware.brand)
-        put("cpuArchitecture", deviceInfo.hardware.cpuArchitecture)
-        put("cpuCores", deviceInfo.hardware.cpuCores)
-        putJsonArray("supportedAbis") {
-          deviceInfo.hardware.supportedAbis.forEach { add(JsonPrimitive(it)) }
-        }
-        put("screenSizeCategory", deviceInfo.hardware.screenSizeCategory)
-        put("screenDensity", deviceInfo.hardware.screenDensity)
-        put("screenResolution", deviceInfo.hardware.screenResolution)
-        put("currentRefreshRate", deviceInfo.hardware.currentRefreshRate)
-        put("maxRefreshRate", deviceInfo.hardware.maxRefreshRate)
-        put("openGlVersion", deviceInfo.hardware.openGlVersion)
-        put("totalRam", deviceInfo.hardware.totalRam)
-        put("availableRam", deviceInfo.hardware.availableRam)
-        put("totalStorage", deviceInfo.hardware.totalStorage)
-        put("availableStorage", deviceInfo.hardware.availableStorage)
-        putJsonObject("hardwareFeatures") {
-          put("hasNfc", deviceInfo.hardware.hardwareFeature.hasNfc)
-          put("hasBluetooth", deviceInfo.hardware.hardwareFeature.hasBluetooth)
-          put("hasCamera", deviceInfo.hardware.hardwareFeature.hasCamera)
-          put("hasFingerprint", deviceInfo.hardware.hardwareFeature.hasFingerprint)
-        }
-      }
-      putJsonObject("battery") {
-        put("level", deviceInfo.battery.level)
-        put("status", deviceInfo.battery.status)
-      }
-      putJsonObject("system") {
-        put("androidVersion", deviceInfo.system.androidVersion)
-        put("apiLevel", deviceInfo.system.apiLevel)
-        put("securityPatch", deviceInfo.system.securityPatch)
-        put("buildId", deviceInfo.system.buildId)
-        put("buildType", deviceInfo.system.buildType)
-        put("buildTags", deviceInfo.system.buildTags)
-        put("bootloader", deviceInfo.system.bootloader)
-        put("fingerprint", deviceInfo.system.fingerprint)
-        put("kernelVersion", deviceInfo.system.kernelVersion)
-        put("uptimeMs", deviceInfo.system.uptimeMs)
-        put("isRooted", deviceInfo.system.isRooted)
-        put("isEmulator", deviceInfo.system.isEmulator)
-        put("playServicesVersion", deviceInfo.system.playServicesVersion)
-        put("playServicesVersionCode", deviceInfo.system.playServicesVersionCode)
-        put("locale", deviceInfo.system.locale)
-        put("language", deviceInfo.system.language)
-        put("timeZone", deviceInfo.system.timeZone)
-      }
-      putJsonObject("network") {
-        put("type", deviceInfo.network.type.name)
-        put("isConnected", deviceInfo.network.isConnected)
-      }
-    }
-
-    file.writeText(json.encodeToString(jsonObj))
+    file.writeText(json.encodeToString(deviceInfo))
   }
 
   /**

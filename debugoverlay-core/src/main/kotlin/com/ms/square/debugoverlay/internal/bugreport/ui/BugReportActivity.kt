@@ -32,10 +32,8 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.ExportResult
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportArchiveImpl
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
-import com.ms.square.debugoverlay.internal.bugreport.model.validatedTitle
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.launch
@@ -269,16 +267,15 @@ internal class BugReportActivity : ComponentActivity() {
         return@launch
       }
 
-      // Use validatedTitle to ensure non-blank title for final submission
-      val defaultTitle = getString(R.string.debugoverlay_bug_report_default_title)
-      val validatedUserInput = UserInput(
-        title = userInput.validatedTitle(defaultTitle),
-        description = userInput.description
+      val result = DebugOverlay.bugReportGenerator.createReportFromFolder(
+        captureFolder = folder,
+        defaultTitle = getString(R.string.debugoverlay_bug_report_default_title),
+        userInput = userInput
       )
 
-      when (val result = DebugOverlay.bugReportGenerator.createReportFromFolder(folder, validatedUserInput)) {
+      when (result) {
         is BugReportResult.Success -> {
-          when (IntentShareExporter(this@BugReportActivity).export(BugReportArchiveImpl(result.zipFile))) {
+          when (IntentShareExporter(this@BugReportActivity).export(result.report)) {
             is ExportResult.Initiated,
             is ExportResult.Success,
             -> {
