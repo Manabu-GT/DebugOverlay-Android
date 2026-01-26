@@ -137,8 +137,10 @@ internal class IntentShareExporter(private val context: Context) : BugReportExpo
   override suspend fun export(report: BugReport): ExportResult {
     val file = when (val archive = report.archive) {
       is BugReportArchiveImpl -> archive.file
-      // return ExportResult.Failure if another archive impl is added in the future
-      // and if it doesn't provide a file access.
+      // Future: If new archive implementations don't provide file access:
+      // else -> return ExportResult.Failure(
+      //   UnsupportedOperationException("Archive type does not provide file access")
+      // )
     }
     val authority = "${context.packageName}$PROVIDER_AUTHORITY_SUFFIX"
     val uri = FileProvider.getUriForFile(context, authority, file)
