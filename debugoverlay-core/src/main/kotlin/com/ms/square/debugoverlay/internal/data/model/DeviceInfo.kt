@@ -1,9 +1,12 @@
 package com.ms.square.debugoverlay.internal.data.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Comprehensive device information collected without requiring dangerous permissions.
  * Useful for bug reports, diagnostics, and device compatibility analysis.
  */
+@Serializable
 internal data class DeviceInfo(
   val hardware: HardwareInfo,
   val battery: BatteryInfo,
@@ -14,6 +17,7 @@ internal data class DeviceInfo(
 /**
  * Hardware information including device specs, CPU, display, and storage.
  */
+@Serializable
 internal data class HardwareInfo(
   // Device
   val manufacturer: String,
@@ -40,13 +44,14 @@ internal data class HardwareInfo(
   val availableStorage: Long, // bytes (dynamic, snapshot at collection time)
 
   // Hardware features
-  val hardwareFeature: HardwareFeature,
+  val hardwareFeatures: HardwareFeatures,
 )
 
 /**
  * Hardware features.
  */
-internal data class HardwareFeature(
+@Serializable
+internal data class HardwareFeatures(
   val hasNfc: Boolean,
   val hasBluetooth: Boolean,
   val hasCamera: Boolean,
@@ -56,6 +61,7 @@ internal data class HardwareFeature(
 /**
  * Battery information.
  */
+@Serializable
 internal data class BatteryInfo(
   val level: Int, // percentage (0-100)
   val status: String, // "Charging", "Discharging", "Full", "Not Charging"
@@ -64,6 +70,7 @@ internal data class BatteryInfo(
 /**
  * System and build information.
  */
+@Serializable
 internal data class SystemInfo(
   // Android
   val androidVersion: String,
@@ -94,6 +101,7 @@ internal data class SystemInfo(
 /**
  * Network connection information (requires ACCESS_NETWORK_STATE normal permission).
  */
+@Serializable
 internal data class NetworkInfo(
   val type: NetworkType, // WIFI, CELLULAR, NONE
   val isConnected: Boolean,
@@ -106,6 +114,7 @@ internal data class NetworkInfo(
 /**
  * Network connection type.
  */
+@Serializable
 internal enum class NetworkType {
   WIFI,
   CELLULAR,

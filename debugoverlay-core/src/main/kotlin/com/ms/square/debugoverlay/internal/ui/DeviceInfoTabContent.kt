@@ -209,19 +209,19 @@ internal fun DeviceInfoTabContent(deviceInfoFlow: Flow<DeviceInfo?>, modifier: M
         InfoCard(title = stringResource(R.string.debugoverlay_device_info_hardware_features)) {
           BooleanInfoRow(
             stringResource(R.string.debugoverlay_device_info_nfc),
-            info.hardware.hardwareFeature.hasNfc
+            info.hardware.hardwareFeatures.hasNfc
           )
           BooleanInfoRow(
             stringResource(R.string.debugoverlay_device_info_bluetooth),
-            info.hardware.hardwareFeature.hasBluetooth
+            info.hardware.hardwareFeatures.hasBluetooth
           )
           BooleanInfoRow(
             stringResource(R.string.debugoverlay_device_info_camera),
-            info.hardware.hardwareFeature.hasCamera
+            info.hardware.hardwareFeatures.hasCamera
           )
           BooleanInfoRow(
             stringResource(R.string.debugoverlay_device_info_fingerprint),
-            info.hardware.hardwareFeature.hasFingerprint
+            info.hardware.hardwareFeatures.hasFingerprint
           )
         }
       }

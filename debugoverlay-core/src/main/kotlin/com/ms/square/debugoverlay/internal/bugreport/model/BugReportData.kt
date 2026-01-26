@@ -10,7 +10,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
 /**
  * Data class containing all diagnostic information for a bug report.
  *
- * @param timestampMs The time when the bug report was generated (epoch millis)
+ * @param capturedAt The time when the bug report was captured (epoch millis, UTC)
  * @param userInput User-provided title and description (null if skipped)
  * @param appInfo Information about the host application
  * @param screenshot Screenshot of the app at the time of report generation (may be null if capture failed)
@@ -23,7 +23,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  * @param uiHierarchy UI hierarchy dump from Radiography
  */
 internal data class BugReportData(
-  val timestampMs: Long,
+  val capturedAt: Long,
   val userInput: UserInput?,
   val appInfo: AppInfo,
   val screenshot: Bitmap?,

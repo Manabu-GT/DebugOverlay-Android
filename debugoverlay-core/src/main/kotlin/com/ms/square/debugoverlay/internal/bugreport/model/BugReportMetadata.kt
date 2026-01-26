@@ -21,10 +21,10 @@ internal enum class BugReportState {
  * User-provided input for a bug report.
  *
  * @param title Short summary of the issue (may be blank)
- * @param description Detailed description of the issue (optional)
+ * @param description Detailed description of the issue (null if not provided)
  */
 @Serializable
-internal data class UserInput(val title: String = "", val description: String = "")
+internal data class UserInput(val title: String = "", val description: String? = null)
 
 /**
  * Returns a validated title, falling back to [defaultTitle] if blank or null.
@@ -45,7 +45,7 @@ internal fun UserInput?.validatedTitle(defaultTitle: String): String =
  * store timestamps and state.
  *
  * @param version Schema version for forward compatibility
- * @param capturedAt Timestamp when the bug report was captured (milliseconds since epoch)
+ * @param capturedAt Timestamp when the bug report was captured (milliseconds since epoch, UTC)
  * @param state Current state of the bug report
  * @param userInput User-provided title and description, null until user saves as draft
  * @param appInfo Information about the host application

@@ -1,7 +1,5 @@
 package com.ms.square.debugoverlay.internal.bugreport.model
 
-import java.io.File
-
 /**
  * Result type for bug report generation operations.
  *
@@ -11,9 +9,9 @@ import java.io.File
 internal sealed class BugReportResult {
   /**
    * Bug report was generated successfully.
-   * @param zipFile The generated ZIP file containing the bug report
+   * @param report The generated bug report containing archive and summary
    */
-  data class Success(val zipFile: File) : BugReportResult()
+  data class Success(val report: BugReport) : BugReportResult()
 
   /**
    * Bug report generation failed.

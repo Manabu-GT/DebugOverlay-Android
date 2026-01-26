@@ -11,38 +11,22 @@ import java.io.InputStream
  * preventing exporters from accidentally deleting or modifying the source file.
  * Multiple exporters can safely access the same report concurrently.
  *
- * ## Usage in Custom Exporters
+ * ## Stream Lifecycle
+ * - **Repeatable**: Each [openInputStream] call returns a new independent stream
+ * - **Ownership**: Whoever opens a stream is responsible for closing it
+ * - **Thread-safe**: Multiple concurrent calls are safe
+ *
+ * ## Usage Example
+ * See [BugReportExporter][com.ms.square.debugoverlay.internal.bugreport.BugReportExporter]
+ * for an example of creating an issue with the archive attached.
+ *
  * ```kotlin
- * class JiraExporter(
- *   private val client: OkHttpClient,
- *   private val jiraBaseUrl: String,
- *   private val projectKey: String
- * ) : BugReportExporter {
- *
- *   override suspend fun export(report: BugReportArchive): ExportResult {
- *     // Called on Dispatchers.IO - blocking I/O is safe
- *     val requestBody = MultipartBody.Builder()
- *       .setType(MultipartBody.FORM)
- *       .addFormDataPart(
- *         "file",
- *         report.fileName,
- *         object : RequestBody() {
- *           override fun contentType() = "application/zip".toMediaType()
- *           override fun contentLength() = report.sizeBytes
- *           override fun writeTo(sink: BufferedSink) {
- *             report.openInputStream().use { sink.writeAll(it.source()) }
- *           }
- *         }
- *       )
- *       .build()
- *
- *     val request = Request.Builder()
- *       .url("$jiraBaseUrl/rest/api/2/issue/$projectKey/attachments")
- *       .post(requestBody)
- *       .build()
- *
- *     val success = client.newCall(request).execute().use { it.isSuccessful }
- *     return if (success) ExportResult.Success else ExportResult.Failure()
+ * // Converting to OkHttp RequestBody for multipart upload
+ * fun BugReportArchive.toRequestBody(): RequestBody = object : RequestBody() {
+ *   override fun contentType() = "application/zip".toMediaType()
+ *   override fun contentLength() = sizeBytes
+ *   override fun writeTo(sink: BufferedSink) {
+ *     openInputStream().use { sink.writeAll(it.source()) }
  *   }
  * }
  * ```
