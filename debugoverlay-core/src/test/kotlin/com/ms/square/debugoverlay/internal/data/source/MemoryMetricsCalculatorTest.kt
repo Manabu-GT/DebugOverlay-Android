@@ -6,10 +6,6 @@ import org.junit.Test
 
 class MemoryMetricsCalculatorTest {
 
-  // ==========================================================================
-  // Max PSS Calculation
-  // ==========================================================================
-
   @Test
   fun `calculateMaxPss uses memoryClass for low-RAM devices`() {
     val result = MemoryMetricsCalculator.calculateMaxPss(
@@ -58,10 +54,6 @@ class MemoryMetricsCalculatorTest {
     assertThat(result).isEqualTo(512f)
   }
 
-  // ==========================================================================
-  // Heap Usage Calculation
-  // ==========================================================================
-
   @Test
   fun `calculateHeapUsagePercentage returns correct percentage`() {
     val result = MemoryMetricsCalculator.calculateHeapUsagePercentage(
@@ -86,10 +78,6 @@ class MemoryMetricsCalculatorTest {
     assertThat(zeroResult).isEqualTo(Percentage.ZERO)
     assertThat(negativeResult).isEqualTo(Percentage.ZERO)
   }
-
-  // ==========================================================================
-  // Unit Conversion
-  // ==========================================================================
 
   @Test
   fun `convertKbToMb converts kilobytes to megabytes`() {

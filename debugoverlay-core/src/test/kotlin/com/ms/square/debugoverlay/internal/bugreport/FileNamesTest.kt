@@ -5,8 +5,6 @@ import org.junit.Test
 
 class FileNamesTest {
 
-  // ========== validateFilename tests ==========
-
   @Test
   fun `validateFilename returns null for valid filename`() {
     assertThat(validateFilename("my_data.json")).isNull()
@@ -48,8 +46,6 @@ class FileNamesTest {
     assertThat(validateFilename("file_📱.json")).isNotNull()
     assertThat(validateFilename("файл.json")).isNotNull()
   }
-
-  // ========== customLogSourceFilename tests ==========
 
   @Test
   fun `customLogSourceFilename lowercases normal source name`() {
@@ -113,8 +109,6 @@ class FileNamesTest {
   fun `customLogSourceFilename preserves hyphens and underscores`() {
     assertThat(FileNames.customLogSourceFilename("my-custom_logger")).isEqualTo("my-custom_logger_logs.json")
   }
-
-  // ========== Contract test: customLogSourceFilename output must pass validateFilename ==========
 
   @Test
   fun `customLogSourceFilename output always passes validateFilename`() {

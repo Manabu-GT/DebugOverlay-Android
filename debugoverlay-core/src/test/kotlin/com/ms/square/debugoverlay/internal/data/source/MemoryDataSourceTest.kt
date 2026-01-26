@@ -25,10 +25,6 @@ class MemoryDataSourceTest {
     ioDispatcher = testDispatcher
   )
 
-  // ==========================================================================
-  // heapUsage
-  // ==========================================================================
-
   @Test
   fun `heapUsage emits Percentage value when subscribed`() = runTest(testDispatcher) {
     val item = dataSource.heapUsage().first()
@@ -51,10 +47,6 @@ class MemoryDataSourceTest {
       cancelAndIgnoreRemainingEvents()
     }
   }
-
-  // ==========================================================================
-  // pss
-  // ==========================================================================
 
   @Test
   fun `pss emits when subscribed`() = runTest(testDispatcher) {
