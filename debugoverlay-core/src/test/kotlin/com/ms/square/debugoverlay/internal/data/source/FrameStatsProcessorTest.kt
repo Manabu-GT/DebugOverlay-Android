@@ -17,20 +17,12 @@ class FrameStatsProcessorTest {
 
   private val processor = FrameStatsProcessor()
 
-  // ==========================================================================
-  // Initial State
-  // ==========================================================================
-
   @Test
   fun `initial state is empty`() {
     val state = processor.state.value
 
     assertThat(state).isEqualTo(JankStatsUiState.EMPTY)
   }
-
-  // ==========================================================================
-  // Frame Counting
-  // ==========================================================================
 
   @Test
   fun `processFrame increments totalFrames`() {
@@ -52,10 +44,6 @@ class FrameStatsProcessorTest {
     assertThat(processor.state.value.totalFrames).isEqualTo(3)
     assertThat(processor.state.value.jankyFrames).isEqualTo(2)
   }
-
-  // ==========================================================================
-  // Jank Percentage Calculation
-  // ==========================================================================
 
   @Test
   fun `jankPercentage is 0 when no janky frames`() {
@@ -84,10 +72,6 @@ class FrameStatsProcessorTest {
     assertThat(processor.state.value.jankPercentage).isEqualTo(Percentage.ofClamped(0.3f))
   }
 
-  // ==========================================================================
-  // Average Frame Duration
-  // ==========================================================================
-
   @Test
   fun `avgFrameDurationMs calculated correctly`() {
     processFrame(createFrameData(durationMs = 10))
@@ -97,10 +81,6 @@ class FrameStatsProcessorTest {
     // (10 + 20 + 30) / 3 = 20ms
     assertThat(processor.state.value.avgFrameDurationMs).isEqualTo(20L)
   }
-
-  // ==========================================================================
-  // Recent Janks Tracking
-  // ==========================================================================
 
   @Test
   fun `recentFrameJanks tracks recent frames`() {
@@ -120,10 +100,6 @@ class FrameStatsProcessorTest {
 
     assertThat(processor.state.value.recentFrameJanks).hasSize(50)
   }
-
-  // ==========================================================================
-  // Janky Frames List
-  // ==========================================================================
 
   @Test
   fun `jankyFramesList contains only janky frames`() {
@@ -158,10 +134,6 @@ class FrameStatsProcessorTest {
       .containsExactly(30L, 20L, 10L)
       .inOrder()
   }
-
-  // ==========================================================================
-  // State Counters (Jank Breakdown by State)
-  // ==========================================================================
 
   @Test
   fun `state counters incremented for janky frames`() {
@@ -263,10 +235,6 @@ class FrameStatsProcessorTest {
     assertThat(breakdown[0].count).isEqualTo(10)
   }
 
-  // ==========================================================================
-  // Eviction Behavior
-  // ==========================================================================
-
   @Test
   fun `totalFrames counter tracks all frames including evicted ones`() {
     // Add 510 frames (exceeds internal buffer capacity of 500)
@@ -343,10 +311,6 @@ class FrameStatsProcessorTest {
     val breakdown = processor.state.value.stateBreakdown
     assertThat(breakdown.find { it.state == "Screen=HomeScreen" }).isNull()
   }
-
-  // ==========================================================================
-  // Test Helpers
-  // ==========================================================================
 
   /**
    * Advances the shadow clock past the throttle interval (1000ms) and processes a frame,

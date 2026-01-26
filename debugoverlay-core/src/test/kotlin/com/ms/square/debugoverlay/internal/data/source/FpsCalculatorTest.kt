@@ -10,10 +10,6 @@ class FpsCalculatorTest {
 
   private val calculator = FpsCalculator()
 
-  // ==========================================================================
-  // First Frame Behavior
-  // ==========================================================================
-
   @Test
   fun `first frame establishes baseline and returns null`() {
     val result = calculator.onFrame(frameTimeNanos = baseTimeNanos)
@@ -28,10 +24,6 @@ class FpsCalculatorTest {
 
     assertThat(result).isNull()
   }
-
-  // ==========================================================================
-  // FPS Calculation
-  // ==========================================================================
 
   @Test
   fun `returns FPS when interval elapses`() {
@@ -48,10 +40,6 @@ class FpsCalculatorTest {
     assertThat(result).isNotNull()
     assertThat(result).isEqualTo(60f)
   }
-
-  // ==========================================================================
-  // FPS Capping
-  // ==========================================================================
 
   @Test
   fun `FPS capped at maxFps`() {
@@ -79,10 +67,6 @@ class FpsCalculatorTest {
 
     assertThat(result).isAtLeast(0f)
   }
-
-  // ==========================================================================
-  // Interval Reset Behavior
-  // ==========================================================================
 
   @Test
   fun `frame counter resets after emission`() {
@@ -128,10 +112,6 @@ class FpsCalculatorTest {
 
     assertThat(second).isEqualTo(120f)
   }
-
-  // ==========================================================================
-  // Edge Cases
-  // ==========================================================================
 
   @Test
   fun `handles very short intervals`() {
