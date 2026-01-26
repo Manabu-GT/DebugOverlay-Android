@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 2.0.0 *(2026-01-24)*
+## Version 2.0.0 *(2026-01-26)*
 
 **Complete rewrite.** DebugOverlay v2.0.0 gives you zero-config runtime diagnostics for debug builds. Catch performance issues and bugs during development—without heavy profilers or cloud dependencies. Built from the ground up with Jetpack Compose, Material Design 3, and modern Android APIs.
 
