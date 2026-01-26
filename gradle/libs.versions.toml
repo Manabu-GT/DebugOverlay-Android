@@ -18,7 +18,7 @@ androidCompileSdk = "36"
 androidTargetSdk = "36"
 
 # Kotlin
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 kotlinxSerializationCore = "1.9.0"
 
 # Google
