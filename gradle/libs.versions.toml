@@ -55,7 +55,7 @@ espressoCore = "3.7.0"
 mockk = "1.14.7"
 turbine = "1.2.1"
 truth = "1.4.5"
-robolectric = "4.16"
+robolectric = "4.16.1"
 
 [libraries]
 # Google
