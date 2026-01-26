@@ -130,6 +130,26 @@ Prefer `private val` over `lateinit var`. JUnit 4 creates a new test class insta
 
 **When `@Before`/`@After` are appropriate:** External resources requiring lifecycle management (e.g., `MockWebServer.start()/shutdown()`).
 
+## Code Regions in Tests
+
+Use `// region` / `// endregion` sparingly as a navigation aid, not an organization strategy.
+
+```kotlin
+//region Error Handling
+@Test fun `throws on network failure`() { ... }
+@Test fun `retries on timeout`() { ... }
+//endregion
+```
+
+**When to use:** Large test files with logical groups (happy path, errors, edge cases).
+
+**When NOT to use:**
+- Per-method regions (defeats the purpose)
+- Regions shorter than ~10-15 lines
+- More than 2-3 regions in a file — refactor instead
+
+**Better alternatives:** Separate test classes by feature or clear naming.
+
 ## Testing Flows
 
 | Scenario | Approach |
