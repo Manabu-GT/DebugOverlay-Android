@@ -79,6 +79,15 @@ class LogcatEntryParserTest {
   }
 
   @Test
+  fun `parse handles empty message`() {
+    val line = "1733921286.215 11744 11744 D Tag: "
+    val result = parser.parse(line)
+
+    assertThat(result).isNotNull()
+    assertThat(result?.message).isEmpty()
+  }
+
+  @Test
   fun `parse returns null for invalid lines`() {
     val invalidLines = listOf(
       "" to "empty line",

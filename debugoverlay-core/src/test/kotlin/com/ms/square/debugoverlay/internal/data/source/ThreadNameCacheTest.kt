@@ -7,7 +7,7 @@ class ThreadNameCacheTest {
 
   @Test
   fun `resolve returns main when pid equals tid`() {
-    val cache = ThreadNameCache(threadNameResolver = { "WorkerThread" })
+    val cache = ThreadNameCache(threadNameResolver = { error("ShouldNotBeCalled") })
 
     val result = cache.resolve(pid = 1234, tid = 1234)
 
@@ -21,6 +21,14 @@ class ThreadNameCacheTest {
     val result = cache.resolve(pid = 1234, tid = 5678)
 
     assertThat(result).isEqualTo("Thread-5678-resolved")
+  }
+
+  @Test
+  fun `resolve returns fallback for invalid tid`() {
+    val cache = ThreadNameCache(threadNameResolver = { error("ShouldNotBeCalled") })
+
+    assertThat(cache.resolve(pid = 1234, tid = 0)).isEqualTo("Thread-0")
+    assertThat(cache.resolve(pid = 1234, tid = -1)).isEqualTo("Thread--1")
   }
 
   @Test

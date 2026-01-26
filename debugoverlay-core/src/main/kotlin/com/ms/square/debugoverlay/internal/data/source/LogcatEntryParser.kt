@@ -7,7 +7,7 @@ import kotlin.math.roundToLong
 
 // Matches epoch logcat format: "1733921286.215 11744 11744 D Tag: message"
 private val LOGCAT_FORMAT_REGEX =
-  """(\d+\.\d{3})\s+(\d+)\s+(\d+)\s+([VDIWEF])\s+([^:]+):\s+(.+)""".toRegex()
+  """(\d+\.\d{3})\s+(\d+)\s+(\d+)\s+([VDIWEF])\s+([^:]+):\s*(.*)""".toRegex()
 
 /**
  * Parser for logcat output in epoch format.
