@@ -19,6 +19,14 @@ java {
 - Repository definitions in `settings.gradle.kts`
 - Avoid deprecated repositories (e.g., JCenter)
 
+## Dependency Management
+
+Dependencies are managed by [Renovate](https://docs.renovatebot.com/). Configuration is in `renovate.json`.
+
+- **Don't manually bump versions** — Renovate creates PRs automatically
+- **Certain major/minor updates require dashboard approval** — e.g., Kotlin (for library compatibility), Compose
+- See `renovate.json` for the full list of approval rules
+
 ## Module Conventions
 
 - Use `namespace` declarations in library modules

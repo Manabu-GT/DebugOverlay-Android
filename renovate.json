@@ -20,6 +20,17 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Kotlin major/minor updates require approval (for library compatibility)",
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.kotlin([.:]|$)/"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
+      "dependencyDashboardApproval": true
+    },
+    {
       "description": "Compose libraries - all updates require approval",
       "groupName": "Compose",
       "dependencyDashboardApproval": true,
