@@ -27,7 +27,7 @@
 
 * **Overlay Modes** – Choose between `FullMetrics` (real-time overlay + debug panel) or `BugReporterOnly` (minimal FAB for QA/internal builds)
 
-* **Timber Extension** – Separate "Timber" tab alongside Logcat with full stack traces (auto-registers via AndroidX Startup)
+* **Timber Extension** – Separate "Timber" tab alongside Logcat with full stack traces (auto-registering via AndroidX Startup)
 
 * **OkHttp Extension** – Network request tracking with configurable header redaction and body size limits
 
@@ -42,7 +42,7 @@
 
 ## Version 1.1.4 *(2025-10-27)*
 
-> ⚠️ **Deprecated:** v1.x is no longer maintained. Please upgrade to [v2.0.0](#version-200-2026-01-24) for new features, bug fixes, and continued support.
+> ⚠️ **Deprecated:** v1.x is no longer maintained. Please upgrade to [v2.0.0](#version-200-2026-01-26) for new features, bug fixes, and continued support.
 
 * **Build & toolchain** – Migrated the entire project to Gradle Kotlin DSL with a shared `libs.versions.toml`, upgraded the wrapper/AGP stack (Gradle 8.13, AGP 8.13.0).
 * **Android platform updates** – Raised `minSdk` to 26 / `targetSdk` to 36, migrated dependencies to AndroidX, and cleaned up manifest/service initialization (DebugOverlay now installs only in the app's main process and drops stale permission checks).
