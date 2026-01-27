@@ -48,12 +48,11 @@ This document describes the high-level architecture of DebugOverlay. For code lo
              └────────────┬─────────────┘
                           │
                           ▼
-             ┌─────────────────────────┐
-             │    Compose UI Layer     │
-             │                         │
-             │  collectAsStateWith-    │
-             │  Lifecycle()            │
-             └─────────────────────────┘
+             ┌───────────────────────────────────┐
+             │         Compose UI Layer         │
+             │                                   │
+             │  collectAsStateWithLifecycle()   │
+             └───────────────────────────────────┘
 ```
 
 **Key components:**
@@ -81,7 +80,7 @@ interface BugReportDataContributor {
 }
 ```
 
-**Auto-registration pattern:** Extensions self-register in their `init` block by calling `DebugOverlay.configure {}`. AndroidX Startup provides zero-config initialization for core and Timber extension; OkHttp extension requires manual interceptor instantiation.
+**Auto-registration pattern:** Extensions self-register in their `init` block by calling `DebugOverlay.configure {}`. AndroidX Startup provides zero-config initialization for core and Timber extension (via manifest-declared initializers); OkHttp extension requires manual interceptor registration.
 
 ## UI Architecture
 
@@ -92,7 +91,7 @@ DraggableOverlayPanel (attached via WindowManager)
 └── BugReporterOnly mode → DraggableBugReporterFab
 ```
 
-The overlay uses a synthetic `OverlayLifecycleOwner` to provide Compose lifecycle APIs outside the activity hierarchy. Lifecycle tracks the target activity the overlay is attached to.
+The overlay uses a synthetic `OverlayLifecycleOwner` to provide Compose lifecycle APIs outside the activity hierarchy. Lifecycle mirrors the target activity's lifecycle events (onResume, onPause, etc.)
 
 ## Architectural Invariants
 
@@ -102,19 +101,18 @@ The overlay uses a synthetic `OverlayLifecycleOwner` to provide Compose lifecycl
 | **Bounded collections** | `EvictingQueue` prevents OOM from unbounded log/request accumulation |
 | **Main process only** | Overlay is per-process singleton; no multi-process complexity |
 | **Extensions depend on core** | Loose coupling via interfaces; core has no knowledge of extensions |
-| **Ephemeral overlay state** | Position persisted to SharedPreferences; all other state rebuilt on launch |
 
 ## Key Architectural Decisions
 
-| Decision | Rationale |
-|----------|-----------|
+| Decision | Rationale                                                              |
+|----------|------------------------------------------------------------------------|
 | **AndroidX Startup** | Zero configuration for consumers; runs before `Application.onCreate()` |
-| **Flow-based reactive data** | Natural fit for Compose; lifecycle-aware collection |
-| **Curtains for window management** | Robust overlay attachment without system permissions |
-| **Plugin/adapter for extensions** | Extensions self-register; core doesn't know about them |
-| **Synthetic LifecycleOwner** | Enables Compose lifecycle APIs for overlay outside activity hierarchy |
-| **PixelCopy for screenshots** | Hardware-accelerated capture (API 26+); Canvas fallback for older |
-| **No-backup storage for drafts** | Bug report drafts persist across launches but don't sync to cloud |
+| **Flow-based reactive data** | Natural fit for Compose; lifecycle-aware collection                    |
+| **Curtains for window management** | Robust overlay attachment without system permissions                   |
+| **Extension pattern** | Extensions self-register with core for convenience                     |
+| **Synthetic LifecycleOwner** | Enables Compose lifecycle APIs for overlay outside activity hierarchy  |
+| **PixelCopy for screenshots** | Hardware-accelerated capture (API 26+); Canvas fallback for older      |
+| **No-backup storage for drafts** | Bug report drafts persist across launches but don't sync to cloud      |
 
 ## Third-Party Dependencies
 
@@ -123,3 +121,5 @@ The overlay uses a synthetic `OverlayLifecycleOwner` to provide Compose lifecycl
 | [Curtains](https://github.com/square/curtains) | Window attachment and activity tracking |
 | [Radiography](https://github.com/square/radiography) | View hierarchy inspection |
 | [KotlinX Serialization](https://github.com/Kotlin/kotlinx.serialization) | JSON serialization for bug reports |
+
+*See `gradle/libs.versions.toml` for current versions.*

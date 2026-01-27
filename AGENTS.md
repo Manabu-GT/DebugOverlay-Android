@@ -1,6 +1,6 @@
 # DebugOverlay Agents Guide
 
-A Jetpack Compose library that displays real-time debug information as an overlay on Android apps.
+A Jetpack Compose library that displays real-time debug information as an overlay on Android apps. See [Architecture](docs/ARCHITECTURE.md) for system design overview.
 
 ## Quick Reference
 
