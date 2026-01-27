@@ -12,6 +12,25 @@ A Jetpack Compose library that displays real-time debug information as an overla
 | `debugoverlay-extension-timber` | Timber log capture |
 | `sample` | Demo application |
 
+## Code Map
+
+**Key entry points:**
+- `DebugOverlay` — `debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/DebugOverlay.kt`
+- `DebugOverlayDataRepository` — `debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/data/DebugOverlayDataRepository.kt`
+- `OverlayViewManager` — `debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/OverlayViewManager.kt`
+- `BugReportGenerator` — `debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/BugReportGenerator.kt`
+
+**Common tasks:**
+| Task | Where to look |
+|------|---------------|
+| Add new data source | `internal/data/source/` — create new data source class, wire into `DebugOverlayDataRepository` |
+| Add new debug panel tab | `internal/ui/DebugPanelDialog.kt` — add to `DebugTab` enum and `DebugPanelTabContent` |
+| Modify overlay behavior | `OverlayViewManager.kt` — window attachment, lifecycle sync |
+| Add bug report data | Implement `BugReportDataContributor` interface, register via `DebugOverlay.addBugReportContributor()` |
+| Create new extension | Implement `LogSource` or `NetworkRequestSource`, self-register in `init` block |
+| Modify bug report flow | `BugReportGenerator.kt` (orchestration), `BugReportDraftStorage.kt` (persistence) |
+| Change metrics display | `internal/ui/DebugOverlayPanel.kt` (compact overlay), `DebugOverlayPanelDataSource.kt` (aggregation) |
+
 ## Build Commands
 
 ```bash
@@ -42,6 +61,7 @@ For non-trivial work, create `tools/ai/plans/PLAN_<TASK_NAME>.md`:
 
 ## Detailed Guides
 
+- [Architecture](docs/ARCHITECTURE.md) — module structure, data flow, extension model, key decisions
 - [Coding Conventions](docs/CODING.md) — coroutines, string resources, formatting
 - [Build & Gradle](docs/BUILD.md) — toolchain, modules, version catalog
 - [Testing](docs/TESTING.md) — what to test, naming conventions, examples
