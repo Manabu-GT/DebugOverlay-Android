@@ -18,17 +18,39 @@ Add these secrets to your repository (Settings → Secrets and variables → Act
 |--------|-------------|
 | `MAVEN_CENTRAL_USERNAME` | Maven Central Portal username |
 | `MAVEN_CENTRAL_PASSWORD` | Maven Central Portal token |
-| `SIGNING_KEY` | GPG private key (ASCII-armored, base64 encoded) |
+| `SIGNING_KEY` | GPG private key (ASCII-armored, headers/newlines stripped) |
 | `SIGNING_KEY_PASSWORD` | GPG key passphrase |
+
+To get your `KEY_ID`:
+```bash
+gpg --list-secret-keys --keyid-format LONG
+```
+
+You'll see output like this:
+-----------------------------
+```bash
+  sec   rsa4096/ABC123DEF4567890 2024-01-15 [SC]
+        ABCD1234EFGH5678IJKL9012MNOP3456QRST7890
+  uid                 [ultimate] Your Name <your@email.com>
+  ssb   rsa4096/XYZ789ABC1234567 2024-01-15 [E]
+
+  The key ID is the part after the slash on the sec line:
+
+  sec   rsa4096/ABC123DEF4567890 2024-01-15 [SC]
+                ^^^^^^^^^^^^^^^^
+                This is your KEY_ID
+```
 
 To generate `SIGNING_KEY`:
 ```bash
-# Linux
-gpg --armor --export-secret-keys YOUR_KEY_ID | base64 -w 0
-
-# macOS
-gpg --armor --export-secret-keys YOUR_KEY_ID | base64 | tr -d '\n'
+gpg --export-secret-keys --armor YOUR_KEY_ID | grep -v '\-\-' | grep -v '^=.' | tr -d '\n'
 ```
+
+This command:
+- Exports the key in ASCII-armored format
+- Strips the `-----BEGIN/END PGP PRIVATE KEY BLOCK-----` header/footer lines
+- Strips the checksum line (starts with `=`)
+- Removes all newlines to create a single-line string
 
 ### Release Steps
 
