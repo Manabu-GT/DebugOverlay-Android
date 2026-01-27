@@ -127,6 +127,16 @@ See [Testing](docs/TESTING.md) for detailed guidelines. For code review standard
 ./gradlew :debugoverlay-core:check
 ```
 
+### Code Coverage
+
+To generate a local code coverage report for non-UI code (merging all library modules):
+
+```bash
+./gradlew mergedJacocoReport
+```
+
+The report will be available at `build/reports/jacoco/mergedJacocoReport/html/index.html`.
+
 ## Project Structure
 
 | Module | Description |
