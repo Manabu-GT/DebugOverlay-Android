@@ -15,6 +15,10 @@ internal enum class BugReportState {
 
   /** User submitted and ZIP was created. */
   SUBMITTED,
+  ;
+
+  /** Whether this state represents a draft retained in the draft list (DRAFT or SUBMITTED). */
+  val isRetainedDraft: Boolean get() = this == DRAFT || this == SUBMITTED
 }
 
 /**

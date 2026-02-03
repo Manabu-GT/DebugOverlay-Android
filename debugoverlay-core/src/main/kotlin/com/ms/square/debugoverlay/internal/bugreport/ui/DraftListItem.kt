@@ -76,7 +76,11 @@ internal fun DraftListItem(
   val relativeTime = remember(draft.capturedAt) {
     formatRelativeTime(draft.capturedAt)
   }
-  val draftDescription = stringResource(R.string.debugoverlay_draft_description, title, relativeTime)
+  val draftDescription = if (draft.isSubmitted) {
+    stringResource(R.string.debugoverlay_draft_description_submitted, title, relativeTime)
+  } else {
+    stringResource(R.string.debugoverlay_draft_description, title, relativeTime)
+  }
   val deleteDescription = stringResource(R.string.debugoverlay_delete_draft)
 
   Row(
@@ -100,7 +104,12 @@ internal fun DraftListItem(
 
     Spacer(modifier = Modifier.width(16.dp))
 
-    DraftTextContent(title = title, relativeTime = relativeTime, modifier = Modifier.weight(1f))
+    DraftTextContent(
+      title = title,
+      relativeTime = relativeTime,
+      isSubmitted = draft.isSubmitted,
+      modifier = Modifier.weight(1f)
+    )
 
     // Delete button - clearAndSetSemantics isolates it from parent's merged semantics
     IconButton(
@@ -120,15 +129,27 @@ internal fun DraftListItem(
 }
 
 @Composable
-private fun DraftTextContent(title: String, relativeTime: String, modifier: Modifier = Modifier) {
+private fun DraftTextContent(
+  title: String,
+  relativeTime: String,
+  isSubmitted: Boolean,
+  modifier: Modifier = Modifier,
+) {
   Column(modifier = modifier.clearAndSetSemantics { }) {
-    Text(
-      text = title,
-      style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurface,
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis
-    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Text(
+        text = title,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.weight(1f, fill = false)
+      )
+      if (isSubmitted) {
+        Spacer(modifier = Modifier.width(8.dp))
+        SharedBadge()
+      }
+    }
     Spacer(modifier = Modifier.height(4.dp))
     Text(
       text = relativeTime,
@@ -136,6 +157,21 @@ private fun DraftTextContent(title: String, relativeTime: String, modifier: Modi
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
   }
+}
+
+@Composable
+private fun SharedBadge() {
+  Text(
+    text = stringResource(R.string.debugoverlay_draft_shared_badge),
+    style = MaterialTheme.typography.labelSmall,
+    color = MaterialTheme.colorScheme.onSecondaryContainer,
+    modifier = Modifier
+      .background(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = MaterialTheme.shapes.extraSmall
+      )
+      .padding(horizontal = 6.dp, vertical = 2.dp)
+  )
 }
 
 @Composable

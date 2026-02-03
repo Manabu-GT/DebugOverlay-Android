@@ -1,7 +1,5 @@
-package com.ms.square.debugoverlay.internal.bugreport.model
+package com.ms.square.debugoverlay.model
 
-import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
-import java.io.File
 import java.io.InputStream
 
 /**
@@ -11,15 +9,16 @@ import java.io.InputStream
  * preventing exporters from accidentally deleting or modifying the source file.
  * Multiple exporters can safely access the same report concurrently.
  *
+ * **Lifecycle**: An archive is valid only within the scope of
+ * [BugReportExporter.export][com.ms.square.debugoverlay.BugReportExporter.export] —
+ * do not retain references beyond that call.
+ *
  * ## Stream Lifecycle
  * - **Repeatable**: Each [openInputStream] call returns a new independent stream
  * - **Ownership**: Whoever opens a stream is responsible for closing it
  * - **Thread-safe**: Multiple concurrent calls are safe
  *
  * ## Usage Example
- * See [BugReportExporter][com.ms.square.debugoverlay.internal.bugreport.BugReportExporter]
- * for an example of creating an issue with the archive attached.
- *
  * ```kotlin
  * // Converting to OkHttp RequestBody for multipart upload
  * fun BugReportArchive.toRequestBody(): RequestBody = object : RequestBody() {
@@ -30,10 +29,8 @@ import java.io.InputStream
  *   }
  * }
  * ```
- *
- * @see com.ms.square.debugoverlay.internal.bugreport.BugReportExporter
  */
-internal sealed interface BugReportArchive {
+public interface BugReportArchive {
 
   /**
    * File name for the bug report (e.g., "bugreport_2025-01-23_143052.zip").
@@ -41,7 +38,7 @@ internal sealed interface BugReportArchive {
    * Use this when uploading to servers that require a filename, or when
    * displaying the report name to users.
    */
-  val fileName: String
+  public val fileName: String
 
   /**
    * Size of the bug report in bytes.
@@ -54,10 +51,10 @@ internal sealed interface BugReportArchive {
    * override fun contentLength() = report.sizeBytes
    * ```
    */
-  val sizeBytes: Long
+  public val sizeBytes: Long
 
   /**
-   * Opens a new [java.io.InputStream] for reading the bug report data.
+   * Opens a new [InputStream] for reading the bug report data.
    *
    * Each call returns an independent stream positioned at the beginning.
    * Multiple exporters can safely call this concurrently. The caller is
@@ -72,21 +69,5 @@ internal sealed interface BugReportArchive {
    * @return A new InputStream for reading the bug report ZIP
    * @throws java.io.IOException if the stream cannot be opened
    */
-  fun openInputStream(): InputStream
-}
-
-/**
- * Internal implementation of [BugReportArchive] that wraps a [File].
- *
- * Exposes [file] for internal use (e.g., [IntentShareExporter] needs it for FileProvider).
- */
-internal class BugReportArchiveImpl(val file: File) : BugReportArchive {
-
-  override val fileName: String
-    get() = file.name
-
-  override val sizeBytes: Long
-    get() = file.length()
-
-  override fun openInputStream(): InputStream = file.inputStream()
+  public fun openInputStream(): InputStream
 }

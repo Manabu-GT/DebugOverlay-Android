@@ -45,6 +45,7 @@ internal sealed interface BugReportDraftStorage {
 
   suspend fun saveSnapshot(snapshot: BugReportSnapshot): File
   suspend fun saveUserInput(folder: File, userInput: UserInput)
+  suspend fun markAsSubmitted(folder: File)
   suspend fun loadScreenshot(folder: File, maxDimension: Int = DEFAULT_MAX_DIMENSION): Bitmap?
   suspend fun deleteFolder(folder: File)
 }
@@ -300,7 +301,8 @@ internal class DefaultBugReportDraftStorage(
    * Refreshes the draft list from disk.
    *
    * Scans the drafts directory for folders with [FileNames.METADATA] files
-   * that have [BugReportState.DRAFT] state. Updates [drafts] StateFlow atomically.
+   * that have [BugReportState.DRAFT] or [BugReportState.SUBMITTED] state.
+   * Updates [drafts] StateFlow atomically.
    *
    * I/O-heavy operations (file existence checks, JSON parsing) are performed
    * outside the mutex to avoid blocking other operations.
@@ -318,8 +320,7 @@ internal class DefaultBugReportDraftStorage(
       .mapNotNull { folder ->
         runCatchingNonCancellation {
           val metadata = loadMetadata(folder) ?: return@mapNotNull null
-          // Only folders with DRAFT state are considered drafts
-          if (metadata.state != BugReportState.DRAFT) return@mapNotNull null
+          if (!metadata.state.isRetainedDraft) return@mapNotNull null
           DraftInfo(
             folderPath = folder.absolutePath,
             metadata = metadata,
@@ -370,9 +371,34 @@ internal class DefaultBugReportDraftStorage(
   }
 
   /**
+   * Marks a capture folder as submitted after a successful export.
+   *
+   * Updates the existing [FileNames.METADATA] file with [BugReportState.SUBMITTED] state.
+   * This retains the draft so the user can re-share it from the draft picker.
+   *
+   * @param folder The capture folder
+   */
+  override suspend fun markAsSubmitted(folder: File): Unit = withContext(Dispatchers.IO) {
+    folderMutex.withLock {
+      runCatchingNonCancellation {
+        val existingMetadata = loadMetadata(folder) ?: return@withContext
+        val updatedMetadata = existingMetadata.copy(state = BugReportState.SUBMITTED)
+        saveMetadata(folder, updatedMetadata)
+        Logger.d("Marked as submitted: ${folder.absolutePath}")
+      }.onFailure {
+        Logger.e("Failed to mark as submitted", it)
+        return@withContext
+      }
+    }
+
+    evictOldDrafts()
+    refreshDrafts()
+  }
+
+  /**
    * Evicts oldest drafts when count exceeds [maxDrafts].
    *
-   * Only counts/deletes folders that have [BugReportState.DRAFT] state,
+   * Counts/deletes folders that have [BugReportState.DRAFT] or [BugReportState.SUBMITTED] state,
    * not in-progress captures. This is safe to call after saveSnapshot.
    *
    * @param maxDrafts Maximum number of drafts to retain (default: [DEFAULT_MAX_DRAFTS])
@@ -384,7 +410,7 @@ internal class DefaultBugReportDraftStorage(
         ?.filter { it.isDirectory }
         ?.mapNotNull { folder ->
           val metadata = loadMetadata(folder) ?: return@mapNotNull null
-          if (metadata.state != BugReportState.DRAFT) return@mapNotNull null
+          if (!metadata.state.isRetainedDraft) return@mapNotNull null
           folder to metadata.capturedAt
         }
         ?.sortedByDescending { it.second }

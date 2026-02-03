@@ -30,13 +30,14 @@ import androidx.lifecycle.lifecycleScope
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
-import com.ms.square.debugoverlay.internal.bugreport.ExportResult
-import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
+import com.ms.square.debugoverlay.model.ExportResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 private const val INTENT_EXTRA_CAPTURE_FOLDER = "capture_folder_path"
@@ -275,17 +276,26 @@ internal class BugReportActivity : ComponentActivity() {
 
       when (result) {
         is BugReportResult.Success -> {
-          when (IntentShareExporter(this@BugReportActivity).export(result.report)) {
-            is ExportResult.Initiated,
-            is ExportResult.Success,
-            -> {
-              isSubmitted = true // Prevent draft save on finish
-              // Delete folder after successful share.
-              // We can't know if it was actually shared successfully, but this is fine for now.
+          // Set early to prevent handleDismiss from saving a draft during export
+          isSubmitted = true
+          val exportResult = withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+              DebugOverlay.config.bugReportExporter.export(this@BugReportActivity, result.report)
+            }.getOrNull()
+          }
+          when (exportResult) {
+            is ExportResult.Initiated -> {
+              // Outcome unknown (share sheet) — retain draft as SUBMITTED for re-sharing
+              DebugOverlay.bugReportGenerator.markAsSubmitted(folder)
+              finish()
+            }
+            is ExportResult.Success -> {
+              // Confirmed delivery — clean up the folder
               DebugOverlay.bugReportGenerator.deleteCaptureFolder(folder)
               finish()
             }
-            is ExportResult.Failure -> {
+            else -> {
+              isSubmitted = false // Reset so dismiss can still save draft
               snackbarHostState.showSnackbar(getString(R.string.debugoverlay_share_bug_report_error))
               onSubmitEnd()
             }

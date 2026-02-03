@@ -9,6 +9,7 @@ import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
+import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
 import com.ms.square.debugoverlay.internal.bugreport.validateFilename
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.util.checkMainThread
@@ -190,10 +191,19 @@ public object DebugOverlay {
      */
     public var customLogSource: LogSource? = initial.customLogSource
 
+    /**
+     * The exporter used when the user submits a bug report.
+     *
+     * Default is the built-in share sheet exporter.
+     * Set a custom [BugReportExporter] to send reports to Jira, GitHub, Slack, etc.
+     */
+    public var bugReportExporter: BugReportExporter = initial.bugReportExporter
+
     internal fun build(): Config = Config(
       overlayMode = overlayMode,
       networkRequestSource = networkRequestSource,
-      customLogSource = customLogSource
+      customLogSource = customLogSource,
+      bugReportExporter = bugReportExporter
     )
   }
 
@@ -210,6 +220,8 @@ public object DebugOverlay {
    *   Default is null. The built-in Logcat tab is always available.
    *   When set, a second tab appears showing logs from this custom source.
    *   Use debugoverlay-extension-timber for Timber integration.
+   * @property bugReportExporter The exporter used when the user submits a bug report.
+   *   Default is the built-in share sheet exporter.
    *
    * @see configure
    */
@@ -217,5 +229,6 @@ public object DebugOverlay {
     val overlayMode: OverlayMode = OverlayMode.FullMetrics,
     val networkRequestSource: NetworkRequestSource = NoOpNetworkRequestSource,
     val customLogSource: LogSource? = null,
+    val bugReportExporter: BugReportExporter = IntentShareExporter,
   )
 }
