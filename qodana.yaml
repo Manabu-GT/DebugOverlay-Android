@@ -9,19 +9,25 @@ profile:
 include:
   - name: CheckDependencyLicenses
 exclude:
+  # Compose naming conventions (PascalCase for @Composable functions)
   - name: FunctionName
     paths:
-      - "**/ui/**"
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui
+      - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui
+  # Compose state assignments tracked by runtime
   - name: UnusedAssignment
     paths:
-      - "**/ui/**"
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui
+      - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui
   # Dependency updates managed by Renovate
-  - name: GradleDependency
-  - name: AndroidGradlePluginVersion
-  - name: NewerLibraryVersionsAvailable
+  - name: AndroidLintGradleDependency
+  - name: AndroidLintAndroidGradlePluginVersion
+  - name: AndroidLintNewerVersionAvailable
   # Sample app not part of library
   - name: All
     paths:
-      - "sample/**"
+      - sample
 baseline: qodana.sarif.json
-bootstrap: ./gradlew :debugoverlay-core:assembleDebug --no-daemon
+bootstrap: ./gradlew :debugoverlay-core:compileDebugKotlin --no-daemon
