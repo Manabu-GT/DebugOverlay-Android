@@ -29,5 +29,4 @@ exclude:
   - name: All
     paths:
       - sample
-baseline: qodana.sarif.json
 bootstrap: ./gradlew :debugoverlay-core:compileDebugKotlin --no-daemon
