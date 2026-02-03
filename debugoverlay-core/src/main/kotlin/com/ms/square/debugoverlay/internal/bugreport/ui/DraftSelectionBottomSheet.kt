@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -201,7 +202,7 @@ private fun CreateNewButton(onClick: () -> Unit) {
 @Composable
 private fun DraftsSectionHeader(count: Int) {
   Text(
-    text = stringResource(R.string.debugoverlay_saved_drafts, count),
+    text = pluralStringResource(R.plurals.debugoverlay_saved_drafts, count, count),
     style = MaterialTheme.typography.titleSmall,
     color = MaterialTheme.colorScheme.onSurfaceVariant,
     modifier = Modifier

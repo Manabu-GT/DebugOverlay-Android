@@ -1,5 +1,7 @@
 package com.ms.square.debugoverlay.internal.bugreport.model
 
+import com.ms.square.debugoverlay.model.BugReport
+
 /**
  * Result type for bug report generation operations.
  *

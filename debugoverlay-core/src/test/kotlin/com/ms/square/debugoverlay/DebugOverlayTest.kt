@@ -1,6 +1,10 @@
 package com.ms.square.debugoverlay
 
+import android.content.Context
 import com.google.common.truth.Truth.assertThat
+import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
+import com.ms.square.debugoverlay.model.BugReport
+import com.ms.square.debugoverlay.model.ExportResult
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +24,7 @@ class DebugOverlayTest {
       overlayMode = OverlayMode.FullMetrics
       networkRequestSource = NoOpNetworkRequestSource
       customLogSource = null
+      bugReportExporter = IntentShareExporter
     }
     DebugOverlay.bugReportContributors.clear()
   }
@@ -31,6 +36,7 @@ class DebugOverlayTest {
     assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics)
     assertThat(config.networkRequestSource).isEqualTo(NoOpNetworkRequestSource)
     assertThat(config.customLogSource).isNull()
+    assertThat(config.bugReportExporter).isSameInstanceAs(IntentShareExporter)
   }
 
   @Test
@@ -47,6 +53,19 @@ class DebugOverlayTest {
     assertThat(DebugOverlay.config.overlayMode).isEqualTo(OverlayMode.BugReporterOnly)
     assertThat(DebugOverlay.config.networkRequestSource).isSameInstanceAs(networkSource)
     assertThat(DebugOverlay.config.customLogSource).isSameInstanceAs(logSource)
+  }
+
+  @Test
+  fun `configure updates bugReportExporter`() {
+    val customExporter = object : BugReportExporter {
+      override suspend fun export(context: Context, report: BugReport): ExportResult = ExportResult.Success
+    }
+
+    DebugOverlay.configure {
+      bugReportExporter = customExporter
+    }
+
+    assertThat(DebugOverlay.config.bugReportExporter).isSameInstanceAs(customExporter)
   }
 
   @Test

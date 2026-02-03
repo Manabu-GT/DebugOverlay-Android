@@ -8,6 +8,14 @@ public final class com/ms/square/debugoverlay/BugReportDataContributor$Companion
 	public final fun invoke (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lcom/ms/square/debugoverlay/BugReportDataContributor;
 }
 
+public abstract interface class com/ms/square/debugoverlay/BugReportExporter {
+	public abstract fun export (Landroid/content/Context;Lcom/ms/square/debugoverlay/model/BugReport;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/ms/square/debugoverlay/BugReportFormatterKt {
+	public static final fun formatBugReportMarkdown (Lcom/ms/square/debugoverlay/model/BugReportSummary;)Ljava/lang/String;
+}
+
 public final class com/ms/square/debugoverlay/DebugOverlay {
 	public static final field $stable I
 	public static final field INSTANCE Lcom/ms/square/debugoverlay/DebugOverlay;
@@ -18,14 +26,16 @@ public final class com/ms/square/debugoverlay/DebugOverlay {
 public final class com/ms/square/debugoverlay/DebugOverlay$Config {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;)V
-	public synthetic fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;Lcom/ms/square/debugoverlay/BugReportExporter;)V
+	public synthetic fun <init> (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;Lcom/ms/square/debugoverlay/BugReportExporter;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/ms/square/debugoverlay/OverlayMode;
 	public final fun component2 ()Lcom/ms/square/debugoverlay/NetworkRequestSource;
 	public final fun component3 ()Lcom/ms/square/debugoverlay/LogSource;
-	public final fun copy (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
-	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/DebugOverlay$Config;Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
+	public final fun component4 ()Lcom/ms/square/debugoverlay/BugReportExporter;
+	public final fun copy (Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;Lcom/ms/square/debugoverlay/BugReportExporter;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/DebugOverlay$Config;Lcom/ms/square/debugoverlay/OverlayMode;Lcom/ms/square/debugoverlay/NetworkRequestSource;Lcom/ms/square/debugoverlay/LogSource;Lcom/ms/square/debugoverlay/BugReportExporter;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/DebugOverlay$Config;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBugReportExporter ()Lcom/ms/square/debugoverlay/BugReportExporter;
 	public final fun getCustomLogSource ()Lcom/ms/square/debugoverlay/LogSource;
 	public final fun getNetworkRequestSource ()Lcom/ms/square/debugoverlay/NetworkRequestSource;
 	public final fun getOverlayMode ()Lcom/ms/square/debugoverlay/OverlayMode;
@@ -35,9 +45,11 @@ public final class com/ms/square/debugoverlay/DebugOverlay$Config {
 
 public final class com/ms/square/debugoverlay/DebugOverlay$ConfigBuilder {
 	public static final field $stable I
+	public final fun getBugReportExporter ()Lcom/ms/square/debugoverlay/BugReportExporter;
 	public final fun getCustomLogSource ()Lcom/ms/square/debugoverlay/LogSource;
 	public final fun getNetworkRequestSource ()Lcom/ms/square/debugoverlay/NetworkRequestSource;
 	public final fun getOverlayMode ()Lcom/ms/square/debugoverlay/OverlayMode;
+	public final fun setBugReportExporter (Lcom/ms/square/debugoverlay/BugReportExporter;)V
 	public final fun setCustomLogSource (Lcom/ms/square/debugoverlay/LogSource;)V
 	public final fun setNetworkRequestSource (Lcom/ms/square/debugoverlay/NetworkRequestSource;)V
 	public final fun setOverlayMode (Lcom/ms/square/debugoverlay/OverlayMode;)V
@@ -78,6 +90,117 @@ public final class com/ms/square/debugoverlay/OverlayMode$FullMetrics : com/ms/s
 }
 
 public abstract interface annotation class com/ms/square/debugoverlay/internal/InternalDebugOverlayApi : java/lang/annotation/Annotation {
+}
+
+public final class com/ms/square/debugoverlay/model/AppInfoSummary {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;JZ)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()J
+	public final fun component4 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;JZ)Lcom/ms/square/debugoverlay/model/AppInfoSummary;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/AppInfoSummary;Ljava/lang/String;Ljava/lang/String;JZILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/AppInfoSummary;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPackageName ()Ljava/lang/String;
+	public final fun getVersionCode ()J
+	public final fun getVersionName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isDebuggable ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/ms/square/debugoverlay/model/BugReport {
+	public static final field $stable I
+	public fun <init> (Lcom/ms/square/debugoverlay/model/BugReportArchive;Lcom/ms/square/debugoverlay/model/BugReportSummary;)V
+	public final fun component1 ()Lcom/ms/square/debugoverlay/model/BugReportArchive;
+	public final fun component2 ()Lcom/ms/square/debugoverlay/model/BugReportSummary;
+	public final fun copy (Lcom/ms/square/debugoverlay/model/BugReportArchive;Lcom/ms/square/debugoverlay/model/BugReportSummary;)Lcom/ms/square/debugoverlay/model/BugReport;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/BugReport;Lcom/ms/square/debugoverlay/model/BugReportArchive;Lcom/ms/square/debugoverlay/model/BugReportSummary;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/BugReport;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getArchive ()Lcom/ms/square/debugoverlay/model/BugReportArchive;
+	public final fun getSummary ()Lcom/ms/square/debugoverlay/model/BugReportSummary;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/ms/square/debugoverlay/model/BugReportArchive {
+	public abstract fun getFileName ()Ljava/lang/String;
+	public abstract fun getSizeBytes ()J
+	public abstract fun openInputStream ()Ljava/io/InputStream;
+}
+
+public final class com/ms/square/debugoverlay/model/BugReportSummary {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/AppInfoSummary;Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;J)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/ms/square/debugoverlay/model/AppInfoSummary;
+	public final fun component4 ()Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;
+	public final fun component5 ()J
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/AppInfoSummary;Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;J)Lcom/ms/square/debugoverlay/model/BugReportSummary;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/BugReportSummary;Ljava/lang/String;Ljava/lang/String;Lcom/ms/square/debugoverlay/model/AppInfoSummary;Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;JILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/BugReportSummary;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppInfo ()Lcom/ms/square/debugoverlay/model/AppInfoSummary;
+	public final fun getCapturedAt ()J
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getDeviceInfo ()Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/ms/square/debugoverlay/model/DeviceInfoSummary {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/DeviceInfoSummary;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAndroidVersion ()Ljava/lang/String;
+	public final fun getApiLevel ()I
+	public final fun getLocale ()Ljava/lang/String;
+	public final fun getManufacturer ()Ljava/lang/String;
+	public final fun getModel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/ms/square/debugoverlay/model/ExportResult {
+}
+
+public final class com/ms/square/debugoverlay/model/ExportResult$Failure : com/ms/square/debugoverlay/model/ExportResult {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Throwable;)Lcom/ms/square/debugoverlay/model/ExportResult$Failure;
+	public static synthetic fun copy$default (Lcom/ms/square/debugoverlay/model/ExportResult$Failure;Ljava/lang/Throwable;ILjava/lang/Object;)Lcom/ms/square/debugoverlay/model/ExportResult$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCause ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/ms/square/debugoverlay/model/ExportResult$Initiated : com/ms/square/debugoverlay/model/ExportResult {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/model/ExportResult$Initiated;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/ms/square/debugoverlay/model/ExportResult$Success : com/ms/square/debugoverlay/model/ExportResult {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/ms/square/debugoverlay/model/ExportResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/ms/square/debugoverlay/model/LogEntry {

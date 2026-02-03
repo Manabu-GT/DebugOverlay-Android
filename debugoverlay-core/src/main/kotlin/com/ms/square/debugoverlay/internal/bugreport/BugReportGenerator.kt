@@ -5,13 +5,11 @@ import android.graphics.Bitmap
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.DEVICE_INFO
 import com.ms.square.debugoverlay.internal.bugreport.FileNames.METADATA
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReport
+import com.ms.square.debugoverlay.internal.bugreport.model.BugReportArchiveImpl
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportMetadata
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSnapshot
-import com.ms.square.debugoverlay.internal.bugreport.model.BugReportSummary
 import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
-import com.ms.square.debugoverlay.internal.bugreport.model.DeviceInfoSummary
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.bugreport.model.toSummary
@@ -21,6 +19,9 @@ import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.util.awaitCatching
 import com.ms.square.debugoverlay.internal.util.captureUiHierarchy
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
+import com.ms.square.debugoverlay.model.BugReport
+import com.ms.square.debugoverlay.model.BugReportSummary
+import com.ms.square.debugoverlay.model.DeviceInfoSummary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -162,13 +163,18 @@ internal class BugReportGenerator(
       // Create ZIP file
       val zipFile = zipWriter.writeFromFolder(captureFolder, userInput)
 
-      val report = BugReport.fromFile(zipFile, summary)
+      val report = createBugReportFromFile(zipFile, summary)
       BugReportResult.Success(report)
     } catch (e: IOException) {
       Logger.e("Bug report write failed", e)
       BugReportResult.Error.IoError(e)
     }
   }
+
+  private fun createBugReportFromFile(zipFile: File, summary: BugReportSummary): BugReport = BugReport(
+    archive = BugReportArchiveImpl(zipFile),
+    summary = summary
+  )
 
   /**
    * Loads metadata from the folder's metadata.json.
@@ -215,6 +221,16 @@ internal class BugReportGenerator(
    */
   suspend fun saveUserInputToDraft(captureFolder: File, userInput: UserInput) =
     storage.saveUserInput(captureFolder, userInput)
+
+  /**
+   * Marks a capture folder as submitted after export.
+   *
+   * Retains the draft so the user can re-share it from the draft picker.
+   * Shown with a "Shared" badge in the draft list.
+   *
+   * @param captureFolder Folder to mark as submitted
+   */
+  suspend fun markAsSubmitted(captureFolder: File) = storage.markAsSubmitted(captureFolder)
 
   /**
    * Deletes a capture folder and all its contents.
