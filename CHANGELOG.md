@@ -1,5 +1,18 @@
 # Change Log
 
+## Version 2.1.0 *(2026-02-02)*
+
+### New Features
+
+* **Custom Bug Report Exporter** – Implement `BugReportExporter` to send bug reports directly to Jira, Slack, or other systems instead of using the default share sheet (#180)
+  * New public models: `BugReport`, `BugReportSummary`, `BugReportArchive`, `ExportResult`
+  * Drafts list now shows a "Shared" badge for submitted reports
+
+### Dependencies
+
+* Update AndroidX libraries
+* Update Material library to 1.13.0
+
 ## Version 2.0.0 *(2026-01-26)*
 
 **Complete rewrite.** DebugOverlay v2.0.0 gives you zero-config runtime diagnostics for debug builds. Catch performance issues and bugs during development—without heavy profilers or cloud dependencies. Built from the ground up with Jetpack Compose, Material Design 3, and modern Android APIs.

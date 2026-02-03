@@ -27,7 +27,7 @@ DebugOverlay gives you a lightweight, always-available look into your app's runt
 
 ```kotlin
 // app/build.gradle.kts
-debugImplementation("com.ms-square:debugoverlay:2.0.0")
+debugImplementation("com.ms-square:debugoverlay:2.1.0")
 
 // That's it! Overlay appears automatically on app launch.
 // Tap to open debug panel. Long-press to drag.
@@ -70,7 +70,7 @@ Add to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-debugoverlay = "2.0.0"
+debugoverlay = "2.1.0"
 
 [libraries]
 debugoverlay = { module = "com.ms-square:debugoverlay", version.ref = "debugoverlay" }
@@ -94,7 +94,7 @@ dependencies {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.0.0")
+  debugImplementation("com.ms-square:debugoverlay:2.1.0")
 }
 ```
 
@@ -145,8 +145,8 @@ class MyApp : Application() {
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.0.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.0.0")
+  debugImplementation("com.ms-square:debugoverlay:2.1.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.1.0")
 }
 ```
 
@@ -177,8 +177,8 @@ val client = OkHttpClient.Builder()
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.0.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.0.0")
+  debugImplementation("com.ms-square:debugoverlay:2.1.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.1.0")
 }
 ```
 
@@ -265,6 +265,25 @@ Custom files appear in the bug report ZIP with a `custom_` prefix (e.g., `custom
 
 > **Note:** Contributors have a 5-second timeout. Use Application context to avoid memory leaks.
 
+### Custom bug report exporter
+
+By default, bug reports open the Android share sheet. Implement `BugReportExporter` to send reports directly to Jira, Slack, or other systems:
+
+```kotlin
+class MyExporter : BugReportExporter {
+  override suspend fun export(context: Context, report: BugReport): ExportResult {
+    // report.summary: title, description, appInfo, deviceInfo, capturedAt
+    // report.archive: fileName, sizeBytes, openInputStream()
+    return ExportResult.Success
+  }
+}
+
+// Register in Application.onCreate()
+DebugOverlay.configure {
+  bugReportExporter = MyExporter()
+}
+```
+
 ## Advanced Setup
 
 ### Release builds with overlay
@@ -283,7 +302,7 @@ android {
 }
 
 dependencies {
-  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.0.0")
+  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.1.0")
 }
 ```
 
