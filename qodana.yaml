@@ -8,3 +8,5 @@ profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
+baseline: qodana.sarif.json
+bootstrap: ./gradlew assembleDebug --no-daemon
