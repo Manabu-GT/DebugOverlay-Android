@@ -29,4 +29,8 @@ exclude:
   - name: All
     paths:
       - sample
+  # Compose preview files
+  - name: All
+    paths:
+      - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt
 bootstrap: ./gradlew :debugoverlay-core:compileDebugKotlin --no-daemon
