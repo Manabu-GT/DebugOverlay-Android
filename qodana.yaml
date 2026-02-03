@@ -8,5 +8,20 @@ profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
+exclude:
+  - name: FunctionName
+    paths:
+      - "**/ui/**"
+  - name: UnusedAssignment
+    paths:
+      - "**/ui/**"
+  # Dependency updates managed by Renovate
+  - name: GradleDependency
+  - name: AndroidGradlePluginVersion
+  - name: NewerLibraryVersionsAvailable
+  # Sample app not part of library
+  - name: All
+    paths:
+      - "sample/**"
 baseline: qodana.sarif.json
-bootstrap: ./gradlew assembleDebug --no-daemon
+bootstrap: ./gradlew :debugoverlay-core:assembleDebug --no-daemon
