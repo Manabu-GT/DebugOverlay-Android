@@ -73562,7 +73562,2477 @@
           }
         }
       },
-      "results": [],
+      "results": [
+        {
+          "ruleId": "AndroidLintPluralsCandidate",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Formatting %d followed by words (\"janks\"): This should probably be a plural rather than a string",
+            "markdown": "Formatting %d followed by words (\"janks\"): This should probably be a plural rather than a string"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 72,
+                  "startColumn": 3,
+                  "charOffset": 4322,
+                  "charLength": 65,
+                  "snippet": {
+                    "text": "<string name=\"debugoverlay_jankstats_n_janks\">%1$d janks</string>"
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 70,
+                  "startColumn": 1,
+                  "charOffset": 4144,
+                  "charLength": 405,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_jankstats_summary\">%1$d frames · %2$d janky · avg %3$dms</string>\n  <string name=\"debugoverlay_jankstats_state_breakdown\">State Breakdown</string>\n  <string name=\"debugoverlay_jankstats_n_janks\">%1$d janks</string>\n  <string name=\"debugoverlay_jankstats_janky_frames_list\">Janky Frames</string>\n  <string name=\"debugoverlay_jankstats_no_jank\">No janky frames detected</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "4baf680e3b94af5d",
+            "equalIndicator/v1": "2ea8b0b8c27fd9f2c619fbb79225df5b473d0f787c9abc913f29de3fd5a4d676"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintPluralsCandidate",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Formatting %d followed by words (\"frames\"): This should probably be a plural rather than a string",
+            "markdown": "Formatting %d followed by words (\"frames\"): This should probably be a plural rather than a string"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 70,
+                  "startColumn": 3,
+                  "charOffset": 4146,
+                  "charLength": 92,
+                  "snippet": {
+                    "text": "<string name=\"debugoverlay_jankstats_summary\">%1$d frames · %2$d janky · avg %3$dms</string>"
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 68,
+                  "startColumn": 1,
+                  "charOffset": 3989,
+                  "charLength": 398,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_jankstats_janky_frames\">janky frames</string>\n  <string name=\"debugoverlay_jankstats_last_n_frames\">last %1$d frames</string>\n  <string name=\"debugoverlay_jankstats_summary\">%1$d frames · %2$d janky · avg %3$dms</string>\n  <string name=\"debugoverlay_jankstats_state_breakdown\">State Breakdown</string>\n  <string name=\"debugoverlay_jankstats_n_janks\">%1$d janks</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "e3ed523cc8a13980",
+            "equalIndicator/v1": "2f1ed5d079da525128e68ab4233917310c90bd329398c4c2e0a595a2cc28b71d"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintPluralsCandidate",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Formatting %d followed by words (\"frames\"): This should probably be a plural rather than a string",
+            "markdown": "Formatting %d followed by words (\"frames\"): This should probably be a plural rather than a string"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 69,
+                  "startColumn": 3,
+                  "charOffset": 4066,
+                  "charLength": 77,
+                  "snippet": {
+                    "text": "<string name=\"debugoverlay_jankstats_last_n_frames\">last %1$d frames</string>"
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 67,
+                  "startColumn": 1,
+                  "charOffset": 3877,
+                  "charLength": 442,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_jankstats_waiting_subtitle\">Interact with the app to generate\\nframe data</string>\n  <string name=\"debugoverlay_jankstats_janky_frames\">janky frames</string>\n  <string name=\"debugoverlay_jankstats_last_n_frames\">last %1$d frames</string>\n  <string name=\"debugoverlay_jankstats_summary\">%1$d frames · %2$d janky · avg %3$dms</string>\n  <string name=\"debugoverlay_jankstats_state_breakdown\">State Breakdown</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "844a648c6574da06",
+            "equalIndicator/v1": "86ac5823b154afe124b0d368f30b9b516f8815d9c46e0972a8ac36c882c2b63a"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintPluralsCandidate",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Formatting %d followed by words (\"saved\"): This should probably be a plural rather than a string",
+            "markdown": "Formatting %d followed by words (\"saved\"): This should probably be a plural rather than a string"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 160,
+                  "startColumn": 3,
+                  "charOffset": 9935,
+                  "charLength": 90,
+                  "snippet": {
+                    "text": "<string name=\"debugoverlay_bug_report_drafts_badge\">Report bug, %1$d saved drafts</string>"
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 158,
+                  "startColumn": 1,
+                  "charOffset": 9778,
+                  "charLength": 324,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_bug_report_failed\">Bug report failed</string>\n  <string name=\"debugoverlay_bug_report_error\">Failed to create report</string>\n  <string name=\"debugoverlay_bug_report_drafts_badge\">Report bug, %1$d saved drafts</string>\n  <string name=\"debugoverlay_bug_report_subject\">Bug Report - %1$s</string>\n"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "ca8004b910b00ec8",
+            "equalIndicator/v1": "9ffb96af73abaf479f9a445ab766c313202302e0a3f8646a5e3a657f0180a067"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintPluralsCandidate",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Formatting %d followed by words (\"requests\"): This should probably be a plural rather than a string",
+            "markdown": "Formatting %d followed by words (\"requests\"): This should probably be a plural rather than a string"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 56,
+                  "startColumn": 3,
+                  "charOffset": 3162,
+                  "charLength": 67,
+                  "snippet": {
+                    "text": "<string name=\"debugoverlay_netstat_requests\">%1$d requests</string>"
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 54,
+                  "startColumn": 1,
+                  "charOffset": 2987,
+                  "charLength": 393,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_netstat_unavailable\">Network stats not available on this device</string>\n  <string name=\"debugoverlay_netstat_avg_duration\">Avg %1$dms</string>\n  <string name=\"debugoverlay_netstat_requests\">%1$d requests</string>\n  <string name=\"debugoverlay_netstat_errors\">%1$d errors</string>\n  <string name=\"debugoverlay_network_no_notable_headers\">No notable headers</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "d7faa7393a907355",
+            "equalIndicator/v1": "abda4a7cd88a74714efb5980eb75a14d49b18716ef9f1b172ec81c621cd04093"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintPluralsCandidate",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Formatting %d followed by words (\"errors\"): This should probably be a plural rather than a string",
+            "markdown": "Formatting %d followed by words (\"errors\"): This should probably be a plural rather than a string"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 57,
+                  "startColumn": 3,
+                  "charOffset": 3232,
+                  "charLength": 63,
+                  "snippet": {
+                    "text": "<string name=\"debugoverlay_netstat_errors\">%1$d errors</string>"
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 55,
+                  "startColumn": 1,
+                  "charOffset": 3089,
+                  "charLength": 376,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_netstat_avg_duration\">Avg %1$dms</string>\n  <string name=\"debugoverlay_netstat_requests\">%1$d requests</string>\n  <string name=\"debugoverlay_netstat_errors\">%1$d errors</string>\n  <string name=\"debugoverlay_network_no_notable_headers\">No notable headers</string>\n  <string name=\"debugoverlay_network_no_request_headers\">No request headers</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "ba70089f96ccb350",
+            "equalIndicator/v1": "ca949ef31ddd92f40321912bae915c109936b07fd3d360527357430cc22a79ae"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "String literal in 'setText' can not be translated. Use Android resources instead.",
+            "markdown": "String literal in `setText` can not be translated. Use Android resources instead."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 39,
+                  "startColumn": 12,
+                  "charOffset": 1338,
+                  "charLength": 45,
+                  "snippet": {
+                    "text": "This is a standard Android BottomSheetDialog."
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 37,
+                  "startColumn": 1,
+                  "charOffset": 1249,
+                  "charLength": 233,
+                  "snippet": {
+                    "text": "      TextView(context).apply {\n        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\"\n        textSize = 16f"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "f543066fe468c561",
+            "equalIndicator/v1": "07e9dff3bd916ca2d09cf765cd3547be5245130eec43513e790f99c4cc4b5c6d"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "String literal in 'setText' can not be translated. Use Android resources instead.",
+            "markdown": "String literal in `setText` can not be translated. Use Android resources instead."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 40,
+                  "startColumn": 12,
+                  "charOffset": 1402,
+                  "charLength": 56,
+                  "snippet": {
+                    "text": "The debug overlay should appear above this bottom sheet."
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 38,
+                  "startColumn": 1,
+                  "charOffset": 1281,
+                  "charLength": 234,
+                  "snippet": {
+                    "text": "        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\"\n        textSize = 16f\n        gravity = Gravity.CENTER"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "fc1804083ee087e2",
+            "equalIndicator/v1": "2357962a790945cf67ec1b46da9e017519f447794c6f6469535b22d60c27a7ad"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Do not concatenate text displayed with 'setText'. Use resource string with placeholders.",
+            "markdown": "Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 16,
+                  "charOffset": 1296,
+                  "charLength": 92,
+                  "snippet": {
+                    "text": "\"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\""
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 36,
+                  "startColumn": 1,
+                  "charOffset": 1236,
+                  "charLength": 246,
+                  "snippet": {
+                    "text": "    addView(\n      TextView(context).apply {\n        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\"\n        textSize = 16f"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "1a8158f21e1476bc",
+            "equalIndicator/v1": "a3492ce5d45c779089ecd716fb6371597f5145d8ff30203bdd89d3bc26c4616b"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Do not concatenate text displayed with 'setText'. Use resource string with placeholders.",
+            "markdown": "Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 16,
+                  "charOffset": 1296,
+                  "charLength": 163,
+                  "snippet": {
+                    "text": "\"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\""
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 36,
+                  "startColumn": 1,
+                  "charOffset": 1236,
+                  "charLength": 279,
+                  "snippet": {
+                    "text": "    addView(\n      TextView(context).apply {\n        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\"\n        textSize = 16f\n        gravity = Gravity.CENTER"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "51db042b7288a074",
+            "equalIndicator/v1": "a90c20473fbc1e0e6d22c53494f6567fb5d125df8d06cf59f27b10b1560ad834"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "String literal in 'setText' can not be translated. Use Android resources instead.",
+            "markdown": "String literal in `setText` can not be translated. Use Android resources instead."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 17,
+                  "charOffset": 1297,
+                  "charLength": 22,
+                  "snippet": {
+                    "text": "View BottomSheetDialog"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 36,
+                  "startColumn": 1,
+                  "charOffset": 1236,
+                  "charLength": 223,
+                  "snippet": {
+                    "text": "    addView(\n      TextView(context).apply {\n        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\""
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "d092f078d5db4ed7",
+            "equalIndicator/v1": "c2b98c3b096997b0597cb19dc1349c7442bfd3fd91b09fff38a98bba86aaee78"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Do not concatenate text displayed with 'setText'. Use resource string with placeholders.",
+            "markdown": "Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 16,
+                  "charOffset": 1296,
+                  "charLength": 28,
+                  "snippet": {
+                    "text": "\"View BottomSheetDialog\\n\\n\""
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 36,
+                  "startColumn": 1,
+                  "charOffset": 1236,
+                  "charLength": 223,
+                  "snippet": {
+                    "text": "    addView(\n      TextView(context).apply {\n        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\""
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "2d478e957c0643f5",
+            "equalIndicator/v1": "e1f5ebf0d033f099115d11910d9930908176d0a170f2ae4bb357eebf13a2ce78"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintSetTextI18n",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Do not concatenate text displayed with 'setText'. Use resource string with placeholders.",
+            "markdown": "Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sample/src/main/kotlin/com/ms/square/debugoverlay/sample/ui/overlaytests/ViewDialogTests.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 39,
+                  "startColumn": 11,
+                  "charOffset": 1337,
+                  "charLength": 51,
+                  "snippet": {
+                    "text": "\"This is a standard Android BottomSheetDialog.\\n\\n\""
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 37,
+                  "startColumn": 1,
+                  "charOffset": 1249,
+                  "charLength": 233,
+                  "snippet": {
+                    "text": "      TextView(context).apply {\n        text = \"View BottomSheetDialog\\n\\n\" +\n          \"This is a standard Android BottomSheetDialog.\\n\\n\" +\n          \"The debug overlay should appear above this bottom sheet.\"\n        textSize = 16f"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.sample.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "b083e73f68552bbf",
+            "equalIndicator/v1": "f54b2dbf3981f6a3c2479567e671c0395732207fda4e0b5478ff88bc34c38dbd"
+          },
+          "properties": {
+            "ideaSeverity": "INFORMATION",
+            "qodanaSeverity": "Info",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUnusedResources",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "The resource 'R.string.debugoverlay_netstat_unavailable' appears to be unused",
+            "markdown": "The resource `R.string.debugoverlay_netstat_unavailable` appears to be unused"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 54,
+                  "startColumn": 11,
+                  "charOffset": 2997,
+                  "charLength": 39,
+                  "snippet": {
+                    "text": "name=\"debugoverlay_netstat_unavailable\""
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 52,
+                  "startColumn": 1,
+                  "charOffset": 2853,
+                  "charLength": 376,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_netstat_downloaded\">DOWNLOADED</string>\n  <string name=\"debugoverlay_netstat_uploaded\">UPLOADED</string>\n  <string name=\"debugoverlay_netstat_unavailable\">Network stats not available on this device</string>\n  <string name=\"debugoverlay_netstat_avg_duration\">Avg %1$dms</string>\n  <string name=\"debugoverlay_netstat_requests\">%1$d requests</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "250fda06225361db",
+            "equalIndicator/v1": "086c1cb550045df58e7dcca262cc98daea5be4f1c6ad65f116e339660aa2ac68"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUnusedResources",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "The resource 'R.string.debugoverlay_tab_log' appears to be unused",
+            "markdown": "The resource `R.string.debugoverlay_tab_log` appears to be unused"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 8,
+                  "startColumn": 11,
+                  "charOffset": 221,
+                  "charLength": 27,
+                  "snippet": {
+                    "text": "name=\"debugoverlay_tab_log\""
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 6,
+                  "startColumn": 1,
+                  "charOffset": 188,
+                  "charLength": 191,
+                  "snippet": {
+                    "text": "\n  <!-- Tab Titles -->\n  <string name=\"debugoverlay_tab_log\">Log</string>\n  <string name=\"debugoverlay_tab_logcat\">Logcat</string>\n  <string name=\"debugoverlay_tab_custom_log\">Custom</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "aad2e40d35e5d959",
+            "equalIndicator/v1": "2505d5d671c89fa6291a14334277c642d20def1dc7b2b1c83afbb7ed785512d3"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUnusedResources",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "The resource 'R.string.debugoverlay_device_info_installer' appears to be unused",
+            "markdown": "The resource `R.string.debugoverlay_device_info_installer` appears to be unused"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 123,
+                  "startColumn": 11,
+                  "charOffset": 7652,
+                  "charLength": 41,
+                  "snippet": {
+                    "text": "name=\"debugoverlay_device_info_installer\""
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 121,
+                  "startColumn": 1,
+                  "charOffset": 7508,
+                  "charLength": 372,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_device_info_rooted\">Rooted</string>\n  <string name=\"debugoverlay_device_info_emulator\">Emulator</string>\n  <string name=\"debugoverlay_device_info_installer\">Installer</string>\n  <string name=\"debugoverlay_device_info_play_services\">Play Services</string>\n  <string name=\"debugoverlay_device_info_play_services_code\">Play Services Code</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "8417bd1d683c5e5a",
+            "equalIndicator/v1": "73e2af7b3a6ae4af4ac8b92e1e25d8b2757324b78568e18a837f71729ebdd56c"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUnusedResources",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "The resource 'R.string.debugoverlay_device_info_sideloaded' appears to be unused",
+            "markdown": "The resource `R.string.debugoverlay_device_info_sideloaded` appears to be unused"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 143,
+                  "startColumn": 11,
+                  "charOffset": 8942,
+                  "charLength": 42,
+                  "snippet": {
+                    "text": "name=\"debugoverlay_device_info_sideloaded\""
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 141,
+                  "startColumn": 1,
+                  "charOffset": 8796,
+                  "charLength": 338,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_device_info_no\">No</string>\n  <string name=\"debugoverlay_device_info_not_available\">Not Available</string>\n  <string name=\"debugoverlay_device_info_sideloaded\">Sideloaded</string>\n  <string name=\"debugoverlay_device_info_wifi\">WiFi</string>\n  <string name=\"debugoverlay_device_info_cellular\">Cellular</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "7c6cf2494a18564f",
+            "equalIndicator/v1": "773e396812fc6f52c21af28cb8cd45b5ed9346490bbf014696e7104686258018"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUnusedResources",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "The resource 'R.string.debugoverlay_jankstats_clear' appears to be unused",
+            "markdown": "The resource `R.string.debugoverlay_jankstats_clear` appears to be unused"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 65,
+                  "startColumn": 11,
+                  "charOffset": 3749,
+                  "charLength": 35,
+                  "snippet": {
+                    "text": "name=\"debugoverlay_jankstats_clear\""
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 63,
+                  "startColumn": 1,
+                  "charOffset": 3713,
+                  "charLength": 275,
+                  "snippet": {
+                    "text": "\n  <!-- JankStats Tab -->\n  <string name=\"debugoverlay_jankstats_clear\">Clear</string>\n  <string name=\"debugoverlay_jankstats_waiting\">Waiting for frames…</string>\n  <string name=\"debugoverlay_jankstats_waiting_subtitle\">Interact with the app to generate\\nframe data</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "f5b9d5488c2fb5ba",
+            "equalIndicator/v1": "d333eeb7aaa8b641f678b72f21722211eb931379b78e74673ccd0fa8112af01a"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUnusedResources",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "The resource 'R.string.debugoverlay_bug_report_success' appears to be unused",
+            "markdown": "The resource `R.string.debugoverlay_bug_report_success` appears to be unused"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/res/values/strings.xml",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 157,
+                  "startColumn": 11,
+                  "charOffset": 9709,
+                  "charLength": 38,
+                  "snippet": {
+                    "text": "name=\"debugoverlay_bug_report_success\""
+                  },
+                  "sourceLanguage": "XML"
+                },
+                "contextRegion": {
+                  "startLine": 155,
+                  "startColumn": 1,
+                  "charOffset": 9546,
+                  "charLength": 386,
+                  "snippet": {
+                    "text": "  <string name=\"debugoverlay_bug_report\">Generate Bug Report</string>\n  <string name=\"debugoverlay_bug_report_generating\">Generating bug report</string>\n  <string name=\"debugoverlay_bug_report_success\">Bug report generated</string>\n  <string name=\"debugoverlay_bug_report_failed\">Bug report failed</string>\n  <string name=\"debugoverlay_bug_report_error\">Failed to create report</string>"
+                  },
+                  "sourceLanguage": "XML"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "8fbef271ec362767",
+            "equalIndicator/v1": "e8934ba8e44effbffe534b798547b61bea278a727d908b1ac54040e509369eee"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "XML"
+            ]
+          }
+        },
+        {
+          "ruleId": "AndroidLintUsableSpace",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Consider also using 'StorageManager#getAllocatableBytes' and 'allocateBytes' which will consider clearable cached data",
+            "markdown": "Consider also using `StorageManager#getAllocatableBytes` and `allocateBytes` which will consider clearable cached data"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/data/source/DeviceInfoDataSource.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 223,
+                  "startColumn": 13,
+                  "charOffset": 8649,
+                  "charLength": 11,
+                  "snippet": {
+                    "text": "usableSpace"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 221,
+                  "startColumn": 1,
+                  "charOffset": 8528,
+                  "charLength": 202,
+                  "snippet": {
+                    "text": "  private fun queryAvailableStorage(): Long = runCatching {\n    val dataDir = Environment.getDataDirectory()\n    dataDir.usableSpace\n  }.getOrElse { e ->\n    Logger.w(\"AvailableStorage query failed\", e)"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "7d4bf5634036b0b8",
+            "equalIndicator/v1": "ebd1e6530e36e9b287fb65369566c837141ef11d9bd7d2a825c39020ee2e1fe2"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "ConvertTryFinallyToUseCall",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "try-finally can be replaced with 'use()'",
+            "markdown": "try-finally can be replaced with 'use()'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/data/DebugOverlayDataRepository.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 52,
+                  "startColumn": 7,
+                  "charOffset": 2521,
+                  "charLength": 5,
+                  "snippet": {
+                    "text": "try {"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 50,
+                  "startColumn": 1,
+                  "charOffset": 2487,
+                  "charLength": 85,
+                  "snippet": {
+                    "text": "  init {\n    scope.launch {\n      try {\n        awaitCancellation()\n      } finally {"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "3b9307b144f5b1e8",
+            "equalIndicator/v1": "18eb24b2fe8f95593d895c789ba3e0c2611aa7bdc09530b82ec33ae49def436c"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui/DeviceInfoTabContent.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 67,
+                  "startColumn": 7,
+                  "charOffset": 2791,
+                  "charLength": 411,
+                  "snippet": {
+                    "text": "item {\n        InfoCard(title = stringResource(R.string.debugoverlay_device_info_device)) {\n          InfoRow(stringResource(R.string.debugoverlay_device_info_manufacturer), info.hardware.manufacturer)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_model), info.hardware.model)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_brand), info.hardware.brand)\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 67,
+                  "startColumn": 1,
+                  "charOffset": 2785,
+                  "charLength": 417,
+                  "snippet": {
+                    "text": "      item {\n        InfoCard(title = stringResource(R.string.debugoverlay_device_info_device)) {\n          InfoRow(stringResource(R.string.debugoverlay_device_info_manufacturer), info.hardware.manufacturer)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_model), info.hardware.model)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_brand), info.hardware.brand)\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui/DeviceInfoTabContent.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 188,
+                  "startColumn": 7,
+                  "charOffset": 8059,
+                  "charLength": 411,
+                  "snippet": {
+                    "text": "item {\n        InfoCard(title = stringResource(R.string.debugoverlay_device_info_localization)) {\n          InfoRow(stringResource(R.string.debugoverlay_device_info_locale), info.system.locale)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_language), info.system.language)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_timezone), info.system.timeZone)\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 188,
+                  "startColumn": 1,
+                  "charOffset": 8053,
+                  "charLength": 417,
+                  "snippet": {
+                    "text": "      item {\n        InfoCard(title = stringResource(R.string.debugoverlay_device_info_localization)) {\n          InfoRow(stringResource(R.string.debugoverlay_device_info_locale), info.system.locale)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_language), info.system.language)\n          InfoRow(stringResource(R.string.debugoverlay_device_info_timezone), info.system.timeZone)\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "c9d796cc3782885a",
+            "equalIndicator/v1": "0503db8bb7bd8d6b72887c06f79e8e71cbe9bc25ffe64cb16ecd3620d2336bf4"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ScreenshotCapture.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 64,
+                  "startColumn": 5,
+                  "charOffset": 2133,
+                  "charLength": 222,
+                  "snippet": {
+                    "text": "val decorView = window.decorView\n    val width = decorView.width\n    val height = decorView.height\n\n    if (width <= 0 || height <= 0) {\n      Logger.w(\"Invalid window dimensions: ${width}x$height\")\n      return null\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 64,
+                  "startColumn": 1,
+                  "charOffset": 2129,
+                  "charLength": 226,
+                  "snippet": {
+                    "text": "    val decorView = window.decorView\n    val width = decorView.width\n    val height = decorView.height\n\n    if (width <= 0 || height <= 0) {\n      Logger.w(\"Invalid window dimensions: ${width}x$height\")\n      return null\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ScreenshotCapture.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 142,
+                  "startColumn": 5,
+                  "charOffset": 4618,
+                  "charLength": 222,
+                  "snippet": {
+                    "text": "val decorView = window.decorView\n    val width = decorView.width\n    val height = decorView.height\n\n    if (width <= 0 || height <= 0) {\n      Logger.w(\"Invalid window dimensions: ${width}x$height\")\n      return null\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 142,
+                  "startColumn": 1,
+                  "charOffset": 4614,
+                  "charLength": 226,
+                  "snippet": {
+                    "text": "    val decorView = window.decorView\n    val width = decorView.width\n    val height = decorView.height\n\n    if (width <= 0 || height <= 0) {\n      Logger.w(\"Invalid window dimensions: ${width}x$height\")\n      return null\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "a09eb7591a86893b",
+            "equalIndicator/v1": "6874ab841644c9112afe6d3f485ac5aa35b9d38152b5e0513f7a6e43a59718f8"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui/AppExitTabContent.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 237,
+                  "startColumn": 5,
+                  "charOffset": 7512,
+                  "charLength": 588,
+                  "snippet": {
+                    "text": "Column(horizontalAlignment = Alignment.CenterHorizontally) {\n      Text(\"\\uD83D\\uDCCA\", fontSize = 48.sp) // 📊\n      Spacer(Modifier.height(16.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_app_exits_empty_title),\n        style = MaterialTheme.typography.titleMedium\n      )\n      Spacer(Modifier.height(8.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_app_exits_empty_subtitle),\n        style = MaterialTheme.typography.bodyMedium,\n        color = MaterialTheme.colorScheme.onSurfaceVariant,\n        textAlign = TextAlign.Center\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 237,
+                  "startColumn": 1,
+                  "charOffset": 7508,
+                  "charLength": 592,
+                  "snippet": {
+                    "text": "    Column(horizontalAlignment = Alignment.CenterHorizontally) {\n      Text(\"\\uD83D\\uDCCA\", fontSize = 48.sp) // 📊\n      Spacer(Modifier.height(16.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_app_exits_empty_title),\n        style = MaterialTheme.typography.titleMedium\n      )\n      Spacer(Modifier.height(8.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_app_exits_empty_subtitle),\n        style = MaterialTheme.typography.bodyMedium,\n        color = MaterialTheme.colorScheme.onSurfaceVariant,\n        textAlign = TextAlign.Center\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui/JankStatsTabContent.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 93,
+                  "startColumn": 5,
+                  "charOffset": 3608,
+                  "charLength": 586,
+                  "snippet": {
+                    "text": "Column(horizontalAlignment = Alignment.CenterHorizontally) {\n      Text(\"\\uD83D\\uDCCA\", fontSize = 48.sp) // 📊\n      Spacer(Modifier.height(16.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_jankstats_waiting),\n        style = MaterialTheme.typography.titleMedium\n      )\n      Spacer(Modifier.height(8.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_jankstats_waiting_subtitle),\n        style = MaterialTheme.typography.bodyMedium,\n        color = MaterialTheme.colorScheme.onSurfaceVariant,\n        textAlign = TextAlign.Center\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 93,
+                  "startColumn": 1,
+                  "charOffset": 3604,
+                  "charLength": 590,
+                  "snippet": {
+                    "text": "    Column(horizontalAlignment = Alignment.CenterHorizontally) {\n      Text(\"\\uD83D\\uDCCA\", fontSize = 48.sp) // 📊\n      Spacer(Modifier.height(16.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_jankstats_waiting),\n        style = MaterialTheme.typography.titleMedium\n      )\n      Spacer(Modifier.height(8.dp))\n      Text(\n        text = stringResource(R.string.debugoverlay_jankstats_waiting_subtitle),\n        style = MaterialTheme.typography.bodyMedium,\n        color = MaterialTheme.colorScheme.onSurfaceVariant,\n        textAlign = TextAlign.Center\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "53fe7a91634a6c7b",
+            "equalIndicator/v1": "74b45d883ed138a36be863e53ee902d21137df002fc8e5f713fc4355e048a1df"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/HtmlReportBuilder.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 628,
+                  "startColumn": 7,
+                  "charOffset": 24992,
+                  "charLength": 380,
+                  "snippet": {
+                    "text": "append(\"              <div class=\\\"headers-list\\\">\\n\")\n      request.requestHeaders.forEach { (name, value) ->\n        append(\"                <div class=\\\"header-item\\\">\")\n        append(\"<span class=\\\"header-name\\\">${name.escapeHtml()}:</span> ${value.escapeHtml()}\")\n        append(\"</div>\\n\")\n      }\n      append(\"              </div>\\n\")\n      append(\"            </div>\\n\")"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 628,
+                  "startColumn": 1,
+                  "charOffset": 24986,
+                  "charLength": 386,
+                  "snippet": {
+                    "text": "      append(\"              <div class=\\\"headers-list\\\">\\n\")\n      request.requestHeaders.forEach { (name, value) ->\n        append(\"                <div class=\\\"header-item\\\">\")\n        append(\"<span class=\\\"header-name\\\">${name.escapeHtml()}:</span> ${value.escapeHtml()}\")\n        append(\"</div>\\n\")\n      }\n      append(\"              </div>\\n\")\n      append(\"            </div>\\n\")"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/HtmlReportBuilder.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 648,
+                  "startColumn": 7,
+                  "charOffset": 25945,
+                  "charLength": 381,
+                  "snippet": {
+                    "text": "append(\"              <div class=\\\"headers-list\\\">\\n\")\n      request.responseHeaders.forEach { (name, value) ->\n        append(\"                <div class=\\\"header-item\\\">\")\n        append(\"<span class=\\\"header-name\\\">${name.escapeHtml()}:</span> ${value.escapeHtml()}\")\n        append(\"</div>\\n\")\n      }\n      append(\"              </div>\\n\")\n      append(\"            </div>\\n\")"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 648,
+                  "startColumn": 1,
+                  "charOffset": 25939,
+                  "charLength": 387,
+                  "snippet": {
+                    "text": "      append(\"              <div class=\\\"headers-list\\\">\\n\")\n      request.responseHeaders.forEach { (name, value) ->\n        append(\"                <div class=\\\"header-item\\\">\")\n        append(\"<span class=\\\"header-name\\\">${name.escapeHtml()}:</span> ${value.escapeHtml()}\")\n        append(\"</div>\\n\")\n      }\n      append(\"              </div>\\n\")\n      append(\"            </div>\\n\")"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "15d48429e09091e0",
+            "equalIndicator/v1": "94eb27eba4effb22a3394088094cf7091abd4983c48388ca8013c6f1d16e36d6"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-extension-okhttp/src/main/kotlin/com/ms/square/debugoverlay/extension/okhttp/DebugOverlayNetworkInterceptor.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 241,
+                  "startColumn": 5,
+                  "charOffset": 7918,
+                  "charLength": 1383,
+                  "snippet": {
+                    "text": "val (buffer, gzippedLength) = when (decompressionResult) {\n      is GzipDecompressionResult.Success -> decompressionResult.buffer to decompressionResult.gzippedLength\n      is GzipDecompressionResult.Failure -> return NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = decompressionResult.gzippedLength,\n        content = \"N/A - [${decompressionResult.errorMessage}]\"\n      )\n    }\n\n    // Reports compressed size when gzipped\n    val contentSizeToReport = gzippedLength ?: requestContentLength\n\n    if (!buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {\n      return NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [binary ${buffer.size}-byte $requestContentType body omitted]\"\n      )\n    }\n\n    return if (buffer.size > maxBodySize) {\n      NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [raw body too large: ${buffer.size}-byte body omitted]\"\n      )\n    } else {\n      NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = contentSizeToReport,\n        content = buffer.readString(charset = body.contentType().charsetOrUtf8())\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 241,
+                  "startColumn": 1,
+                  "charOffset": 7914,
+                  "charLength": 1387,
+                  "snippet": {
+                    "text": "    val (buffer, gzippedLength) = when (decompressionResult) {\n      is GzipDecompressionResult.Success -> decompressionResult.buffer to decompressionResult.gzippedLength\n      is GzipDecompressionResult.Failure -> return NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = decompressionResult.gzippedLength,\n        content = \"N/A - [${decompressionResult.errorMessage}]\"\n      )\n    }\n\n    // Reports compressed size when gzipped\n    val contentSizeToReport = gzippedLength ?: requestContentLength\n\n    if (!buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {\n      return NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [binary ${buffer.size}-byte $requestContentType body omitted]\"\n      )\n    }\n\n    return if (buffer.size > maxBodySize) {\n      NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [raw body too large: ${buffer.size}-byte body omitted]\"\n      )\n    } else {\n      NetworkData(\n        headers = requestHeaders,\n        contentType = requestContentType,\n        contentSize = contentSizeToReport,\n        content = buffer.readString(charset = body.contentType().charsetOrUtf8())\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-extension-okhttp.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-extension-okhttp/src/main/kotlin/com/ms/square/debugoverlay/extension/okhttp/DebugOverlayNetworkInterceptor.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 366,
+                  "startColumn": 5,
+                  "charOffset": 12285,
+                  "charLength": 1393,
+                  "snippet": {
+                    "text": "val (buffer, gzippedLength) = when (decompressionResult) {\n      is GzipDecompressionResult.Success -> decompressionResult.buffer to decompressionResult.gzippedLength\n      is GzipDecompressionResult.Failure -> return NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = decompressionResult.gzippedLength,\n        content = \"N/A - [${decompressionResult.errorMessage}]\"\n      )\n    }\n\n    // Reports compressed size when gzipped\n    val contentSizeToReport = gzippedLength ?: responseContentLength\n\n    if (!buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {\n      return NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [binary ${buffer.size}-byte $responseContentType body omitted]\"\n      )\n    }\n\n    return if (buffer.size > maxBodySize) {\n      NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [raw body too large: ${buffer.size}-byte body omitted]\"\n      )\n    } else {\n      NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = contentSizeToReport,\n        content = buffer.readString(charset = body.contentType().charsetOrUtf8())\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 366,
+                  "startColumn": 1,
+                  "charOffset": 12281,
+                  "charLength": 1397,
+                  "snippet": {
+                    "text": "    val (buffer, gzippedLength) = when (decompressionResult) {\n      is GzipDecompressionResult.Success -> decompressionResult.buffer to decompressionResult.gzippedLength\n      is GzipDecompressionResult.Failure -> return NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = decompressionResult.gzippedLength,\n        content = \"N/A - [${decompressionResult.errorMessage}]\"\n      )\n    }\n\n    // Reports compressed size when gzipped\n    val contentSizeToReport = gzippedLength ?: responseContentLength\n\n    if (!buffer.isProbablyUtf8(UTF8_DETECTION_CODE_POINTS)) {\n      return NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [binary ${buffer.size}-byte $responseContentType body omitted]\"\n      )\n    }\n\n    return if (buffer.size > maxBodySize) {\n      NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = contentSizeToReport,\n        content = \"N/A - [raw body too large: ${buffer.size}-byte body omitted]\"\n      )\n    } else {\n      NetworkData(\n        headers = responseHeaders,\n        contentType = responseContentType,\n        contentSize = contentSizeToReport,\n        content = buffer.readString(charset = body.contentType().charsetOrUtf8())\n      )\n    }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-extension-okhttp.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "c6cbda47c0760112",
+            "equalIndicator/v1": "998ca42bdb64cb22ce0b67d7348c38a0400d44775106eeeaac8c37a2419a4681"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui/NetworkRequestDetailScreen.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 272,
+                  "startColumn": 9,
+                  "charOffset": 9203,
+                  "charLength": 436,
+                  "snippet": {
+                    "text": "if (requestHeadersExpanded) {\n          if (request.requestHeaders.isEmpty()) {\n            EmptyState(text = stringResource(R.string.debugoverlay_network_no_request_headers))\n          } else {\n            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {\n              request.requestHeaders.forEach { (name, value) ->\n                HeaderItem(name = name, value = value)\n              }\n            }\n          }\n        }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 272,
+                  "startColumn": 1,
+                  "charOffset": 9195,
+                  "charLength": 444,
+                  "snippet": {
+                    "text": "        if (requestHeadersExpanded) {\n          if (request.requestHeaders.isEmpty()) {\n            EmptyState(text = stringResource(R.string.debugoverlay_network_no_request_headers))\n          } else {\n            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {\n              request.requestHeaders.forEach { (name, value) ->\n                HeaderItem(name = name, value = value)\n              }\n            }\n          }\n        }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui/NetworkRequestDetailScreen.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 304,
+                  "startColumn": 9,
+                  "charOffset": 10262,
+                  "charLength": 440,
+                  "snippet": {
+                    "text": "if (responseHeadersExpanded) {\n          if (request.responseHeaders.isEmpty()) {\n            EmptyState(text = stringResource(R.string.debugoverlay_network_no_response_headers))\n          } else {\n            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {\n              request.responseHeaders.forEach { (name, value) ->\n                HeaderItem(name = name, value = value)\n              }\n            }\n          }\n        }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 304,
+                  "startColumn": 1,
+                  "charOffset": 10254,
+                  "charLength": 448,
+                  "snippet": {
+                    "text": "        if (responseHeadersExpanded) {\n          if (request.responseHeaders.isEmpty()) {\n            EmptyState(text = stringResource(R.string.debugoverlay_network_no_response_headers))\n          } else {\n            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {\n              request.responseHeaders.forEach { (name, value) ->\n                HeaderItem(name = name, value = value)\n              }\n            }\n          }\n        }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "43100d9266554651",
+            "equalIndicator/v1": "e44ffe59d07e9502cc6fb80cd99a03a1ab7158b241b9a078b61b953755a982db"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "DuplicatedCode",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Duplicated code",
+            "markdown": "Duplicated code"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 102,
+                  "startColumn": 7,
+                  "charOffset": 3442,
+                  "charLength": 774,
+                  "snippet": {
+                    "text": "Column(\n        modifier = Modifier\n          .fillMaxSize()\n          .padding(bottom = 80.dp)\n      ) {\n        repeat(3) { index ->\n          Surface(\n            modifier = Modifier\n              .fillMaxWidth()\n              .padding(bottom = 12.dp),\n            shape = MaterialTheme.shapes.medium,\n            color = MaterialTheme.colorScheme.surfaceVariant,\n            tonalElevation = 1.dp\n          ) {\n            Box(\n              modifier = Modifier\n                .fillMaxWidth()\n                .height(80.dp)\n                .padding(16.dp)\n            ) {\n              Text(\n                text = \"App Content ${index + 1}\",\n                color = MaterialTheme.colorScheme.onSurfaceVariant\n              )\n            }\n          }\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 102,
+                  "startColumn": 1,
+                  "charOffset": 3436,
+                  "charLength": 780,
+                  "snippet": {
+                    "text": "      Column(\n        modifier = Modifier\n          .fillMaxSize()\n          .padding(bottom = 80.dp)\n      ) {\n        repeat(3) { index ->\n          Surface(\n            modifier = Modifier\n              .fillMaxWidth()\n              .padding(bottom = 12.dp),\n            shape = MaterialTheme.shapes.medium,\n            color = MaterialTheme.colorScheme.surfaceVariant,\n            tonalElevation = 1.dp\n          ) {\n            Box(\n              modifier = Modifier\n                .fillMaxWidth()\n                .height(80.dp)\n                .padding(16.dp)\n            ) {\n              Text(\n                text = \"App Content ${index + 1}\",\n                color = MaterialTheme.colorScheme.onSurfaceVariant\n              )\n            }\n          }\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            },
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 155,
+                  "startColumn": 7,
+                  "charOffset": 4764,
+                  "charLength": 774,
+                  "snippet": {
+                    "text": "Column(\n        modifier = Modifier\n          .fillMaxSize()\n          .padding(bottom = 80.dp)\n      ) {\n        repeat(3) { index ->\n          Surface(\n            modifier = Modifier\n              .fillMaxWidth()\n              .padding(bottom = 12.dp),\n            shape = MaterialTheme.shapes.medium,\n            color = MaterialTheme.colorScheme.surfaceVariant,\n            tonalElevation = 1.dp\n          ) {\n            Box(\n              modifier = Modifier\n                .fillMaxWidth()\n                .height(80.dp)\n                .padding(16.dp)\n            ) {\n              Text(\n                text = \"App Content ${index + 1}\",\n                color = MaterialTheme.colorScheme.onSurfaceVariant\n              )\n            }\n          }\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 155,
+                  "startColumn": 1,
+                  "charOffset": 4758,
+                  "charLength": 780,
+                  "snippet": {
+                    "text": "      Column(\n        modifier = Modifier\n          .fillMaxSize()\n          .padding(bottom = 80.dp)\n      ) {\n        repeat(3) { index ->\n          Surface(\n            modifier = Modifier\n              .fillMaxWidth()\n              .padding(bottom = 12.dp),\n            shape = MaterialTheme.shapes.medium,\n            color = MaterialTheme.colorScheme.surfaceVariant,\n            tonalElevation = 1.dp\n          ) {\n            Box(\n              modifier = Modifier\n                .fillMaxWidth()\n                .height(80.dp)\n                .padding(16.dp)\n            ) {\n              Text(\n                text = \"App Content ${index + 1}\",\n                color = MaterialTheme.colorScheme.onSurfaceVariant\n              )\n            }\n          }\n        }\n      }"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "f8fcc780732a6140",
+            "equalIndicator/v1": "eb9218203afbdde83604d8d6857f640ed860fd13d23100726efedef0a946d262"
+          },
+          "properties": {
+            "ideaSeverity": "WEAK WARNING",
+            "qodanaSeverity": "Moderate",
+            "problemType": "DUPLICATES",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "KotlinUnusedImport",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Unused import directive",
+            "markdown": "Unused import directive"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/BugReportFileWriters.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 1,
+                  "charOffset": 534,
+                  "charLength": 47,
+                  "snippet": {
+                    "text": "import kotlinx.serialization.json.JsonPrimitive"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 9,
+                  "startColumn": 1,
+                  "charOffset": 440,
+                  "charLength": 245,
+                  "snippet": {
+                    "text": "import com.ms.square.debugoverlay.model.NetworkRequest\nimport kotlinx.serialization.json.Json\nimport kotlinx.serialization.json.JsonPrimitive\nimport kotlinx.serialization.json.buildJsonObject\nimport kotlinx.serialization.json.encodeToJsonElement"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "2104d6d576036cd8",
+            "equalIndicator/v1": "79d12c0fe97be92f2b322026ed0bbd10c7fe31e5827b68782bdd67d78a632ae6"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "KotlinUnusedImport",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Unused import directive",
+            "markdown": "Unused import directive"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui/BugReporterFab.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "charOffset": 58,
+                  "charLength": 29,
+                  "snippet": {
+                    "text": "import android.content.Intent"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "charOffset": 0,
+                  "charLength": 186,
+                  "snippet": {
+                    "text": "package com.ms.square.debugoverlay.internal.bugreport.ui\n\nimport android.content.Intent\nimport androidx.compose.animation.animateColorAsState\nimport androidx.compose.animation.core.tween"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "5b5782c2d9ea9f34",
+            "equalIndicator/v1": "9bd00da07017ca6413b41635c1c50f567308e3fe5390b2fd03adb4da94a962f0"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "KotlinUnusedImport",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Unused import directive",
+            "markdown": "Unused import directive"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/BugReportFileWriters.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 16,
+                  "startColumn": 1,
+                  "charOffset": 771,
+                  "charLength": 47,
+                  "snippet": {
+                    "text": "import kotlinx.serialization.json.putJsonObject"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 14,
+                  "startColumn": 1,
+                  "charOffset": 686,
+                  "charLength": 153,
+                  "snippet": {
+                    "text": "import kotlinx.serialization.json.put\nimport kotlinx.serialization.json.putJsonArray\nimport kotlinx.serialization.json.putJsonObject\nimport java.io.File\n"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "e5d77f0099a258d8",
+            "equalIndicator/v1": "a58bba97a96ad8bf20946881341ce3d17d9f267c82502140570b3431c56f43f5"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "KotlinUnusedImport",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Unused import directive",
+            "markdown": "Unused import directive"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/data/source/DeviceInfoDataSource.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 31,
+                  "startColumn": 1,
+                  "charOffset": 1397,
+                  "charLength": 35,
+                  "snippet": {
+                    "text": "import kotlinx.coroutines.flow.Flow"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 29,
+                  "startColumn": 1,
+                  "charOffset": 1315,
+                  "charLength": 204,
+                  "snippet": {
+                    "text": "import kotlinx.coroutines.currentCoroutineContext\nimport kotlinx.coroutines.delay\nimport kotlinx.coroutines.flow.Flow\nimport kotlinx.coroutines.flow.SharingStarted\nimport kotlinx.coroutines.flow.StateFlow"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "0a19140b0509ee76",
+            "equalIndicator/v1": "f21a6f92107f8e365ec5776afe60918d29f50a5e5f7cfd69ea35f86a1d809424"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnstableApiUsage",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "'getRepositoriesMode()' is marked unstable with @Incubating",
+            "markdown": "'getRepositoriesMode()' is marked unstable with @Incubating"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "settings.gradle.kts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 3,
+                  "charOffset": 135,
+                  "charLength": 16,
+                  "snippet": {
+                    "text": "repositoriesMode"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 8,
+                  "startColumn": 1,
+                  "charOffset": 99,
+                  "charLength": 126,
+                  "snippet": {
+                    "text": "\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories {\n    google()"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "af797aa8e7026bbd",
+            "equalIndicator/v1": "3e2c311836c83c8e3d520f468f6c541184122d24ecc0b939ac00062f787846ee"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnstableApiUsage",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "'FAIL_ON_PROJECT_REPOS' is declared in unstable enum 'org.gradle.api.initialization.resolve.RepositoriesMode' marked with @Incubating",
+            "markdown": "'FAIL_ON_PROJECT_REPOS' is declared in unstable enum 'org.gradle.api.initialization.resolve.RepositoriesMode' marked with @Incubating"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "settings.gradle.kts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 41,
+                  "charOffset": 173,
+                  "charLength": 21,
+                  "snippet": {
+                    "text": "FAIL_ON_PROJECT_REPOS"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 8,
+                  "startColumn": 1,
+                  "charOffset": 99,
+                  "charLength": 126,
+                  "snippet": {
+                    "text": "\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories {\n    google()"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "ab0cce5324d564ec",
+            "equalIndicator/v1": "8530337f71ed3120960b06e655061d83ef3a5aba42abb929e8ff4806b303f23f"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnstableApiUsage",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "'org.gradle.api.initialization.resolve.RepositoriesMode' is marked unstable with @Incubating",
+            "markdown": "'org.gradle.api.initialization.resolve.RepositoriesMode' is marked unstable with @Incubating"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "settings.gradle.kts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 24,
+                  "charOffset": 156,
+                  "charLength": 16,
+                  "snippet": {
+                    "text": "RepositoriesMode"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 8,
+                  "startColumn": 1,
+                  "charOffset": 99,
+                  "charLength": 126,
+                  "snippet": {
+                    "text": "\ndependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories {\n    google()"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "f32d2e2eb9ec83c0",
+            "equalIndicator/v1": "bf20625ddc1438ad50b0b1667606db7244321fe7ab2a7897f7025df90edd882c"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnstableApiUsage",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "'repositories(org.gradle.api.Action)' is marked unstable with @Incubating",
+            "markdown": "'repositories(org.gradle.api.Action)' is marked unstable with @Incubating"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "settings.gradle.kts",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 3,
+                  "charOffset": 198,
+                  "charLength": 12,
+                  "snippet": {
+                    "text": "repositories"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 9,
+                  "startColumn": 1,
+                  "charOffset": 100,
+                  "charLength": 144,
+                  "snippet": {
+                    "text": "dependencyResolutionManagement {\n  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n  repositories {\n    google()\n    mavenCentral()"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "00ba8c3892965f36",
+            "equalIndicator/v1": "fa053d27c39df365ae5752b3abfc67afc06a371b4fe7ae0f7a18b6e783235182"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedSymbol",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Function \"DebugOverlayPreviewDark\" is never used",
+            "markdown": "Function \"DebugOverlayPreviewDark\" is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 143,
+                  "startColumn": 13,
+                  "charOffset": 4439,
+                  "charLength": 23,
+                  "snippet": {
+                    "text": "DebugOverlayPreviewDark"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 141,
+                  "startColumn": 1,
+                  "charOffset": 4362,
+                  "charLength": 157,
+                  "snippet": {
+                    "text": "@Preview(name = \"Dark Theme\", showBackground = true)\n@Composable\nprivate fun DebugOverlayPreviewDark() {\n  MaterialTheme(\n    colorScheme = darkColorScheme()"
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "65cd7ee9c8f3393e",
+            "equalIndicator/v1": "b931885861ab04377f1b87fade79dbc05d9b252470fa7eae602bc88ee9396111"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedSymbol",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Function \"DebugOverlayPreviewLight\" is never used",
+            "markdown": "Function \"DebugOverlayPreviewLight\" is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 92,
+                  "startColumn": 13,
+                  "charOffset": 3157,
+                  "charLength": 24,
+                  "snippet": {
+                    "text": "DebugOverlayPreviewLight"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 90,
+                  "startColumn": 1,
+                  "charOffset": 3079,
+                  "charLength": 133,
+                  "snippet": {
+                    "text": "@Preview(name = \"Light Theme\", showBackground = true)\n@Composable\nprivate fun DebugOverlayPreviewLight() {\n  MaterialTheme {\n    Box("
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "91f0b883977a4e80",
+            "equalIndicator/v1": "e2c99670701dc88e6da6e5a0116daba4d69f8610660015179a4fad0b372c9644"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedSymbol",
+          "kind": "fail",
+          "level": "warning",
+          "message": {
+            "text": "Function \"DebugOverlayPreviewHighLoad\" is never used",
+            "markdown": "Function \"DebugOverlayPreviewHighLoad\" is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt",
+                  "uriBaseId": "SRCROOT"
+                },
+                "region": {
+                  "startLine": 196,
+                  "startColumn": 13,
+                  "charOffset": 5804,
+                  "charLength": 27,
+                  "snippet": {
+                    "text": "DebugOverlayPreviewHighLoad"
+                  },
+                  "sourceLanguage": "kotlin"
+                },
+                "contextRegion": {
+                  "startLine": 194,
+                  "startColumn": 1,
+                  "charOffset": 5684,
+                  "charLength": 178,
+                  "snippet": {
+                    "text": "@Preview(name = \"Panel Only - High Load\", showBackground = true, widthDp = 200, heightDp = 180)\n@Composable\nprivate fun DebugOverlayPreviewHighLoad() {\n  MaterialTheme {\n    Box("
+                  },
+                  "sourceLanguage": "kotlin"
+                }
+              },
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "DebugOverlay-Android.debugoverlay-core.main",
+                  "kind": "module"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v2": "ce997f09d903d27b",
+            "equalIndicator/v1": "fea849b7b9984b6a3eb916e5facff5bb2b91529cc49050e702f5bf69170919f3"
+          },
+          "properties": {
+            "ideaSeverity": "WARNING",
+            "qodanaSeverity": "High",
+            "problemType": "REGULAR",
+            "hasFixes": true,
+            "tags": [
+              "kotlin"
+            ]
+          }
+        }
+      ],
       "automationDetails": {
         "id": "DebugOverlay-Android/qodana/2026-02-03",
         "guid": "248642cc-1207-4098-834e-f4f9d1093365",
