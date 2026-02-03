@@ -1,6 +1,7 @@
 [versions]
 # Plugins
-agp = "8.13.2"
+# NOTE: Qodana JVM Android 2025.3 only supports up to AGP 8.12.0
+agp = "8.12.0"
 jacoco = "0.8.12"
 bcv = "0.18.1"
 dexcount = "4.0.0"
