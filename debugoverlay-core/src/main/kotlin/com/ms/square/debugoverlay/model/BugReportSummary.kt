@@ -7,7 +7,7 @@ package com.ms.square.debugoverlay.model
  * systems (Jira, GitHub, Slack, etc.) without parsing the ZIP file.
  */
 public data class BugReportSummary(
-  /** Resolved title (defaults to "Bug Report" if user didn't provide one). */
+  /** Resolved title (defaults to "Bug Report" if user didn't provide one). Never empty or blank. */
   val title: String,
   /** User-provided description (null if not provided). */
   val description: String?,

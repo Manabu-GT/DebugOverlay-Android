@@ -1,7 +1,9 @@
 package com.ms.square.debugoverlay
 
-import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.model.BugReportSummary
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Formats a [BugReportSummary] into a Markdown string suitable for issue trackers.
@@ -47,7 +49,9 @@ public fun formatBugReportMarkdown(summary: BugReportSummary): String = buildStr
     appendLine("| Android | ${device.androidVersion} (API ${device.apiLevel}) |")
     appendLine("| Locale | ${device.locale} |")
   }
-  appendLine("| Captured | ${formatTimestamp(summary.capturedAt)} |")
+  appendLine(
+    "| Captured | ${SimpleDateFormat("MMM d, yyyy 'at' h:mm:ss a", Locale.US).format(Date(summary.capturedAt))} |"
+  )
   appendLine()
 
   appendLine("## Attachments")

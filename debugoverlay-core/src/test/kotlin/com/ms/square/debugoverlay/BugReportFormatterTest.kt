@@ -1,11 +1,13 @@
 package com.ms.square.debugoverlay
 
 import com.google.common.truth.Truth.assertThat
-import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.model.AppInfoSummary
 import com.ms.square.debugoverlay.model.BugReportSummary
 import com.ms.square.debugoverlay.model.DeviceInfoSummary
 import org.junit.Test
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class BugReportFormatterTest {
 
@@ -46,7 +48,8 @@ class BugReportFormatterTest {
     assertThat(markdown).contains("Google Pixel 8")
     assertThat(markdown).contains("14 (API 34)")
     assertThat(markdown).contains("en_US")
-    assertThat(markdown).contains(formatTimestamp(summary.capturedAt))
+    val expectedTimestamp = SimpleDateFormat("MMM d, yyyy 'at' h:mm:ss a", Locale.US).format(Date(summary.capturedAt))
+    assertThat(markdown).contains("| Captured | $expectedTimestamp |")
     assertThat(markdown).contains("## Attachments")
   }
 
