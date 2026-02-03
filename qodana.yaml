@@ -16,7 +16,7 @@ exclude:
       - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui
       - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui
   # Compose state assignments tracked by runtime
-  - name: UnusedAssignment
+  - name: AssignedValueIsNeverRead
     paths:
       - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui
       - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui
