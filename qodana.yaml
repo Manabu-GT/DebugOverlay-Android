@@ -3,8 +3,31 @@
 ####################################################################################################################
 
 version: "1.0"
-linter: jetbrains/qodana-jvm-android:2025.3
+# Using jvm-community due to IndexNotReadyException bug in qodana-jvm-android:2025.3
+linter: jetbrains/qodana-jvm-community:2025.3
 profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
+exclude:
+  # Compose naming conventions (PascalCase for @Composable functions)
+  - name: FunctionName
+    paths:
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui
+      - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui
+  # Compose state assignments tracked by runtime
+  - name: AssignedValueIsNeverRead
+    paths:
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/ui
+      - debugoverlay-core/src/main/kotlin/com/ms/square/debugoverlay/internal/bugreport/ui
+      - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui
+  # Sample app not part of library
+  - name: All
+    paths:
+      - sample
+  # Compose preview files
+  - name: All
+    paths:
+      - debugoverlay-core/src/debug/kotlin/com/ms/square/debugoverlay/internal/ui/DebugOverlayPanelPreviews.kt
+# bootstrap not needed with jvm-community (no Android SDK available)
