@@ -23,7 +23,8 @@ jobs:
         uses: JetBrains/qodana-action@v2025.3
         with:
           pr-mode: false
-          args: --baseline,qodana.sarif.json
+          # TODO: baseline disabled due to IndexNotReadyException bug in Qodana 2025.3
+          # args: --baseline,qodana.sarif.json
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_98944609 }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
