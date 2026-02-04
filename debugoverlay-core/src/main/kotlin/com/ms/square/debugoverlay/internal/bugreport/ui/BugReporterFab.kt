@@ -1,6 +1,5 @@
 package com.ms.square.debugoverlay.internal.bugreport.ui
 
-import android.content.Intent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
