@@ -104,24 +104,7 @@ dependencies {
 
 The overlay installs automatically via AndroidX Startup. No code required—just add the dependency.
 
-To disable auto-install (e.g., for specific build flavors), add this to your `AndroidManifest.xml`:
-```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-  <application>
-    <provider
-      android:name="androidx.startup.InitializationProvider"
-      android:authorities="${applicationId}.androidx-startup"
-      tools:node="merge">
-      <meta-data
-        android:name="com.ms.square.debugoverlay.DebugOverlayStartupInitializer"
-        tools:node="remove" />
-    </provider>
-  </application>
-</manifest>
-```
-
-> **Note:** Manual lifecycle control is not supported in v2.0.0 at the moment. Disabling auto-install means the overlay won't appear.
+> **Note:** Manual lifecycle control is not supported at the moment.
 
 ### Overlay modes
 
