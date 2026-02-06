@@ -7,6 +7,7 @@
   <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.2-7F52FF.svg?style=flat&logo=kotlin&logoColor=white" alt="Kotlin 2.2"></a>
   <a href="https://developer.android.com/develop/ui/compose/bom/bom-mapping"><img src="https://img.shields.io/badge/Compose%20BOM-2025.11-4285F4.svg?style=flat&logo=jetpackcompose&logoColor=white" alt="Compose BOM 2025.11"></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202-brightgreen.svg?style=flat" alt="License"></a>
+  <a href="https://github.com/Manabu-GT/DebugOverlay-Android/stargazers"><img src="https://img.shields.io/github/stars/Manabu-GT/DebugOverlay-Android?style=flat&logo=github&label=Star&color=gold" alt="GitHub Stars"></a>
   <a href="https://appetize.io/app/b_vehgnd6u6w4l7xvzixicd64fni?device=pixel7&osVersion=15.0&toolbar=true"><img src="https://img.shields.io/badge/Live%20Demo-Appetize.io-orange?style=flat&logo=android" alt="Live Demo"></a>
   <br><br>
 </div>
