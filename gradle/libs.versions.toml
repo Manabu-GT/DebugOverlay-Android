@@ -19,7 +19,7 @@ androidTargetSdk = "36"
 
 # Kotlin
 kotlin = "2.2.21"
-kotlinxSerializationCore = "1.9.0"
+kotlinxSerializationCore = "1.10.0"
 
 # Google
 androidx-core = "1.17.0"
