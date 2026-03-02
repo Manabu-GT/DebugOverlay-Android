@@ -40,7 +40,7 @@ metrics-performance = "1.0.0"
 
 # Other
 timber = "5.0.1"
-radiography = "2.7"
+radiography = "2.9"
 curtains = "1.2.5"
 leakcanary = "2.14"
 okhttp = "5.3.2"
