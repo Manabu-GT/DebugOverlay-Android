@@ -44,7 +44,7 @@ radiography = "2.9"
 curtains = "1.2.5"
 leakcanary = "2.14"
 okhttp = "5.3.2"
-coil = "3.3.0"
+coil = "3.4.0"
 kotlinx-coroutines = "1.10.2"
 
 # Testing
