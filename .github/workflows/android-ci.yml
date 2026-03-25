@@ -25,6 +25,10 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      # Caches Gradle + wrapper automatically
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
       # Run checks (Spotless + Detekt + Lint + Tests), then merge SARIF reports
       # detekt is hooked into subproject `check` tasks, so it runs automatically
       # reportMerge must run after to collect all SARIF files
