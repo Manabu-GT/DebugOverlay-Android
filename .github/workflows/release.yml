@@ -53,9 +53,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
-
       - name: Run checks
         run: ./gradlew check --stacktrace
 
