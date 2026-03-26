@@ -20,13 +20,9 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Kotlin major/minor updates require approval (for library compatibility)",
+      "description": "Kotlin updates require approval (affects consumers' kotlin-stdlib)",
       "matchPackageNames": [
         "/^org\\.jetbrains\\.kotlin([.:]|$)/"
-      ],
-      "matchUpdateTypes": [
-        "major",
-        "minor"
       ],
       "dependencyDashboardApproval": true
     },
@@ -63,8 +59,9 @@
       ]
     },
     {
-      "description": "Square libraries (OkHttp, Radiography, etc)",
+      "description": "Square libraries (OkHttp, Radiography, etc) - require approval as transitive deps",
       "groupName": "Square libraries",
+      "dependencyDashboardApproval": true,
       "matchPackageNames": [
         "/^com\\.squareup\\./"
       ]
