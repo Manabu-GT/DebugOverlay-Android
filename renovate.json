@@ -54,8 +54,9 @@
       ]
     },
     {
-      "description": "AndroidX libraries (excluding Compose)",
+      "description": "AndroidX libraries (excluding Compose) - require approval for library consumers",
       "groupName": "AndroidX libraries",
+      "dependencyDashboardApproval": true,
       "matchPackageNames": [
         "/^androidx\\./",
         "!/^androidx\\.compose/"
