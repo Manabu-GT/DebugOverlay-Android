@@ -1,5 +1,13 @@
 # Change Log
 
+## Version 2.1.1 *(2026-03-26)*
+
+### Dependencies
+
+* Update AndroidX libraries (Core 1.17.0, Activity Compose 1.12.4, Lifecycle 2.10.0)
+* Update kotlinx-serialization to 1.10.0
+* Update Radiography to 2.9
+
 ## Version 2.1.0 *(2026-02-02)*
 
 ### New Features
