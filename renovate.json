@@ -43,14 +43,6 @@
       ]
     },
     {
-      "description": "Pin AGP to 8.x until Gradle 9 migration",
-      "matchPackageNames": [
-        "com.android.application",
-        "com.android.library"
-      ],
-      "allowedVersions": "8.x"
-    },
-    {
       "description": "Maven publish plugin requires manual verification",
       "dependencyDashboardApproval": true,
       "matchPackageNames": [
