@@ -27,7 +27,15 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Compose libraries - all updates require approval",
+      "description": "AndroidX libraries - require approval for library consumers",
+      "groupName": "AndroidX libraries",
+      "dependencyDashboardApproval": true,
+      "matchPackageNames": [
+        "/^androidx\\./"
+      ]
+    },
+    {
+      "description": "Compose libraries - all updates require approval (overrides AndroidX group)",
       "groupName": "Compose",
       "dependencyDashboardApproval": true,
       "matchPackageNames": [
@@ -47,15 +55,6 @@
       "dependencyDashboardApproval": true,
       "matchPackageNames": [
         "/com\\.vanniktech\\.maven\\.publish/"
-      ]
-    },
-    {
-      "description": "AndroidX libraries (excluding Compose) - require approval for library consumers",
-      "groupName": "AndroidX libraries",
-      "dependencyDashboardApproval": true,
-      "matchPackageNames": [
-        "/^androidx\\./",
-        "!/^androidx\\.compose/"
       ]
     },
     {
