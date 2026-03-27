@@ -2,7 +2,6 @@ import java.util.Properties
 
 plugins {
   alias(libs.plugins.androidApplication)
-  alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.ksp)
@@ -81,10 +80,10 @@ android {
   sourceSets {
     // Shared source set for builds that include DebugOverlay (debug + releaseWithOverlay)
     named("debug") {
-      java.srcDir("src/debugOverlay/kotlin")
+      kotlin.srcDirs("src/debugOverlay/kotlin")
     }
     named("releaseWithOverlay") {
-      java.srcDir("src/debugOverlay/kotlin")
+      kotlin.srcDirs("src/debugOverlay/kotlin")
     }
   }
 }

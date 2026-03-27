@@ -8,7 +8,7 @@ kotlinxSerializationJson = "1.10.0"
 maven-publish = "0.35.0"
 spotless = "8.4.0"
 detekt = "1.23.8"
-hilt = "2.57.2"
+hilt = "2.59.2"
 hiltNavigationCompose = "1.3.0"
 ksp = "2.3.6"
 
@@ -119,7 +119,6 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
