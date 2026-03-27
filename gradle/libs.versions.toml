@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-agp = "8.13.2"
+agp = "9.0.1"
 jacoco = "0.8.12"
 bcv = "0.18.1"
 dexcount = "4.0.0"
