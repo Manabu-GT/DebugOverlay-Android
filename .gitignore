@@ -9,6 +9,9 @@ keystore.properties
 tools/ai/plans
 tools/ai/guides
 
+# Claude worktree files
+.claude/worktrees/
+
 # Gradle files
 .gradle/
 build/
