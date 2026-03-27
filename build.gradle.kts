@@ -12,7 +12,6 @@ plugins {
    */
   alias(libs.plugins.androidApplication) apply false
   alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.kotlin.android) apply false
   alias(libs.plugins.kotlin.compose) apply false
   alias(libs.plugins.hilt.android) apply false
   alias(libs.plugins.ksp) apply false
@@ -48,9 +47,9 @@ val jacocoFileFilter = listOf(
 )
 
 subprojects {
-  // Apply only to modules that actually use Kotlin
-  plugins.withId("org.jetbrains.kotlin.jvm") { apply(plugin = "io.gitlab.arturbosch.detekt") }
-  plugins.withId("org.jetbrains.kotlin.android") { apply(plugin = "io.gitlab.arturbosch.detekt") }
+  // Apply detekt to Android modules (built-in Kotlin handles Kotlin compilation)
+  plugins.withId("com.android.library") { apply(plugin = "io.gitlab.arturbosch.detekt") }
+  plugins.withId("com.android.application") { apply(plugin = "io.gitlab.arturbosch.detekt") }
 
   // Configure Detekt when present
   plugins.withId("io.gitlab.arturbosch.detekt") {

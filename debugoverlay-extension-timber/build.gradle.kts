@@ -1,6 +1,5 @@
 plugins {
   alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.kotlin.android)
   alias(libs.plugins.dexcount)
   alias(libs.plugins.mavenPublish)
   alias(libs.plugins.bcv)

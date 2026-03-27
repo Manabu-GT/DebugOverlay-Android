@@ -18,8 +18,7 @@ dependencyResolutionManagement {
   }
 }
 
-// Although default in Gradle 9, this is still needed with android.newDsl=false
-// to generate typesafe project accessors compatible with the old DSL.
+// Even with Gradle 9, this is still needed to generate typesafe project accessors compatible with the DSL.
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "DebugOverlay-Android"
