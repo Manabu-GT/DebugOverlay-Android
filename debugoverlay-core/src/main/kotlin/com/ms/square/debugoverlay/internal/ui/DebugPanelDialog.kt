@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -315,6 +316,6 @@ private fun DebugPanelTabContent(selectedTab: PanelTab, repository: DebugOverlay
       BuiltInTab.UI -> UiTabContent()
       BuiltInTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
     }
-    is PanelTab.Custom -> selectedTab.tab.content()
+    is PanelTab.Custom -> key(selectedTab.tab) { selectedTab.tab.content() }
   }
 }
