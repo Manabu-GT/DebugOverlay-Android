@@ -1,5 +1,17 @@
 # Change Log
 
+## Version 2.2.0 *(Unreleased)*
+
+### New Features
+
+* **Custom Tab API** – Add app-specific tabs to the debug panel via `DebugTab` class. Control which built-in tabs are visible and their display order through `OverlayMode.FullMetrics(tabs = ...)`.
+  * Built-in tab singletons: `DebugTab.Logcat`, `DebugTab.Network`, `DebugTab.JankStats`, `DebugTab.AppExits`, `DebugTab.Ui`, `DebugTab.DeviceInfo`
+  * `DebugTab.defaults` list for easy appending: `DebugTab.defaults + myCustomTab`
+
+### Breaking Changes
+
+* `OverlayMode.FullMetrics` changed from `data object` to `data class`. If you reference it explicitly, change `OverlayMode.FullMetrics` to `OverlayMode.FullMetrics()`. Zero-config users are unaffected.
+
 ## Version 2.1.1 *(2026-03-26)*
 
 ### Dependencies

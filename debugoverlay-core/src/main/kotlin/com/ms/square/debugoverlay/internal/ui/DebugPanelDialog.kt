@@ -1,7 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import android.view.View
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +27,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,24 +46,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.DebugOverlay
+import com.ms.square.debugoverlay.DebugTab
+import com.ms.square.debugoverlay.OverlayMode
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
-import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_LOG_SOURCE_NAME
-import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-
-private enum class DebugTab(@param:StringRes val titleResId: Int) {
-  LOGCAT(R.string.debugoverlay_tab_logcat),
-  CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from source
-  APP_EXITS(R.string.debugoverlay_tab_app_exits),
-  NETWORK(R.string.debugoverlay_tab_network),
-  JANKSTATS(R.string.debugoverlay_tab_jankstats),
-  UI(R.string.debugoverlay_tab_ui),
-  DEVICE_INFO(R.string.debugoverlay_tab_device_info),
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -222,88 +212,47 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
+  val configTabs = (DebugOverlay.config.overlayMode as? OverlayMode.FullMetrics)?.tabs ?: return
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
-  val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
 
-  // Build visible tabs: hide CUSTOM_LOG when no custom log source is registered
-  val visibleTabs = remember(hasCustomLogSource) {
-    DebugTab.entries.filter { tab ->
-      tab != DebugTab.CUSTOM_LOG || hasCustomLogSource
-    }
+  val tabs = remember(configTabs, hasCustomLogSource) {
+    resolveVisibleTabs(configTabs, hasCustomLogSource)
   }
 
-  // Use rememberSaveable to persist tab selection across configuration changes
-  var selectedTab by rememberSaveable { mutableStateOf(DebugTab.LOGCAT) }
+  if (tabs.isEmpty()) return
 
-  // Validate selection when tabs change (e.g., custom log source removed)
-  LaunchedEffect(visibleTabs) {
-    if (selectedTab !in visibleTabs) {
-      selectedTab = DebugTab.LOGCAT
-    }
-  }
-
-  val selectedTabIndex = visibleTabs.indexOf(selectedTab).coerceAtLeast(0)
+  var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+  selectedIndex = selectedIndex.coerceIn(0, tabs.lastIndex)
 
   Column(modifier = modifier.fillMaxSize()) {
     DebugPanelTabRow(
-      visibleTabs = visibleTabs,
-      selectedTab = selectedTab,
-      selectedTabIndex = selectedTabIndex,
-      customLogSourceName = customLogSourceName,
-      onTabSelected = { selectedTab = it }
+      tabs = tabs,
+      selectedIndex = selectedIndex,
+      onTabSelected = { selectedIndex = it }
     )
-    DebugPanelTabContent(selectedTab = selectedTab, repository = repository)
+    RenderTabContent(tabs[selectedIndex], repository)
   }
 }
 
 @Composable
-private fun DebugPanelTabRow(
-  visibleTabs: List<DebugTab>,
-  selectedTab: DebugTab,
-  selectedTabIndex: Int,
-  customLogSourceName: String?,
-  onTabSelected: (DebugTab) -> Unit,
-) {
+private fun DebugPanelTabRow(tabs: List<DebugTab>, selectedIndex: Int, onTabSelected: (Int) -> Unit) {
   PrimaryScrollableTabRow(
-    selectedTabIndex = selectedTabIndex,
+    selectedTabIndex = selectedIndex,
     modifier = Modifier.fillMaxWidth(),
     containerColor = Color.Transparent
   ) {
-    visibleTabs.forEach { tab ->
+    tabs.forEachIndexed { index, tab ->
       Tab(
-        selected = selectedTab == tab,
-        onClick = { onTabSelected(tab) },
+        selected = index == selectedIndex,
+        onClick = { onTabSelected(index) },
         text = {
           Text(
-            text = if (tab == DebugTab.CUSTOM_LOG) {
-              customLogSourceName ?: DEFAULT_CUSTOM_LOG_SOURCE_NAME
-            } else {
-              stringResource(tab.titleResId)
-            },
+            text = resolveTitle(tab),
             style = MaterialTheme.typography.labelLarge
           )
         }
       )
     }
-  }
-}
-
-@Composable
-private fun DebugPanelTabContent(selectedTab: DebugTab, repository: DebugOverlayDataRepository) {
-  when (selectedTab) {
-    DebugTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs)
-    DebugTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customLogSourceLogs)
-    DebugTab.APP_EXITS -> AppExitTabContent(
-      exitInfosFlow = repository.appExitInfos,
-      isSupported = repository.isAppExitSupported
-    )
-    DebugTab.NETWORK -> NetworkTabContent(
-      netStatsFlow = repository.netStats,
-      networkRequestsFlow = repository.networkRequests
-    )
-    DebugTab.JANKSTATS -> JankStatsTabContent(jankStatsFlow = repository.jankStats)
-    DebugTab.UI -> UiTabContent()
-    DebugTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
   }
 }

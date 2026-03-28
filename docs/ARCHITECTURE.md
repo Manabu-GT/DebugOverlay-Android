@@ -82,6 +82,12 @@ interface BugReportDataContributor {
 
 **Auto-registration pattern:** Extensions self-register in their `init` block by calling `DebugOverlay.configure {}`. AndroidX Startup provides zero-config initialization for core and Timber extension (via manifest-declared initializers); OkHttp extension requires manual interceptor registration.
 
+### Custom Tabs
+
+The debug panel supports custom tabs via the `DebugTab` class. Built-in tabs are companion singletons (`DebugTab.Logcat`, `DebugTab.Network`, etc.), while custom tabs are created via the public constructor with a composable lambda. Tab visibility and ordering are configured through `OverlayMode.FullMetrics(tabs = ...)`. The Custom Log tab is auto-injected when a `LogSource` is configured.
+
+Internally, built-in tabs dispatch rendering by `===` reference equality on companion singletons. Title resolution and content rendering happen in `BuiltInTabs.kt`.
+
 ## UI Architecture
 
 ```

@@ -214,7 +214,7 @@ internal class OverlayViewManager(
         ) {
           val currentOverlayMode by overlayMode.collectAsStateWithLifecycle()
           when (currentOverlayMode) {
-            OverlayMode.FullMetrics -> {
+            is OverlayMode.FullMetrics -> {
               val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(
                 initialValue = null
               )

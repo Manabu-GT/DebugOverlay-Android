@@ -21,7 +21,7 @@ class DebugOverlayTest {
   @After
   fun tearDown() {
     DebugOverlay.configure {
-      overlayMode = OverlayMode.FullMetrics
+      overlayMode = OverlayMode.FullMetrics()
       networkRequestSource = NoOpNetworkRequestSource
       customLogSource = null
       bugReportExporter = IntentShareExporter
@@ -33,7 +33,7 @@ class DebugOverlayTest {
   fun `Config has correct defaults`() {
     val config = DebugOverlay.Config()
 
-    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics)
+    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics())
     assertThat(config.networkRequestSource).isEqualTo(NoOpNetworkRequestSource)
     assertThat(config.customLogSource).isNull()
     assertThat(config.bugReportExporter).isSameInstanceAs(IntentShareExporter)
