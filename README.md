@@ -154,7 +154,7 @@ DebugOverlay.configure {
 }
 ```
 
-Built-in tabs: `DebugTab.Logcat`, `DebugTab.Network`, `DebugTab.JankStats`, `DebugTab.AppExits`, `DebugTab.Ui`, `DebugTab.DeviceInfo`.
+Built-in tabs: `DebugTab.Logcat`, `DebugTab.AppExits`, `DebugTab.Network`, `DebugTab.JankStats`, `DebugTab.Ui`, `DebugTab.DeviceInfo`.
 
 ### Network request tracking
 

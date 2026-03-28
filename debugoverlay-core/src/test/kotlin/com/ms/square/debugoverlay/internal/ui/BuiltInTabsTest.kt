@@ -43,17 +43,20 @@ class BuiltInTabsTest {
     assertThat(result).hasSize(DebugTab.defaults.size + 1)
     assertThat(result[0]).isSameInstanceAs(DebugTab.Logcat)
     assertThat(result[1]).isSameInstanceAs(CustomLog)
-    assertThat(result[2]).isSameInstanceAs(DebugTab.Network)
+    assertThat(result[2]).isSameInstanceAs(DebugTab.AppExits)
   }
 
   @Test
-  fun `resolveVisibleTabs preserves custom tabs in list`() {
+  fun `resolveVisibleTabs preserves custom tabs when CustomLog is injected`() {
     val customTab = DebugTab(title = "Flags") {}
     val tabs = listOf(DebugTab.Logcat, customTab, DebugTab.Network)
-    val result = resolveVisibleTabs(tabs, hasCustomLogSource = false)
+    val result = resolveVisibleTabs(tabs, hasCustomLogSource = true)
 
-    assertThat(result).hasSize(3)
-    assertThat(result[1]).isSameInstanceAs(customTab)
+    assertThat(result).hasSize(4)
+    assertThat(result[0]).isSameInstanceAs(DebugTab.Logcat)
+    assertThat(result[1]).isSameInstanceAs(CustomLog)
+    assertThat(result[2]).isSameInstanceAs(customTab)
+    assertThat(result[3]).isSameInstanceAs(DebugTab.Network)
   }
 
   @Test

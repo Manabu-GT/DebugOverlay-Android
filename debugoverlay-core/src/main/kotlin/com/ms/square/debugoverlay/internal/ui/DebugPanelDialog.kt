@@ -212,6 +212,7 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
+  // DebugPanelDialog is only shown in FullMetrics mode; safe cast is defensive
   val configTabs = (DebugOverlay.config.overlayMode as? OverlayMode.FullMetrics)?.tabs ?: return
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
@@ -223,6 +224,8 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
   if (tabs.isEmpty()) return
 
   var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+  // Clamp to valid range when the tab list shrinks (e.g., custom log source removed).
+  // Intentionally lands on the last tab rather than resetting to 0 — acceptable for a debug tool.
   selectedIndex = selectedIndex.coerceIn(0, tabs.lastIndex)
 
   Column(modifier = modifier.fillMaxSize()) {

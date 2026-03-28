@@ -28,7 +28,10 @@ import com.ms.square.debugoverlay.BugReportDataContributor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.OutputStream
 import java.io.PrintWriter
+
+private val SENSITIVE_KEYWORDS = listOf("token", "password", "secret", "key", "credential", "auth")
 
 /** Data model for a SharedPreferences file. */
 private data class PrefsFile(val name: String, val entries: List<Pair<String, String>>)
@@ -132,33 +135,23 @@ internal class SharedPreferencesContributor(private val context: Context) : BugR
 
   override val filename = "shared_preferences.txt"
 
-  override fun writeTo(outputStream: java.io.OutputStream) {
+  override fun writeTo(outputStream: OutputStream) {
     PrintWriter(outputStream).use { writer ->
-      val prefsDir = File(context.applicationInfo.dataDir, "shared_prefs")
-      val prefsFiles = prefsDir.listFiles { file -> file.extension == "xml" } ?: emptyArray()
-
-      if (prefsFiles.isEmpty()) {
+      val prefsData = readAllPrefs(context)
+      if (prefsData.isEmpty()) {
         writer.println("No SharedPreferences files found")
         return@use
       }
 
-      prefsFiles.sortedBy { it.name }.forEach { file ->
-        val prefsName = file.nameWithoutExtension
-        writer.println("=== $prefsName ===")
-
-        val prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        prefs.all.entries
-          .filterNot { it.key.containsSensitiveKeyword() }
-          .sortedBy { it.key }
-          .forEach { (key, value) ->
-            writer.println("  $key = $value")
-          }
+      prefsData.forEach { prefsFile ->
+        writer.println("=== ${prefsFile.name} ===")
+        prefsFile.entries.forEach { (key, value) ->
+          writer.println("  $key = $value")
+        }
         writer.println()
       }
     }
   }
 }
 
-private fun String.containsSensitiveKeyword(): Boolean =
-  listOf("token", "password", "secret", "key", "credential", "auth")
-    .any { this.contains(it, ignoreCase = true) }
+private fun String.containsSensitiveKeyword(): Boolean = SENSITIVE_KEYWORDS.any { this.contains(it, ignoreCase = true) }

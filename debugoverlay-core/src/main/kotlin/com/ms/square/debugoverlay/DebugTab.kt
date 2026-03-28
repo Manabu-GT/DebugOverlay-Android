@@ -44,6 +44,6 @@ public class DebugTab(internal val title: String, internal val content: @Composa
     public val DeviceInfo: DebugTab = DebugTab("", {})
 
     /** Default tab list used when no explicit tabs are configured. */
-    public val defaults: List<DebugTab> = listOf(Logcat, Network, JankStats, AppExits, Ui, DeviceInfo)
+    public val defaults: List<DebugTab> = listOf(Logcat, AppExits, Network, JankStats, Ui, DeviceInfo)
   }
 }
