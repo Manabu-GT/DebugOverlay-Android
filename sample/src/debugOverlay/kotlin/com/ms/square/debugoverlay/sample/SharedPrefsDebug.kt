@@ -31,7 +31,10 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintWriter
 
-private val SENSITIVE_KEYWORDS = listOf("token", "password", "secret", "key", "credential", "auth")
+// Best-effort denylist for a debug-only tool. This is not a security guarantee —
+// review your own SharedPreferences keys and extend this list as needed for your app.
+private val SENSITIVE_KEYWORDS =
+  listOf("token", "password", "secret", "api_key", "secret_key", "credential", "auth", "session")
 
 /** Data model for a SharedPreferences file. */
 private data class PrefsFile(val name: String, val entries: List<Pair<String, String>>)
@@ -39,6 +42,8 @@ private data class PrefsFile(val name: String, val entries: List<Pair<String, St
 /** Custom debug panel tab content that displays all SharedPreferences. */
 @Composable
 internal fun SharedPrefsTabContent(context: Context) {
+  // Initial value is emptyList(); the empty-state branch below shows briefly while the IO
+  // scan runs. For sample clarity we omit a separate loading state — acceptable in a debug tool.
   val prefsData by produceState(emptyList()) {
     value = withContext(Dispatchers.IO) { readAllPrefs(context) }
   }
@@ -129,7 +134,9 @@ private fun readAllPrefs(context: Context): List<PrefsFile> {
 
 /**
  * BugReportDataContributor that dumps SharedPreferences.
- * Filters out sensitive keys containing "token", "password", "secret", or "key".
+ * Applies a best-effort keyword denylist to filter out obviously sensitive keys (tokens,
+ * passwords, credentials, session identifiers). This is not a comprehensive security filter —
+ * extend [SENSITIVE_KEYWORDS] or override this class for stricter requirements.
  */
 internal class SharedPreferencesContributor(private val context: Context) : BugReportDataContributor {
 
