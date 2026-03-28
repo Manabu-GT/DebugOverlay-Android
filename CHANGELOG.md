@@ -4,9 +4,7 @@
 
 ### New Features
 
-* **Custom Tab API** – Add app-specific tabs to the debug panel via `DebugTab` class. Control which built-in tabs are visible and their display order through `OverlayMode.FullMetrics(tabs = ...)`.
-  * Built-in tab singletons: `DebugTab.Logcat`, `DebugTab.Network`, `DebugTab.JankStats`, `DebugTab.AppExits`, `DebugTab.Ui`, `DebugTab.DeviceInfo`
-  * `DebugTab.defaults` list for easy appending: `DebugTab.defaults + myCustomTab`
+* **Custom Tab API** – Add app-specific tabs to the debug panel via `DebugTab` class. Custom tabs are appended after built-in tabs and configured via `OverlayMode.FullMetrics(customTabs = ...)`.
 
 ### Breaking Changes
 

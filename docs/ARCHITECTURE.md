@@ -84,9 +84,7 @@ interface BugReportDataContributor {
 
 ### Custom Tabs
 
-The debug panel supports custom tabs via the `DebugTab` class. Built-in tabs are companion singletons (`DebugTab.Logcat`, `DebugTab.Network`, etc.), while custom tabs are created via the public constructor with a composable lambda. Tab visibility and ordering are configured through `OverlayMode.FullMetrics(tabs = ...)`. The Custom Log tab is auto-injected when a `LogSource` is configured.
-
-Internally, built-in tabs dispatch rendering by `===` reference equality on companion singletons. Title resolution and content rendering happen in `BuiltInTabs.kt`.
+The debug panel supports custom tabs via the `DebugTab` class. Custom tabs are appended after built-in tabs and configured via `OverlayMode.FullMetrics(customTabs = ...)`. Custom tab content is a `@Composable` lambda provided at construction time.
 
 ## UI Architecture
 

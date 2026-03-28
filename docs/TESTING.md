@@ -57,7 +57,7 @@ Before writing a new test, verify it tests a **unique behavior**:
 // GOOD: One test, multiple assertions for the same behavior
 @Test fun `Config has correct defaults`() {
     val config = Config()
-    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics)
+    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics())
     assertThat(config.networkRequestSource).isEqualTo(NoOpNetworkRequestSource)
     assertThat(config.customLogSource).isNull()
 }

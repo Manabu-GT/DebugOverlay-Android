@@ -84,6 +84,19 @@ class DebugOverlayTest {
   }
 
   @Test
+  fun `configure sets custom tabs on FullMetrics preserving order`() {
+    val tab1 = DebugTab(title = "Tab 1") {}
+    val tab2 = DebugTab(title = "Tab 2") {}
+
+    DebugOverlay.configure {
+      overlayMode = OverlayMode.FullMetrics(customTabs = listOf(tab1, tab2))
+    }
+
+    val mode = DebugOverlay.config.overlayMode as OverlayMode.FullMetrics
+    assertThat(mode.customTabs).containsExactly(tab1, tab2).inOrder()
+  }
+
+  @Test
   fun `addBugReportContributor adds contributors to list`() {
     val contributor1 = TestBugReportContributor("test1.txt")
     val contributor2 = TestBugReportContributor("test2.txt")

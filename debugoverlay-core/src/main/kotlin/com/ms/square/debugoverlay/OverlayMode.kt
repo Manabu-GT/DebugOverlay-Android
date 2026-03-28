@@ -16,13 +16,9 @@ public sealed interface OverlayMode {
    * Tapping opens the debug panel.
    * Best for developers during active development/testing.
    *
-   * @param tabs Controls which tabs appear and their order.
-   *   Default: [DebugTab.defaults] (all built-in tabs in standard order).
-   *   When overridden, only the specified tabs appear, in the given order.
-   *   The Custom Log tab is auto-injected when a [LogSource] is configured
-   *   and does not need to be included here.
+   * @param customTabs Custom tabs appended after the built-in tabs in the debug panel.
    */
-  public data class FullMetrics(val tabs: List<DebugTab> = DebugTab.defaults) : OverlayMode
+  public data class FullMetrics(val customTabs: List<DebugTab> = emptyList()) : OverlayMode
 
   /**
    * Shows a minimal bug reporter FAB.

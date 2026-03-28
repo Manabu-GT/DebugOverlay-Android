@@ -16,9 +16,9 @@ object DebugOverlaySetup {
     // Add a custom tab showing SharedPreferences
     DebugOverlay.configure {
       overlayMode = OverlayMode.FullMetrics(
-        tabs = DebugTab.defaults + DebugTab(title = "SharedPrefs") {
-          SharedPrefsTabContent(appContext)
-        }
+        customTabs = listOf(
+          DebugTab(title = "SharedPrefs") { SharedPrefsTabContent(appContext) }
+        )
       )
     }
 

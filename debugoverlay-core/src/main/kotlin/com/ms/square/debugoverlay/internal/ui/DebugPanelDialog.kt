@@ -1,6 +1,7 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,8 +53,28 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
+import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_LOG_SOURCE_NAME
+import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+private enum class BuiltInTab(@param:StringRes val titleResId: Int) {
+  LOGCAT(R.string.debugoverlay_tab_logcat),
+  CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from source
+  APP_EXITS(R.string.debugoverlay_tab_app_exits),
+  NETWORK(R.string.debugoverlay_tab_network),
+  JANKSTATS(R.string.debugoverlay_tab_jankstats),
+  UI(R.string.debugoverlay_tab_ui),
+  DEVICE_INFO(R.string.debugoverlay_tab_device_info),
+}
+
+/**
+ * A visible tab in the panel — either a built-in tab or a custom [DebugTab].
+ */
+private sealed class PanelTab {
+  data class BuiltIn(val tab: BuiltInTab) : PanelTab()
+  data class Custom(val tab: DebugTab) : PanelTab()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -212,50 +233,90 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 
 @Composable
 private fun DebugPanelContent(modifier: Modifier = Modifier) {
-  // DebugPanelDialog is only shown in FullMetrics mode; safe cast is defensive
-  val configTabs = (DebugOverlay.config.overlayMode as? OverlayMode.FullMetrics)?.tabs ?: return
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
+  val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
+  val customTabs = (DebugOverlay.config.overlayMode as? OverlayMode.FullMetrics)?.customTabs.orEmpty()
 
-  val tabs = remember(configTabs, hasCustomLogSource) {
-    resolveVisibleTabs(configTabs, hasCustomLogSource)
+  // Build visible tabs: built-in tabs (with CUSTOM_LOG conditionally shown) + custom tabs
+  val visibleTabs = remember(hasCustomLogSource, customTabs) {
+    val builtIn = BuiltInTab.entries
+      .filter { it != BuiltInTab.CUSTOM_LOG || hasCustomLogSource }
+      .map { PanelTab.BuiltIn(it) }
+    builtIn + customTabs.map { PanelTab.Custom(it) }
   }
 
-  if (tabs.isEmpty()) return
+  if (visibleTabs.isEmpty()) return
 
   var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
-  // Clamp to valid range when the tab list shrinks (e.g., custom log source removed).
-  // Intentionally lands on the last tab rather than resetting to 0 — acceptable for a debug tool.
-  selectedIndex = selectedIndex.coerceIn(0, tabs.lastIndex)
+  selectedIndex = selectedIndex.coerceIn(0, visibleTabs.lastIndex)
 
   Column(modifier = modifier.fillMaxSize()) {
     DebugPanelTabRow(
-      tabs = tabs,
+      visibleTabs = visibleTabs,
       selectedIndex = selectedIndex,
+      customLogSourceName = customLogSourceName,
       onTabSelected = { selectedIndex = it }
     )
-    RenderTabContent(tabs[selectedIndex], repository)
+    DebugPanelTabContent(
+      selectedTab = visibleTabs[selectedIndex],
+      repository = repository
+    )
   }
 }
 
 @Composable
-private fun DebugPanelTabRow(tabs: List<DebugTab>, selectedIndex: Int, onTabSelected: (Int) -> Unit) {
+private fun DebugPanelTabRow(
+  visibleTabs: List<PanelTab>,
+  selectedIndex: Int,
+  customLogSourceName: String?,
+  onTabSelected: (Int) -> Unit,
+) {
   PrimaryScrollableTabRow(
     selectedTabIndex = selectedIndex,
     modifier = Modifier.fillMaxWidth(),
     containerColor = Color.Transparent
   ) {
-    tabs.forEachIndexed { index, tab ->
+    visibleTabs.forEachIndexed { index, panelTab ->
       Tab(
         selected = index == selectedIndex,
         onClick = { onTabSelected(index) },
         text = {
           Text(
-            text = resolveTitle(tab),
+            text = when (panelTab) {
+              is PanelTab.BuiltIn -> if (panelTab.tab == BuiltInTab.CUSTOM_LOG) {
+                customLogSourceName ?: DEFAULT_CUSTOM_LOG_SOURCE_NAME
+              } else {
+                stringResource(panelTab.tab.titleResId)
+              }
+              is PanelTab.Custom -> panelTab.tab.title
+            },
             style = MaterialTheme.typography.labelLarge
           )
         }
       )
     }
+  }
+}
+
+@Composable
+private fun DebugPanelTabContent(selectedTab: PanelTab, repository: DebugOverlayDataRepository) {
+  when (selectedTab) {
+    is PanelTab.BuiltIn -> when (selectedTab.tab) {
+      BuiltInTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs)
+      BuiltInTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customLogSourceLogs)
+      BuiltInTab.APP_EXITS -> AppExitTabContent(
+        exitInfosFlow = repository.appExitInfos,
+        isSupported = repository.isAppExitSupported
+      )
+      BuiltInTab.NETWORK -> NetworkTabContent(
+        netStatsFlow = repository.netStats,
+        networkRequestsFlow = repository.networkRequests
+      )
+      BuiltInTab.JANKSTATS -> JankStatsTabContent(jankStatsFlow = repository.jankStats)
+      BuiltInTab.UI -> UiTabContent()
+      BuiltInTab.DEVICE_INFO -> DeviceInfoTabContent(deviceInfoFlow = repository.deviceInfo)
+    }
+    is PanelTab.Custom -> selectedTab.tab.content()
   }
 }
