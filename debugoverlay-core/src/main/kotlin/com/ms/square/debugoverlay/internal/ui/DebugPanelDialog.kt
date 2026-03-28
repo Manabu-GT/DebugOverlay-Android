@@ -246,8 +246,6 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     builtIn + customTabs.map { PanelTab.Custom(it) }
   }
 
-  if (visibleTabs.isEmpty()) return
-
   var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
   selectedIndex = selectedIndex.coerceIn(0, visibleTabs.lastIndex)
 
