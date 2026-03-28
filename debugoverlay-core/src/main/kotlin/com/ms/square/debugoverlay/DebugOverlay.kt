@@ -226,7 +226,7 @@ public object DebugOverlay {
    * @see configure
    */
   public data class Config(
-    val overlayMode: OverlayMode = OverlayMode.FullMetrics,
+    val overlayMode: OverlayMode = OverlayMode.FullMetrics(),
     val networkRequestSource: NetworkRequestSource = NoOpNetworkRequestSource,
     val customLogSource: LogSource? = null,
     val bugReportExporter: BugReportExporter = IntentShareExporter,

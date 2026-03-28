@@ -6,7 +6,7 @@ package com.ms.square.debugoverlay
  * Configure via [DebugOverlay.configure]:
  * ```kotlin
  * DebugOverlay.configure {
- *   copy(overlayMode = OverlayMode.BugReporterOnly)
+ *   overlayMode = OverlayMode.BugReporterOnly
  * }
  * ```
  */
@@ -15,8 +15,10 @@ public sealed interface OverlayMode {
    * Shows real-time metrics panel (CPU, Memory, FPS).
    * Tapping opens the debug panel.
    * Best for developers during active development/testing.
+   *
+   * @param customTabs Custom tabs appended after the built-in tabs in the debug panel.
    */
-  public data object FullMetrics : OverlayMode
+  public data class FullMetrics(val customTabs: List<DebugTab> = emptyList()) : OverlayMode
 
   /**
    * Shows a minimal bug reporter FAB.

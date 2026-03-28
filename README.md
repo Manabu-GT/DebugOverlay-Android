@@ -125,6 +125,20 @@ class MyApp : Application() {
 
 <img src="art/readme_bug_reporter_only.gif" alt="Bug Reporter Only Mode">
 
+### Custom tabs
+
+Add app-specific tabs to the debug panel. Custom tabs appear after the built-in tabs:
+
+```kotlin
+DebugOverlay.configure {
+  overlayMode = OverlayMode.FullMetrics(
+    customTabs = listOf(
+      DebugTab(title = "Feature Flags") { FeatureFlagsContent() }
+    )
+  )
+}
+```
+
 ### Network request tracking
 
 ```kotlin

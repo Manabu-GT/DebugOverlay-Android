@@ -21,7 +21,7 @@ class DebugOverlayTest {
   @After
   fun tearDown() {
     DebugOverlay.configure {
-      overlayMode = OverlayMode.FullMetrics
+      overlayMode = OverlayMode.FullMetrics()
       networkRequestSource = NoOpNetworkRequestSource
       customLogSource = null
       bugReportExporter = IntentShareExporter
@@ -33,7 +33,7 @@ class DebugOverlayTest {
   fun `Config has correct defaults`() {
     val config = DebugOverlay.Config()
 
-    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics)
+    assertThat(config.overlayMode).isEqualTo(OverlayMode.FullMetrics())
     assertThat(config.networkRequestSource).isEqualTo(NoOpNetworkRequestSource)
     assertThat(config.customLogSource).isNull()
     assertThat(config.bugReportExporter).isSameInstanceAs(IntentShareExporter)
@@ -81,6 +81,19 @@ class DebugOverlayTest {
 
     assertThat(DebugOverlay.config.overlayMode).isEqualTo(OverlayMode.BugReporterOnly)
     assertThat(DebugOverlay.config.networkRequestSource).isSameInstanceAs(networkSource)
+  }
+
+  @Test
+  fun `configure sets custom tabs on FullMetrics preserving order`() {
+    val tab1 = DebugTab(title = "Tab 1") {}
+    val tab2 = DebugTab(title = "Tab 2") {}
+
+    DebugOverlay.configure {
+      overlayMode = OverlayMode.FullMetrics(customTabs = listOf(tab1, tab2))
+    }
+
+    val mode = DebugOverlay.config.overlayMode as OverlayMode.FullMetrics
+    assertThat(mode.customTabs).containsExactly(tab1, tab2).inOrder()
   }
 
   @Test
