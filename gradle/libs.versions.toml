@@ -2,7 +2,6 @@
 # Plugins
 agp = "9.0.1"
 jacoco = "0.8.12"
-bcv = "0.18.1"
 dexcount = "4.0.0"
 kotlinxSerializationJson = "1.10.0"
 maven-publish = "0.36.0"
@@ -118,7 +117,6 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

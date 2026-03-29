@@ -1,6 +1,37 @@
 # API Compatibility
 
-This project uses [Binary Compatibility Validator](https://github.com/Kotlin/binary-compatibility-validator) (BCV) to track public API changes and prevent accidental breaking changes.
+## Current Status: Temporarily Disabled
+
+API compatibility validation is **temporarily disabled** due to an incompatibility between AGP 9's built-in Kotlin support and the [Binary Compatibility Validator](https://github.com/Kotlin/binary-compatibility-validator) (BCV) plugin.
+
+### What happened
+
+AGP 9 introduced built-in Kotlin compilation support and actively rejects the `org.jetbrains.kotlin.android` plugin. BCV hooks into that plugin to register its `apiCheck`/`apiDump` tasks. Without it, BCV applies silently but registers no tasks — API validation was broken since the AGP 9 upgrade with no visible error.
+
+The intended replacement — Kotlin Gradle Plugin's built-in `abiValidation` — has the same limitation: it requires `KotlinAndroidProjectExtension` which AGP 9's built-in Kotlin does not provide.
+
+### Upstream issues
+
+- [Kotlin/binary-compatibility-validator#312](https://github.com/Kotlin/binary-compatibility-validator/issues/312) — BCV tasks not registered with AGP 9 (open, no maintainer response)
+- [KT-81117](https://youtrack.jetbrains.com/issue/KT-81117) — KGP conflicts with AGP 9 built-in Kotlin
+- BCV is in [maintenance mode](https://github.com/Kotlin/binary-compatibility-validator#readme), superseded by KGP's `abiValidation` (experimental since Kotlin 2.1.20)
+
+### Workarounds considered
+
+| Approach | Status |
+|----------|--------|
+| `android.builtInKotlin=false` | Works but temporary — removed in AGP 10 |
+| Manual BCV task registration ([OkHttp approach](https://github.com/square/okhttp/pull/9375)) | KMP-specific, fragile |
+| Fork BCV and fix | Maintaining a fork of a deprecated plugin is not worthwhile |
+| KGP `abiValidation` | Requires `kotlin-android` plugin which AGP 9 rejects |
+
+### Plan
+
+1. Keep the existing `.api` files as a historical reference of the last validated public API surface
+2. Monitor upstream issues for a fix in BCV, KGP, or AGP
+3. Re-enable validation when the ecosystem supports AGP 9
+
+---
 
 ## Why It Matters
 
@@ -21,57 +52,7 @@ debugoverlay-extension-okhttp/api/debugoverlay-extension-okhttp.api
 debugoverlay-extension-timber/api/debugoverlay-extension-timber.api
 ```
 
-These files are checked into version control and serve as the "golden" reference for the public API.
-
-## Gradle Tasks
-
-| Task | Purpose |
-|------|---------|
-| `./gradlew apiCheck` | Compares current API against `.api` files. Fails if there are differences. Runs automatically as part of `check`. |
-| `./gradlew apiDump` | Regenerates `.api` files from current code. Use after making intentional API changes. |
-
-### Module-specific tasks
-
-```bash
-# Check a specific module
-./gradlew :debugoverlay-core:apiCheck
-
-# Update a specific module's API dump
-./gradlew :debugoverlay-core:apiDump
-```
-
-## Workflow
-
-### Making API Changes
-
-1. **Make your changes** to the public API (add/modify/remove public classes, methods, etc.)
-
-2. **Run `apiCheck`** to see what changed:
-   ```bash
-   ./gradlew apiCheck
-   ```
-   This will fail and show the differences.
-
-3. **Review the diff** to ensure changes are intentional:
-   - Adding new public API is generally safe
-   - Removing or modifying existing API is a breaking change
-
-4. **Update the API dump** if changes are intentional:
-   ```bash
-   ./gradlew apiDump
-   ```
-
-5. **Commit both** your code changes and the updated `.api` files together.
-
-### CI Failures
-
-If CI fails on `apiCheck`:
-
-1. **Accidental change?** - Revert unintended public API exposure (e.g., missing `internal` modifier)
-
-2. **Intentional change?** - Run `apiDump` locally and commit the updated `.api` files
-
-3. **Merge conflict in `.api` files?** - Regenerate with `apiDump` after resolving code conflicts
+These files are checked into version control. While validation is disabled, they serve as a reference but are not automatically checked against the current code.
 
 ## Handling Breaking Changes
 
@@ -83,16 +64,6 @@ Adding new public classes or methods is safe and backward compatible.
 existing implementers (they must implement the new member). However, since DebugOverlay
 provides concrete implementations (e.g., `DebugOverlayTimberTree` for `LogSource`),
 consumers typically don't implement these interfaces directly.
-
-```kotlin
-// Adding a new class (safe)
-public class NewFeature { ... }
-
-// Adding a new method to an object (safe)
-public object DebugOverlay {
-    public fun newMethod() { ... }  // New - existing code unaffected
-}
-```
 
 ### Removing/Changing API (Breaking)
 
@@ -126,21 +97,6 @@ v2.2.0 - Change deprecation to ERROR level
 v3.0.0 - Remove deprecated API
 ```
 
-## Configuration
-
-BCV is configured in each module's `build.gradle.kts`:
-
-```kotlin
-plugins {
-    alias(libs.plugins.bcv)
-}
-
-apiValidation {
-    // Exclude classes annotated with this from API tracking
-    nonPublicMarkers.add("com.ms.square.debugoverlay.internal.InternalDebugOverlayApi")
-}
-```
-
 ### Excluding Internal APIs
 
 Use `@InternalDebugOverlayApi` annotation to mark APIs that are public in bytecode but not intended for external use:
@@ -149,22 +105,3 @@ Use `@InternalDebugOverlayApi` annotation to mark APIs that are public in byteco
 @InternalDebugOverlayApi
 public class SomeInternalHelper { ... }
 ```
-
-## Common Scenarios
-
-### "I added a new public method but didn't mean to"
-
-Make the method `internal` or `private`, then verify with `apiCheck`.
-
-### "I need to expose internal classes temporarily"
-
-Don't. Instead, design a proper public API or use `@InternalDebugOverlayApi` to signal "use at your own risk."
-
-### "The API dump shows generated classes like `ComposableSingletons$*`"
-
-In debugoverlay-core, these are filtered out via `apiValidation.ignoredPackages` to reduce noise.
-If you see them in other modules, they're Compose compiler artifacts and don't affect consumers.
-
-### "Merge conflicts in `.api` files"
-
-Don't manually resolve - just run `apiDump` after resolving code conflicts.
