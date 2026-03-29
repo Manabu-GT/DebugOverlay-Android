@@ -69,10 +69,33 @@ consumers typically don't implement these interfaces directly.
 
 Breaking changes require careful consideration:
 
-1. **Deprecation first** - Mark as `@Deprecated` with `ReplaceWith` suggestion
+1. **Deprecation first** - Mark as `@Deprecated` with `ReplaceWith` suggestion:
+   ```kotlin
+   @Deprecated(
+       message = "Use newMethod() instead",
+       replaceWith = ReplaceWith("newMethod()"),
+       level = DeprecationLevel.WARNING
+   )
+   public fun oldMethod() { ... }
+   ```
+
 2. **Document in CHANGELOG** - Note the deprecation and migration path
-3. **Version bump** - Follow semantic versioning
+
+3. **Version bump** - Follow semantic versioning:
+   - Patch (1.0.x): Bug fixes only, no API changes
+   - Minor (1.x.0): New features, deprecations allowed, no removals
+   - Major (x.0.0): Breaking changes, removals allowed
+
 4. **Removal timeline** - Keep deprecated API for at least one minor version before removal
+
+### Example: Safe Deprecation Cycle
+
+```text
+v2.0.0 - Original API
+v2.1.0 - Add new API, deprecate old API (WARNING level)
+v2.2.0 - Change deprecation to ERROR level
+v3.0.0 - Remove deprecated API
+```
 
 ### Excluding Internal APIs
 
