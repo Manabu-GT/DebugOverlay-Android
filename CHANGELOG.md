@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 2.2.0 *(Unreleased)*
+## Version 2.2.0 *(2026-03-29)*
 
 ### New Features
 
@@ -9,6 +9,11 @@
 ### Breaking Changes
 
 * `OverlayMode.FullMetrics` changed from `data object` to `data class`. If you reference it explicitly, change `OverlayMode.FullMetrics` to `OverlayMode.FullMetrics()`. Zero-config users are unaffected.
+
+### Build
+
+* Upgrade to AGP 9.0.1 and Gradle 9.2.1
+* Remove BCV plugin (incompatible with AGP 9's built-in Kotlin support — [BCV #312](https://github.com/Kotlin/binary-compatibility-validator/issues/312))
 
 ## Version 2.1.1 *(2026-03-26)*
 
