@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-agp = "9.0.1"
+agp = "9.1.0"
 jacoco = "0.8.12"
 dexcount = "4.0.0"
 kotlinxSerializationJson = "1.10.0"
