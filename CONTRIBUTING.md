@@ -12,7 +12,7 @@ Thank you for considering contributing to DebugOverlay! This document outlines h
 
 ### Prerequisites
 
-- Android Studio Narwhal (2025.1.1) or later
+- Android Studio Panda 2 (2025.3.2) or later
 - JDK 21+
 - Kotlin 2.2+
 - Basic knowledge of Jetpack Compose

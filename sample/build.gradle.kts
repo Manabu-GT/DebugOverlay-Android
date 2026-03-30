@@ -14,14 +14,6 @@ java {
   }
 }
 
-fun gitHash(): String = Runtime
-  .getRuntime()
-  .exec("git rev-parse --short HEAD")
-  .inputStream
-  .bufferedReader()
-  .readText()
-  .trim()
-
 android {
   namespace = "com.ms.square.debugoverlay.sample"
   compileSdk = libs.versions.androidCompileSdk.get().toInt()
@@ -33,8 +25,6 @@ android {
 
     versionCode = 1
     versionName = "1.0.0"
-
-    buildConfigField("String", "GIT_HASH", "\"${gitHash()}\"")
   }
 
   signingConfigs {
