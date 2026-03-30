@@ -27,11 +27,19 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "AndroidX libraries - require approval for library consumers",
+      "description": "AndroidX libraries used in published modules - require approval",
       "groupName": "AndroidX libraries",
       "dependencyDashboardApproval": true,
       "matchPackageNames": [
-        "/^androidx\\./"
+        "androidx.core:core",
+        "androidx.core:core-ktx",
+        "androidx.annotation:annotation",
+        "androidx.activity:activity-compose",
+        "androidx.lifecycle:lifecycle-runtime",
+        "androidx.lifecycle:lifecycle-runtime-ktx",
+        "androidx.savedstate:savedstate",
+        "androidx.startup:startup-runtime",
+        "androidx.metrics:metrics-performance"
       ]
     },
     {
