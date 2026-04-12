@@ -164,6 +164,7 @@ private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modif
 private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
   val scope = rememberCoroutineScope()
+  val urlParts = remember(request.url) { UrlParts.from(request.url) }
 
   LazyColumn(
     modifier = modifier.fillMaxSize(),
@@ -185,7 +186,7 @@ private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) 
           scope.copyToClipboard(clipboard, request.url)
         }
       ) {
-        UrlDisplay(url = request.url)
+        UrlDisplay(parts = urlParts)
       }
     }
 
@@ -510,14 +511,10 @@ private fun InfoRow(
 }
 
 /**
- * URL display with scheme, domain, and path.
+ * URL display with scheme, domain, path, and query parameters.
  */
 @Composable
-private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
-  val parts = remember(url) {
-    UrlParts.from(url)
-  }
-
+private fun UrlDisplay(parts: UrlParts, modifier: Modifier = Modifier) {
   Surface(
     modifier = modifier.fillMaxWidth(),
     shape = MaterialTheme.shapes.medium,
@@ -547,6 +544,16 @@ private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.tertiary,
         fontFamily = FontFamily.Monospace
       )
+
+      if (parts.query != null) {
+        Text(
+          text = "?${parts.query}",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          fontFamily = FontFamily.Monospace,
+          modifier = Modifier.padding(top = 2.dp)
+        )
+      }
     }
   }
 }

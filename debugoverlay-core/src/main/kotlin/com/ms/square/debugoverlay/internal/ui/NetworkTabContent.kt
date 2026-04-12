@@ -299,7 +299,7 @@ private fun NetworkRequestItem(request: NetworkRequest, onClick: () -> Unit, mod
           MethodBadge(method = request.method)
 
           Text(
-            text = urlParts.path,
+            text = urlParts.pathWithQuery,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontFamily = FontFamily.Monospace,
