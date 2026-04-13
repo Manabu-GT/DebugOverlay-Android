@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 2.2.1 *(2026-04-13)*
+
+### Bug Fixes
+
+* **Network tab** – Query parameters are now displayed in both the request list and the URL section of the request detail screen (#222)
+
 ## Version 2.2.0 *(2026-03-29)*
 
 ### New Features
