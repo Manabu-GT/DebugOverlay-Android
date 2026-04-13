@@ -66,7 +66,7 @@ import com.ms.square.debugoverlay.model.NetworkRequest
 internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> Unit, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
   val scope = rememberCoroutineScope()
-  val domain = remember(request.url) { UrlParts.from(request.url).domain }
+  val urlParts = remember(request.url) { UrlParts.from(request.url) }
 
   Scaffold(
     modifier = modifier.fillMaxSize(),
@@ -82,7 +82,7 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
               StatusCodeBadge(statusCode = request.statusCode)
             }
             Text(
-              text = domain,
+              text = urlParts.domain,
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               maxLines = 1,
@@ -113,13 +113,14 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
   ) { paddingValues ->
     NetworkRequestDetailContent(
       request = request,
+      urlParts = urlParts,
       modifier = Modifier.padding(paddingValues)
     )
   }
 }
 
 @Composable
-private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modifier = Modifier) {
+private fun NetworkRequestDetailContent(request: NetworkRequest, urlParts: UrlParts, modifier: Modifier = Modifier) {
   var selectedTab by remember { mutableIntStateOf(0) }
 
   Column(modifier = modifier.fillMaxSize()) {
@@ -148,7 +149,7 @@ private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modif
     // Content
     SelectionContainer(modifier = Modifier.fillMaxSize()) {
       when (selectedTab) {
-        0 -> OverviewTab(request = request)
+        0 -> OverviewTab(request = request, urlParts = urlParts)
         1 -> HeadersTab(request = request)
         2 -> BodyTab(request = request)
       }
@@ -161,7 +162,7 @@ private fun NetworkRequestDetailContent(request: NetworkRequest, modifier: Modif
  */
 @Suppress("LongMethod") // Complex UI with multiple sections
 @Composable
-private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) {
+private fun OverviewTab(request: NetworkRequest, urlParts: UrlParts, modifier: Modifier = Modifier) {
   val clipboard = LocalClipboard.current
   val scope = rememberCoroutineScope()
 
@@ -185,7 +186,7 @@ private fun OverviewTab(request: NetworkRequest, modifier: Modifier = Modifier) 
           scope.copyToClipboard(clipboard, request.url)
         }
       ) {
-        UrlDisplay(url = request.url)
+        UrlDisplay(parts = urlParts)
       }
     }
 
@@ -510,14 +511,10 @@ private fun InfoRow(
 }
 
 /**
- * URL display with scheme, domain, and path.
+ * URL display with scheme, domain, path, and query parameters.
  */
 @Composable
-private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
-  val parts = remember(url) {
-    UrlParts.from(url)
-  }
-
+private fun UrlDisplay(parts: UrlParts, modifier: Modifier = Modifier) {
   Surface(
     modifier = modifier.fillMaxWidth(),
     shape = MaterialTheme.shapes.medium,
@@ -547,6 +544,16 @@ private fun UrlDisplay(url: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.tertiary,
         fontFamily = FontFamily.Monospace
       )
+
+      if (parts.query != null) {
+        Text(
+          text = "?${parts.query}",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          fontFamily = FontFamily.Monospace,
+          modifier = Modifier.padding(top = 2.dp)
+        )
+      }
     }
   }
 }
