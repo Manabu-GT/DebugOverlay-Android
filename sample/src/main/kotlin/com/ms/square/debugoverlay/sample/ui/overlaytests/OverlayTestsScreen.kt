@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.ViewAgenda
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,6 +38,8 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
+import com.ms.square.debugoverlay.DebugOverlay
+import com.ms.square.debugoverlay.OverlayMode
 import com.ms.square.debugoverlay.sample.SecondActivity
 
 /**
@@ -55,6 +58,7 @@ internal fun OverlayTestsScreen(modifier: Modifier = Modifier) {
   var showComposeDialog by rememberSaveable { mutableStateOf(false) }
   var showComposeBottomSheet by rememberSaveable { mutableStateOf(false) }
   var isFullscreen by rememberSaveable { mutableStateOf(false) }
+  var isOverlayHidden by rememberSaveable { mutableStateOf(false) }
 
   // Reset fullscreen mode when leaving the screen
   DisposableEffect(Unit) {
@@ -183,6 +187,43 @@ internal fun OverlayTestsScreen(modifier: Modifier = Modifier) {
               setFullscreenMode(it, isFullscreen)
             }
           },
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
+
+      // Section: Programmatic API
+      item {
+        SectionHeader("Programmatic API")
+      }
+
+      item {
+        // Sample-only toggle: configures with empty customTabs, so the SharedPrefs tab
+        // disappears for the rest of the session. Production code should re-pass its tabs.
+        TestScenarioCard(
+          title = if (isOverlayHidden) "Show Overlay" else "Hide Overlay",
+          description = if (isOverlayHidden) {
+            "Switch back to FullMetrics — overlay reappears"
+          } else {
+            "Switch to OverlayMode.Hidden — overlay disappears, panel still works via openPanel"
+          },
+          icon = if (isOverlayHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+          onClick = {
+            val nextHidden = !isOverlayHidden
+            DebugOverlay.configure {
+              overlayMode = if (nextHidden) OverlayMode.Hidden() else OverlayMode.FullMetrics()
+            }
+            isOverlayHidden = nextHidden
+          },
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
+
+      item {
+        TestScenarioCard(
+          title = "Open Debug Panel",
+          description = "Launch the panel via DebugOverlay.openPanel() — works in any OverlayMode, including Hidden",
+          icon = Icons.AutoMirrored.Filled.OpenInNew,
+          onClick = { DebugOverlay.openPanel(context) },
           modifier = Modifier.fillMaxWidth()
         )
       }

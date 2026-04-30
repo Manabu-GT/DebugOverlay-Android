@@ -3,7 +3,6 @@ package com.ms.square.debugoverlay.internal
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
@@ -115,6 +114,12 @@ internal class OverlayViewManager(
   }
 
   private fun updateOverlayAttachment() {
+    // Hidden mode: tear down any existing window and skip attachment work
+    if (overlayMode.value is OverlayMode.Hidden) {
+      hideOverlay()
+      return
+    }
+
     // if no better target, just return
     val targetWindowView = findBestTargetWindow() ?: return
 
@@ -223,12 +228,7 @@ internal class OverlayViewManager(
                 initialOffsetX = overlayPreferences.getOverlayX().toFloat(),
                 initialOffsetY = overlayPreferences.getOverlayY().toFloat(),
                 onPositionChanged = onPositionChanged,
-                onClick = {
-                  val intent = Intent(application, DebugPanelActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                  }
-                  application.startActivity(intent)
-                }
+                onClick = { DebugOverlay.openPanel(application) }
               )
             }
             OverlayMode.BugReporterOnly -> {
@@ -241,6 +241,11 @@ internal class OverlayViewManager(
                 }
               )
             }
+            // Transient: after a runtime flip to Hidden, the existing window stays attached
+            // (rendering nothing) until the next updateOverlayAttachment call from the
+            // Curtains listener — which then early-returns and tears it down.
+            // Empty and non-focusable, so harmless until then.
+            is OverlayMode.Hidden -> Unit
           }
         }
       }

@@ -2,6 +2,8 @@ package com.ms.square.debugoverlay
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
+import android.content.Intent
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
@@ -12,6 +14,7 @@ import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
 import com.ms.square.debugoverlay.internal.bugreport.validateFilename
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
+import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.util.checkMainThread
 import com.ms.square.debugoverlay.internal.util.isMainProcess
 import kotlinx.coroutines.CoroutineScope
@@ -120,6 +123,24 @@ public object DebugOverlay {
   @AnyThread
   public fun configure(block: ConfigBuilder.() -> Unit) {
     config = ConfigBuilder(config).apply(block).build()
+  }
+
+  /**
+   * Launches the debug panel programmatically. Works in any [OverlayMode],
+   * including [OverlayMode.Hidden] where no overlay is shown.
+   *
+   * Typical usage from your debug menu:
+   * ```
+   * Button(onClick = { DebugOverlay.openPanel(context) }) { Text("Open debug panel") }
+   * ```
+   *
+   * @param context Any [Context].
+   */
+  @AnyThread
+  public fun openPanel(context: Context) {
+    val intent = Intent(context, DebugPanelActivity::class.java)
+      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
   }
 
   /**

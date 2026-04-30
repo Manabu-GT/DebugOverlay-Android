@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 2.3.0 *(2026-04-30)
+
+### New Features
+
+* **Programmatic panel access** – New `OverlayMode.Hidden(customTabs)` suppresses the on-screen overlay entirely. New `DebugOverlay.openPanel(context)` launches the debug panel from any mode — wire it to your own debug menu, notification action, or gesture handler. Resolves [#228](https://github.com/Manabu-GT/DebugOverlay-Android/issues/228).
+
+### Source-compat notes
+
+* Adding `OverlayMode.Hidden` is source-breaking for downstream code that exhaustively `when`s on `OverlayMode`. Add a branch for `Hidden`.
+
 ## Version 2.2.1 *(2026-04-13)*
 
 ### Bug Fixes

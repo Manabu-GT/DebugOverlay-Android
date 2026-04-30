@@ -125,6 +125,25 @@ class MyApp : Application() {
 
 <img src="art/readme_bug_reporter_only.gif" alt="Bug Reporter Only Mode">
 
+### Headless mode (no on-screen overlay)
+
+Use `OverlayMode.Hidden` to suppress the on-screen overlay entirely and trigger the panel from your own UI — useful when QA testing is obscured by the overlay, or when you want to wire a debug menu, notification action, or shake gesture as the entry point.
+
+```kotlin
+DebugOverlay.configure {
+  overlayMode = OverlayMode.Hidden(
+    customTabs = listOf(/* optional custom tabs */)
+  )
+}
+
+// From your debug menu, notification action, etc.
+Button(onClick = { DebugOverlay.openPanel(context) }) {
+  Text("Open debug panel")
+}
+```
+
+`DebugOverlay.openPanel(context)` works in any mode, not just `Hidden` — call it from anywhere you'd like to launch the panel programmatically.
+
 ### Custom tabs
 
 Add app-specific tabs to the debug panel. Custom tabs appear after the built-in tabs:

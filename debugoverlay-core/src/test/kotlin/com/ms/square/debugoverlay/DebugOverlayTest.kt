@@ -1,8 +1,10 @@
 package com.ms.square.debugoverlay
 
 import android.content.Context
+import android.content.Intent
 import com.google.common.truth.Truth.assertThat
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
+import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.model.BugReport
 import com.ms.square.debugoverlay.model.ExportResult
 import com.ms.square.debugoverlay.model.LogEntry
@@ -13,6 +15,8 @@ import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import java.io.OutputStream
 
 @RunWith(RobolectricTestRunner::class)
@@ -94,6 +98,31 @@ class DebugOverlayTest {
 
     val mode = DebugOverlay.config.overlayMode as OverlayMode.FullMetrics
     assertThat(mode.customTabs).containsExactly(tab1, tab2).inOrder()
+  }
+
+  @Test
+  fun `configure sets custom tabs on Hidden preserving order`() {
+    val tab1 = DebugTab(title = "Tab 1") {}
+    val tab2 = DebugTab(title = "Tab 2") {}
+
+    DebugOverlay.configure {
+      overlayMode = OverlayMode.Hidden(customTabs = listOf(tab1, tab2))
+    }
+
+    val mode = DebugOverlay.config.overlayMode as OverlayMode.Hidden
+    assertThat(mode.customTabs).containsExactly(tab1, tab2).inOrder()
+  }
+
+  @Test
+  fun `openPanel launches DebugPanelActivity with NEW_TASK flag`() {
+    val context = RuntimeEnvironment.getApplication()
+
+    DebugOverlay.openPanel(context)
+
+    val started = shadowOf(context).nextStartedActivity
+    assertThat(started.component?.className).isEqualTo(DebugPanelActivity::class.java.name)
+    assertThat(started.flags and Intent.FLAG_ACTIVITY_NEW_TASK)
+      .isEqualTo(Intent.FLAG_ACTIVITY_NEW_TASK)
   }
 
   @Test

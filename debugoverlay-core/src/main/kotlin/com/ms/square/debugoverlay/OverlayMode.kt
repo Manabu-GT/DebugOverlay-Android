@@ -11,6 +11,15 @@ package com.ms.square.debugoverlay
  * ```
  */
 public sealed interface OverlayMode {
+
+  /**
+   * Modes that render the debug panel and accept custom tabs.
+   * Implemented by [FullMetrics] and [Hidden].
+   */
+  public sealed interface WithCustomTabs : OverlayMode {
+    public val customTabs: List<DebugTab>
+  }
+
   /**
    * Shows real-time metrics panel (CPU, Memory, FPS).
    * Tapping opens the debug panel.
@@ -18,7 +27,7 @@ public sealed interface OverlayMode {
    *
    * @param customTabs Custom tabs appended after the built-in tabs in the debug panel.
    */
-  public data class FullMetrics(val customTabs: List<DebugTab> = emptyList()) : OverlayMode
+  public data class FullMetrics(override val customTabs: List<DebugTab> = emptyList()) : WithCustomTabs
 
   /**
    * Shows a minimal bug reporter FAB.
@@ -26,4 +35,14 @@ public sealed interface OverlayMode {
    * Best for QA/PM builds where real-time metrics panel isn't needed.
    */
   public data object BugReporterOnly : OverlayMode
+
+  /**
+   * No on-screen overlay. Use [DebugOverlay.openPanel] to open the panel programmatically.
+   *
+   * Use when the overlay would interfere with QA testing or when launching
+   * the panel from your own debug menu, notification action, or gesture handler.
+   *
+   * @param customTabs Custom tabs appended after the built-in tabs in the debug panel.
+   */
+  public data class Hidden(override val customTabs: List<DebugTab> = emptyList()) : WithCustomTabs
 }
