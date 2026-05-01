@@ -41,7 +41,13 @@ import curtains.Curtains
 import curtains.OnRootViewsChangedListener
 import curtains.phoneWindow
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.lang.ref.WeakReference
 
 private const val OVERLAY_UPDATE_DEBOUNCE_MS = 100L
@@ -111,6 +117,15 @@ internal class OverlayViewManager(
     // Note: We don't remove this listener as OverlayViewManager is scoped to the application/singleton
     // and mimics the process lifecycle at the moment.
     Curtains.onRootViewsChangedListeners += rootsChangedListener
+
+    // React to runtime mode changes from configure { overlayMode = ... }.
+    // Without this, after a Hidden -> FullMetrics toggle, the overlay won't reappear
+    // until the next Curtains event (since hideOverlay() may have already destroyed
+    // the ComposeView that would have observed the StateFlow). drop(1) skips the
+    // initial value — initial attach is handled by the Curtains listener.
+    overlayMode.drop(1).distinctUntilChanged().onEach {
+      updateOverlayAttachment()
+    }.flowOn(Dispatchers.Main).launchIn(overlayScope)
   }
 
   private fun updateOverlayAttachment() {
@@ -241,10 +256,9 @@ internal class OverlayViewManager(
                 }
               )
             }
-            // Transient: after a runtime flip to Hidden, the existing window stays attached
-            // (rendering nothing) until the next updateOverlayAttachment call from the
-            // Curtains listener — which then early-returns and tears it down.
-            // Empty and non-focusable, so harmless until then.
+            // Transient state during the brief main-thread hop between overlayMode
+            // flipping to Hidden and updateOverlayAttachment() running to tear the
+            // window down.
             is OverlayMode.Hidden -> Unit
           }
         }

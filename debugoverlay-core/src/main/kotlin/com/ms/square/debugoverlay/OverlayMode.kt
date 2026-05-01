@@ -13,7 +13,7 @@ package com.ms.square.debugoverlay
 public sealed interface OverlayMode {
 
   /**
-   * Modes that render the debug panel and accept custom tabs.
+   * Modes that support debug panel tabs and accept custom tabs.
    * Implemented by [FullMetrics] and [Hidden].
    */
   public sealed interface WithCustomTabs : OverlayMode {

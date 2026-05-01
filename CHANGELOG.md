@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 2.3.0 *(2026-04-30)
+## Version 2.3.0 *(2026-04-30)*
 
 ### New Features
 
