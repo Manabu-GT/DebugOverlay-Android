@@ -3,7 +3,6 @@ package com.ms.square.debugoverlay.internal
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.Bundle
@@ -42,7 +41,13 @@ import curtains.Curtains
 import curtains.OnRootViewsChangedListener
 import curtains.phoneWindow
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.lang.ref.WeakReference
 
 private const val OVERLAY_UPDATE_DEBOUNCE_MS = 100L
@@ -112,9 +117,24 @@ internal class OverlayViewManager(
     // Note: We don't remove this listener as OverlayViewManager is scoped to the application/singleton
     // and mimics the process lifecycle at the moment.
     Curtains.onRootViewsChangedListeners += rootsChangedListener
+
+    // React to runtime mode changes from configure { overlayMode = ... }.
+    // Without this, after a Hidden -> FullMetrics toggle, the overlay won't reappear
+    // until the next Curtains event (since hideOverlay() may have already destroyed
+    // the ComposeView that would have observed the StateFlow). drop(1) skips the
+    // initial value — initial attach is handled by the Curtains listener.
+    overlayMode.drop(1).distinctUntilChanged().onEach {
+      updateOverlayAttachment()
+    }.flowOn(Dispatchers.Main).launchIn(overlayScope)
   }
 
   private fun updateOverlayAttachment() {
+    // Hidden mode: tear down any existing window and skip attachment work
+    if (overlayMode.value is OverlayMode.Hidden) {
+      hideOverlay()
+      return
+    }
+
     // if no better target, just return
     val targetWindowView = findBestTargetWindow() ?: return
 
@@ -223,12 +243,7 @@ internal class OverlayViewManager(
                 initialOffsetX = overlayPreferences.getOverlayX().toFloat(),
                 initialOffsetY = overlayPreferences.getOverlayY().toFloat(),
                 onPositionChanged = onPositionChanged,
-                onClick = {
-                  val intent = Intent(application, DebugPanelActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                  }
-                  application.startActivity(intent)
-                }
+                onClick = { DebugOverlay.openPanel(application) }
               )
             }
             OverlayMode.BugReporterOnly -> {
@@ -241,6 +256,10 @@ internal class OverlayViewManager(
                 }
               )
             }
+            // Transient state during the brief main-thread hop between overlayMode
+            // flipping to Hidden and updateOverlayAttachment() running to tear the
+            // window down.
+            is OverlayMode.Hidden -> Unit
           }
         }
       }

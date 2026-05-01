@@ -13,13 +13,16 @@ object DebugOverlaySetup {
   fun init(context: Context) {
     val appContext = context.applicationContext
 
-    // Add a custom tab showing SharedPreferences
+    val customTabs = listOf(
+      DebugTab(title = "SharedPrefs") { SharedPrefsTabContent(appContext) }
+    )
+
+    // Add a custom tab showing SharedPreferences.
+    // Swap to OverlayMode.Hidden(customTabs) to hide the on-screen overlay entirely
+    // and trigger the panel via DebugOverlay.openPanel(context) — see "Open Debug Panel"
+    // card on the Overlay Tests screen.
     DebugOverlay.configure {
-      overlayMode = OverlayMode.FullMetrics(
-        customTabs = listOf(
-          DebugTab(title = "SharedPrefs") { SharedPrefsTabContent(appContext) }
-        )
-      )
+      overlayMode = OverlayMode.FullMetrics(customTabs = customTabs)
     }
 
     // Also contribute the same data to bug reports

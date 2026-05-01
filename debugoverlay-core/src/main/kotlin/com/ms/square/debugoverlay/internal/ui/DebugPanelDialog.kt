@@ -237,7 +237,7 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
   val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
-  val customTabs = (DebugOverlay.config.overlayMode as? OverlayMode.FullMetrics)?.customTabs.orEmpty()
+  val customTabs = (DebugOverlay.config.overlayMode as? OverlayMode.WithCustomTabs)?.customTabs.orEmpty()
 
   // Build visible tabs: built-in tabs (with CUSTOM_LOG conditionally shown) + custom tabs
   val visibleTabs = remember(hasCustomLogSource, customTabs) {
