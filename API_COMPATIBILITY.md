@@ -12,8 +12,10 @@ The intended replacement — Kotlin Gradle Plugin's built-in `abiValidation` —
 
 ### Upstream issues
 
+- [KT-83410](https://youtrack.jetbrains.com/issue/KT-83410) — **the tracker for our exact case.** AGP 9's built-in Kotlin uses `KotlinBaseApiPlugin`, which doesn't invoke `Project.registerKotlinPluginExtensions`, so `kotlin { abiValidation { } }` is unresolved in Android library projects. The extension-points API is internal to KGP, so AGP can't register it itself. Currently in **Backlog** — no fix planned yet.
+- [Google IssueTracker #470109449](https://issuetracker.google.com/issues/470109449) — companion AGP-side ticket
 - [Kotlin/binary-compatibility-validator#312](https://github.com/Kotlin/binary-compatibility-validator/issues/312) — BCV tasks not registered with AGP 9 (open, no maintainer response)
-- [KT-81117](https://youtrack.jetbrains.com/issue/KT-81117) — KGP conflicts with AGP 9 built-in Kotlin
+- [KT-81117](https://youtrack.jetbrains.com/issue/KT-81117) — resolved in Kotlin 2.4.0-Beta2 / 2.4.20-Beta1, but **does not apply to us**: scoped only to the `kotlin-multiplatform` plugin (we use `kotlin-android`), and the fix is primarily an improved error message pointing users to `com.android.kotlin.multiplatform.library`
 - BCV is in [maintenance mode](https://github.com/Kotlin/binary-compatibility-validator#readme), superseded by KGP's `abiValidation` (experimental since Kotlin 2.1.20)
 
 ### Workarounds considered
