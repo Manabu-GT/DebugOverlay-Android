@@ -9,7 +9,7 @@ spotless = "8.4.0"
 detekt = "1.23.8"
 hilt = "2.59.2"
 hiltNavigationCompose = "1.3.0"
-ksp = "2.3.6"
+ksp = "2.3.7"
 
 # Android
 androidMinSdk = "24"
