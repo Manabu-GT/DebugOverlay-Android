@@ -8,7 +8,8 @@
       android:name="com.ms.square.debugoverlay.internal.ui.DebugPanelActivity"
       android:theme="@style/debugoverlay_Theme.Transparent"
       android:exported="false"
-      android:excludeFromRecents="true" />
+      android:excludeFromRecents="true"
+      android:launchMode="singleTop" />
 
     <activity
       android:name="com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity"

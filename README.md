@@ -221,6 +221,19 @@ To disable auto-plant, remove `TimberTreeStartupInitializer` via manifest merger
 
 Then call `Timber.plant(DebugOverlayTimberTree())` manually.
 
+### Shake to open the debug panel
+
+```kotlin
+dependencies {
+  debugImplementation("com.ms-square:debugoverlay:2.3.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.3.0")
+}
+```
+
+Auto-installs via AndroidX Startup — shake the device to open the debug panel. Listening only happens while the app is foregrounded; the accelerometer is unregistered on background.
+
+To disable auto-install, remove `ShakeTriggerInitializer` via manifest merger using the same pattern shown for the Timber extension above (replace the `android:name` with `com.ms.square.debugoverlay.extension.trigger.shake.ShakeTriggerInitializer`).
+
 ### Bug Reporting
 
 In `OverlayMode.FullMetrics`, tap the bug icon in the debug panel toolbar. In `OverlayMode.BugReporterOnly`, tap the bug reporter FAB. Generates a ZIP with:

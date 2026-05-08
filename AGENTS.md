@@ -10,6 +10,7 @@ A Jetpack Compose library that displays real-time debug information as an overla
 | `debugoverlay` | Primary public API |
 | `debugoverlay-extension-okhttp` | OkHttp network tracking |
 | `debugoverlay-extension-timber` | Timber log capture |
+| `debugoverlay-extension-trigger-shake` | Shake-to-open-panel trigger (auto-installs via Startup) |
 | `sample` | Demo application |
 
 ## Code Map

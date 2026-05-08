@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 2.4.0 *(2026-05-07)*
+
+### New Features
+
+* **Shake-to-open extension** – New artifact `com.ms-square:debugoverlay-extension-trigger-shake`. Adding the dependency auto-installs (via AndroidX Startup) a foreground-only shake listener that calls `DebugOverlay.openPanel()`.
+
+### Changes
+
+* **`DebugPanelActivity` is now `launchMode="singleTop"`** – Repeat `DebugOverlay.openPanel()` calls while the panel is the top activity now reuse the existing instance via `onNewIntent` instead of stacking duplicates. When the panel is in the task but not on top (e.g., `BugReportActivity` is open), a fresh panel is pushed on top — the underlying activity is preserved.
+
 ## Version 2.3.0 *(2026-04-30)*
 
 ### New Features
