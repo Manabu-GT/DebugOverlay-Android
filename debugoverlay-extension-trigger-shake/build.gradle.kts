@@ -43,4 +43,6 @@ dependencies {
   implementation(projects.debugoverlayCore)
   implementation(libs.androidx.startup.runtime)
   implementation(libs.androidx.lifecycle.process)
+  testImplementation(libs.junit4)
+  testImplementation(libs.truth)
 }

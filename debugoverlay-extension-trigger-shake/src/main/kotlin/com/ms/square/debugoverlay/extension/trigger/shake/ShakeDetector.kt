@@ -110,8 +110,11 @@ internal class ShakeDetector(private val listener: Listener) : SensorEventListen
    * Sample queue — a fixed-size circular buffer of [Sample] entries that span at most
    * [MAX_WINDOW_SIZE] nanoseconds. Used to determine whether enough recent samples were
    * accelerating to count as a shake.
+   *
+   * Visibility is `internal` (not `private`) so the parity tests under `src/test` can
+   * exercise it directly, mirroring upstream Seismic's `ShakeDetectorTest`.
    */
-  private class SampleQueue {
+  internal class SampleQueue {
     private val pool = SamplePool()
     private var oldest: Sample? = null
     private var newest: Sample? = null
@@ -119,7 +122,7 @@ internal class ShakeDetector(private val listener: Listener) : SensorEventListen
     private var acceleratingCount = 0
 
     fun add(timestamp: Long, accelerating: Boolean) {
-      // Purge samples that proceed window.
+      // Purge samples that precede the window.
       purge(timestamp - MAX_WINDOW_SIZE)
       val added = pool.acquire().apply {
         this.timestamp = timestamp
@@ -173,6 +176,17 @@ internal class ShakeDetector(private val listener: Listener) : SensorEventListen
           acceleratingCount >= (sampleCount shr 1) + (sampleCount shr 2)
       }
 
+    /** Snapshot of the queue contents from oldest to newest. Used by parity tests. */
+    fun asList(): List<Sample> {
+      val result = mutableListOf<Sample>()
+      var current = oldest
+      while (current != null) {
+        result.add(current)
+        current = current.next
+      }
+      return result
+    }
+
     companion object {
       /** Window size in ns. Used to compute the average. */
       private const val MAX_WINDOW_SIZE = 500_000_000L // 0.5s in ns
@@ -187,8 +201,8 @@ internal class ShakeDetector(private val listener: Listener) : SensorEventListen
     }
   }
 
-  /** An accelerometer sample. */
-  private class Sample {
+  /** An accelerometer sample. Internal for parity test access. */
+  internal class Sample {
     /** Time sample was taken. */
     var timestamp: Long = 0
 

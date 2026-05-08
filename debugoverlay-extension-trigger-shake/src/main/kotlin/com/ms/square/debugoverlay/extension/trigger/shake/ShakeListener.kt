@@ -3,6 +3,7 @@ package com.ms.square.debugoverlay.extension.trigger.shake
 import android.app.Application
 import android.content.Context
 import android.hardware.SensorManager
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.ms.square.debugoverlay.DebugOverlay
@@ -19,10 +20,14 @@ internal class ShakeListener(private val application: Application) :
     setSensitivity(ShakeDetector.SENSITIVITY_MEDIUM)
   }
   private val sensorManager =
-    application.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    application.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
 
   override fun onStart(owner: LifecycleOwner) {
-    detector.start(sensorManager)
+    sensorManager?.let {
+      if (!detector.start(it)) {
+        Log.i("[DebugOverlay-Shake]", "Accelerometer unavailable — shake-to-open disabled")
+      }
+    }
   }
 
   override fun onStop(owner: LifecycleOwner) {
