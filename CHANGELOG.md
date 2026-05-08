@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 2.4.0 *(2026-05-07)*
+
+### New Features
+
+* **Shake-to-open extension** – New artifact `com.ms-square:debugoverlay-extension-trigger-shake`. Adding the dependency auto-installs (via AndroidX Startup) a foreground-only shake listener that calls `DebugOverlay.openPanel()`.
+
 ## Version 2.3.0 *(2026-04-30)*
 
 ### New Features
