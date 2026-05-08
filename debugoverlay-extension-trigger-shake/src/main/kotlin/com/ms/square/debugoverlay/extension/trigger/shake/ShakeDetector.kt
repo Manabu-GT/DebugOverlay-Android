@@ -191,6 +191,7 @@ internal class ShakeDetector(private val listener: Listener) : SensorEventListen
   private class Sample {
     /** Time sample was taken. */
     var timestamp: Long = 0
+
     /** If acceleration > accelerationThreshold. */
     var accelerating: Boolean = false
 
