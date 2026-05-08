@@ -157,11 +157,11 @@ dependencies {
 }
 ```
 
-Auto-installs via AndroidX Startup — shake the device to open the debug panel. No code required. Listening only happens while the app is foregrounded; the accelerometer is unregistered on background.
+Auto-installs via AndroidX Startup — shake the device to open the debug panel. Listening only happens while the app is foregrounded; the accelerometer is unregistered on background.
 
 Heads-up: shake gestures might be claimed by other dev tools as well. Only add this dependency if you don't have a competing handler.
 
-To disable auto-install, remove `ShakeTriggerInitializer` via manifest merger using the same pattern shown for the Timber extension below (replace the `android:name` with `com.ms.square.debugoverlay.extension.trigger.shake.ShakeTriggerInitializer`).
+To disable auto-install, remove `ShakeTriggerInitializer` via manifest merger using the same pattern shown for the [Timber extension below](#timber-log-capture) (replace the `android:name` with `com.ms.square.debugoverlay.extension.trigger.shake.ShakeTriggerInitializer`).
 
 ### Custom tabs
 
