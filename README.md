@@ -28,7 +28,7 @@ DebugOverlay gives you a lightweight, always-available look into your app's runt
 
 ```kotlin
 // app/build.gradle.kts
-debugImplementation("com.ms-square:debugoverlay:2.3.0")
+debugImplementation("com.ms-square:debugoverlay:2.4.0")
 
 // That's it! Overlay appears automatically on app launch.
 // Tap to open debug panel. Long-press to drag.
@@ -71,12 +71,13 @@ Add to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-debugoverlay = "2.3.0"
+debugoverlay = "2.4.0"
 
 [libraries]
 debugoverlay = { module = "com.ms-square:debugoverlay", version.ref = "debugoverlay" }
 debugoverlay-okhttp = { module = "com.ms-square:debugoverlay-extension-okhttp", version.ref = "debugoverlay" }
 debugoverlay-timber = { module = "com.ms-square:debugoverlay-extension-timber", version.ref = "debugoverlay" }
+debugoverlay-trigger-shake = { module = "com.ms-square:debugoverlay-extension-trigger-shake", version.ref = "debugoverlay" }
 ```
 
 Then in `app/build.gradle.kts`:
@@ -87,6 +88,7 @@ dependencies {
   // Optional extensions
   debugImplementation(libs.debugoverlay.okhttp)
   debugImplementation(libs.debugoverlay.timber)
+  debugImplementation(libs.debugoverlay.trigger.shake)
 }
 ```
 
@@ -95,7 +97,7 @@ dependencies {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.3.0")
+  debugImplementation("com.ms-square:debugoverlay:2.4.0")
 }
 ```
 
@@ -144,6 +146,23 @@ Button(onClick = { DebugOverlay.openPanel(context) }) {
 
 `DebugOverlay.openPanel(context)` works in any mode, not just `Hidden` — call it from anywhere you'd like to launch the panel programmatically.
 
+#### Shake to open
+
+For a zero-config shake trigger, add the shake extension:
+
+```kotlin
+dependencies {
+  debugImplementation("com.ms-square:debugoverlay:2.4.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.4.0")
+}
+```
+
+Auto-installs via AndroidX Startup — shake the device to open the debug panel. Listening only happens while the app is foregrounded; the accelerometer is unregistered on background.
+
+Heads-up: shake gestures might be claimed by other dev tools as well. Only add this dependency if you don't have a competing handler.
+
+To disable auto-install, remove `ShakeTriggerInitializer` via manifest merger using the same pattern shown for the [Timber extension below](#timber-log-capture) (replace the `android:name` with `com.ms.square.debugoverlay.extension.trigger.shake.ShakeTriggerInitializer`).
+
 ### Custom tabs
 
 Add app-specific tabs to the debug panel. Custom tabs appear after the built-in tabs:
@@ -162,8 +181,8 @@ DebugOverlay.configure {
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.3.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.3.0")
+  debugImplementation("com.ms-square:debugoverlay:2.4.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.4.0")
 }
 ```
 
@@ -194,8 +213,8 @@ val client = OkHttpClient.Builder()
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.3.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.3.0")
+  debugImplementation("com.ms-square:debugoverlay:2.4.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.4.0")
 }
 ```
 
@@ -220,19 +239,6 @@ To disable auto-plant, remove `TimberTreeStartupInitializer` via manifest merger
 ```
 
 Then call `Timber.plant(DebugOverlayTimberTree())` manually.
-
-### Shake to open the debug panel
-
-```kotlin
-dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.3.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.3.0")
-}
-```
-
-Auto-installs via AndroidX Startup — shake the device to open the debug panel. Listening only happens while the app is foregrounded; the accelerometer is unregistered on background.
-
-To disable auto-install, remove `ShakeTriggerInitializer` via manifest merger using the same pattern shown for the Timber extension above (replace the `android:name` with `com.ms.square.debugoverlay.extension.trigger.shake.ShakeTriggerInitializer`).
 
 ### Bug Reporting
 
@@ -332,7 +338,7 @@ android {
 }
 
 dependencies {
-  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.3.0")
+  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.4.0")
 }
 ```
 
