@@ -284,4 +284,24 @@ class DebugOverlayNetworkInterceptorTest {
     val capturedRequest = requests.first()
     assertThat(capturedRequest.responseBody).contains("failed to read response body")
   }
+
+  @Test
+  fun `clear empties captured requests and subsequent collection still works`() = runTest {
+    mockWebServer.enqueue(MockResponse().setResponseCode(200).setBody("first"))
+    mockWebServer.enqueue(MockResponse().setResponseCode(200).setBody("second"))
+
+    client.newCall(Request.Builder().url(mockWebServer.url("/first")).get().build())
+      .execute().close()
+    assertThat(interceptor.requests.first()).hasSize(1)
+
+    interceptor.clear()
+
+    assertThat(interceptor.requests.first()).isEmpty()
+
+    client.newCall(Request.Builder().url(mockWebServer.url("/second")).get().build())
+      .execute().close()
+    val afterClear = interceptor.requests.first()
+    assertThat(afterClear).hasSize(1)
+    assertThat(afterClear.first().url).contains("/second")
+  }
 }

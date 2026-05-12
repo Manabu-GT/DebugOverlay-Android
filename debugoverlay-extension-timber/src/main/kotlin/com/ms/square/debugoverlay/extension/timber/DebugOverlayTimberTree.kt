@@ -1,6 +1,7 @@
 package com.ms.square.debugoverlay.extension.timber
 
 import android.os.Process
+import com.ms.square.debugoverlay.Clearable
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
@@ -44,7 +45,8 @@ private const val DEFAULT_TAG = "Timber"
 @OptIn(InternalDebugOverlayApi::class)
 public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
   Timber.Tree(),
-  LogSource {
+  LogSource,
+  Clearable {
 
   override val sourceName: String = SOURCE_NAME
 
@@ -75,5 +77,10 @@ public class DebugOverlayTimberTree(maxStoredLogs: Int = DEFAULT_MAX_LOGS) :
 
     recentLogs.add(entry)
     _logs.update { recentLogs.toList() }
+  }
+
+  override fun clear() {
+    recentLogs.clear()
+    _logs.update { emptyList() }
   }
 }

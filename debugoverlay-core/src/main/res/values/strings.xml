@@ -3,6 +3,7 @@
   <!-- Debug Panel -->
   <string name="debugoverlay_debug_panel">Debug Panel</string>
   <string name="debugoverlay_close">Close</string>
+  <string name="debugoverlay_clear_logs_content_description">Clear collected logs</string>
 
   <!-- Tab Titles -->
   <string name="debugoverlay_tab_log">Log</string>

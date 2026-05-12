@@ -56,4 +56,12 @@ public class EvictingQueue<T>(private val capacity: Int) {
    */
   @Synchronized
   public fun toList(): List<T> = queue.toList()
+
+  /**
+   * Removes all elements from the queue.
+   */
+  @Synchronized
+  public fun clear() {
+    queue.clear()
+  }
 }
