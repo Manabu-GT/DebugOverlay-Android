@@ -44,5 +44,9 @@ dependencies {
   implementation(libs.androidx.startup.runtime)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.timber)
+
   testImplementation(libs.junit4)
+  testImplementation(libs.truth)
+  testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.robolectric)
 }

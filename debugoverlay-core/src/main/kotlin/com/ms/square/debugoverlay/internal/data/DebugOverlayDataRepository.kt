@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay.internal.data
 
 import android.app.Activity
 import android.content.Context
+import com.ms.square.debugoverlay.Clearable
 import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.NetworkRequestSource
 import com.ms.square.debugoverlay.NoOpNetworkRequestSource
@@ -125,5 +126,17 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   fun stopJankStatsTracking(activity: Activity) {
     jankStatsDataSource.stopTracking(activity)
+  }
+
+  /**
+   * Clears accumulated entries from sources that opt into [Clearable]:
+   * built-in logcat capture plus the current network and custom log sources
+   * when they implement [Clearable]. Custom external sources that don't
+   * implement [Clearable] are silently skipped.
+   */
+  fun clearAllLogs() {
+    logcatDataSource.clear()
+    (currentNetworkRequestSource.value as? Clearable)?.clear()
+    (customLogSource.value as? Clearable)?.clear()
   }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -131,6 +132,7 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DebugPanelTopAppBar(
+  overlayDataRepository: DebugOverlayDataRepository = DebugOverlay.overlayDataRepository,
   bugReportGenerator: BugReportGenerator = DebugOverlay.bugReportGenerator,
   snackBarHostState: SnackbarHostState,
   onDismiss: () -> Unit,
@@ -150,6 +152,9 @@ private fun DebugPanelTopAppBar(
       )
     },
     actions = {
+      ClearLogsButton(
+        onClick = { overlayDataRepository.clearAllLogs() }
+      )
       BugReportButton(
         isCapturing = isCapturing,
         draftCount = draftCount,
@@ -188,6 +193,20 @@ private fun DebugPanelTopAppBar(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
     )
   )
+}
+
+@Composable
+private fun ClearLogsButton(onClick: () -> Unit) {
+  val description = stringResource(R.string.debugoverlay_clear_logs_content_description)
+  IconButton(
+    onClick = onClick,
+    modifier = Modifier.semantics { contentDescription = description }
+  ) {
+    Icon(
+      imageVector = Icons.Default.ClearAll,
+      contentDescription = null // Handled by IconButton semantics
+    )
+  }
 }
 
 @Composable

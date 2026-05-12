@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 2.5.0 *(2026-05-12)*
+
+### New Features
+
+* **Clear logs from the debug panel** – New `ClearAll` toolbar button wipes accumulated Logcat / Timber / network entries mid-session so the next bug report covers only the relevant repro window. Built-in sources implement the new public `Clearable` interface; custom `LogSource` / `NetworkRequestSource` implementations can opt in by also implementing `Clearable`. Resolves [#236](https://github.com/Manabu-GT/DebugOverlay-Android/issues/236).
+
 ## Version 2.4.0 *(2026-05-07)*
 
 ### New Features

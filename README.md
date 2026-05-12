@@ -56,6 +56,7 @@ Tap the overlay to open a full-screen diagnostic panel:
 - **UI** – View hierarchy via [Radiography](https://github.com/square/radiography)
 - **Device** – Hardware specs, OS info, battery, network status
 - **Bug Report** – One-tap HTML report with screenshot and diagnostics
+- **Clear Logs** – Toolbar button to wipe Logcat/Timber/network entries so the next bug report covers only the repro window
 
 <img src="art/readme_debug_panel.gif" alt="Debug Panel">
 
