@@ -70,6 +70,10 @@ internal class LogcatDataSource(
    * the queue's current state — the tick payload is irrelevant.
    */
   private val producerSignal: Flow<Unit> = flow {
+    // Each subscription session starts fresh — without this, the hoisted queue
+    // would accumulate duplicates as `logcat -T N` replays the OS ring buffer
+    // on every resubscribe (panel reopen).
+    entries.clear()
     var reader: BufferedReader? = null
     try {
       /**
@@ -142,10 +146,9 @@ internal class LogcatDataSource(
   suspend fun queryLogcatSnapshot(): List<LogEntry> {
     val cached = _logs.value
     if (cached.isNotEmpty()) return cached
-    // After a clear, respect the cleared state instead of re-reading the OS
-    // ring buffer (which would surface pre-clear lines).
-    if (clearMarkerMs > 0L) return emptyList()
-    return captureLogcatOnce()
+    // drop anything captured before the last clear so a "clear → close panel → bug report" flow
+    // doesn't resurface pre-clear lines.
+    return captureLogcatOnce().filter { it.timestampMs >= clearMarkerMs }
   }
 
   private suspend fun captureLogcatOnce(): List<LogEntry> = withContext(Dispatchers.IO) {
