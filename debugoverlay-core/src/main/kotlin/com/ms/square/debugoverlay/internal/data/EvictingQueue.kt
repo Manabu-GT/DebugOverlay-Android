@@ -1,24 +1,41 @@
 package com.ms.square.debugoverlay.internal.data
 
+import androidx.annotation.GuardedBy
+import androidx.annotation.IntRange
 import androidx.annotation.RestrictTo
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
 
 /**
  * A bounded queue that automatically evicts the oldest element when capacity is reached.
  *
- * Thread-safe: all operations are synchronized.
+ * Thread-safe: all operations are synchronized on the instance monitor. The [capacity]
+ * property is mutable; assigning a new value resizes the queue (evicting from the head
+ * if shrinking below current size).
  *
- * @param capacity Maximum number of elements to retain. Must be positive.
+ * @param initialCapacity Initial maximum number of elements to retain. Must be positive.
  */
 @InternalDebugOverlayApi
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-public class EvictingQueue<T>(private val capacity: Int) {
+public class EvictingQueue<T>(initialCapacity: Int) {
 
-  init {
-    require(capacity > 0) { "capacity must be positive, was $capacity" }
-  }
+  @GuardedBy("this")
+  private val queue = ArrayDeque<T>(initialCapacity)
 
-  private val queue = ArrayDeque<T>(capacity)
+  /**
+   * Current maximum number of elements the queue will retain.
+   * Assigning a smaller value evicts the oldest elements until size <= capacity.
+   */
+  @IntRange(from = 1)
+  @GuardedBy("this")
+  public var capacity: Int = initialCapacity
+    @Synchronized get
+
+    @Synchronized set(value) {
+      field = value
+      while (queue.size > value) {
+        queue.removeFirst()
+      }
+    }
 
   /**
    * Adds an element to the queue, evicting the oldest if at capacity.

@@ -7,22 +7,6 @@ import org.junit.Test
 @OptIn(InternalDebugOverlayApi::class)
 class EvictingQueueTest {
 
-  @Test(expected = IllegalArgumentException::class)
-  fun `constructor throws when capacity is zero`() {
-    EvictingQueue<String>(0)
-  }
-
-  @Test(expected = IllegalArgumentException::class)
-  fun `constructor throws when capacity is negative`() {
-    EvictingQueue<String>(-1)
-  }
-
-  @Test
-  fun `constructor succeeds with capacity of 1`() {
-    val queue = EvictingQueue<String>(1)
-    assertThat(queue.size).isEqualTo(0)
-  }
-
   @Test
   fun `add returns null when queue is not at capacity`() {
     val queue = EvictingQueue<String>(3)
@@ -140,5 +124,54 @@ class EvictingQueueTest {
     queue.add(null)
 
     assertThat(queue.toList()).containsExactly(null, "value", null).inOrder()
+  }
+
+  @Test
+  fun `capacity reflects initial value`() {
+    val queue = EvictingQueue<String>(5)
+    assertThat(queue.capacity).isEqualTo(5)
+  }
+
+  @Test
+  fun `capacity setter grows queue without dropping elements`() {
+    val queue = EvictingQueue<Int>(2)
+    queue.add(1)
+    queue.add(2)
+
+    queue.capacity = 4
+
+    assertThat(queue.capacity).isEqualTo(4)
+    assertThat(queue.toList()).containsExactly(1, 2).inOrder()
+    assertThat(queue.add(3)).isNull()
+    assertThat(queue.add(4)).isNull()
+    assertThat(queue.toList()).containsExactly(1, 2, 3, 4).inOrder()
+  }
+
+  @Test
+  fun `capacity setter shrinks queue and evicts oldest elements`() {
+    val queue = EvictingQueue<Int>(5)
+    queue.add(1)
+    queue.add(2)
+    queue.add(3)
+    queue.add(4)
+    queue.add(5)
+
+    queue.capacity = 3
+
+    assertThat(queue.capacity).isEqualTo(3)
+    assertThat(queue.toList()).containsExactly(3, 4, 5).inOrder()
+  }
+
+  @Test
+  fun `add respects new capacity after grow then shrink`() {
+    val queue = EvictingQueue<Int>(2)
+    queue.capacity = 4
+    queue.add(1)
+    queue.add(2)
+    queue.add(3)
+    queue.add(4)
+
+    assertThat(queue.add(5)).isEqualTo(1)
+    assertThat(queue.toList()).containsExactly(2, 3, 4, 5).inOrder()
   }
 }

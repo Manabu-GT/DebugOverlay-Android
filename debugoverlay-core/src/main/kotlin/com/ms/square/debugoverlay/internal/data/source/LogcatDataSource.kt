@@ -38,7 +38,7 @@ import kotlin.time.Duration.Companion.milliseconds
 internal class LogcatDataSource(
   scope: CoroutineScope,
   private val parser: LogcatEntryParser = LogcatEntryParser(),
-  private val maxEntries: Int = 300,
+  initialMaxEntries: Int,
 ) : LogSource,
   Clearable,
   Closeable {
@@ -50,7 +50,21 @@ internal class LogcatDataSource(
   @GuardedBy("processLock")
   private var currentProcess: Process? = null
 
-  private val entries = EvictingQueue<LogEntry>(maxEntries)
+  // Single source of truth for the buffer cap: [entries.capacity] also drives the
+  // `logcat -T N` / `-t N` shell args below.
+  private val entries = EvictingQueue<LogEntry>(initialMaxEntries)
+
+  /**
+   * Maximum number of entries retained in the in-memory buffer and the count
+   * requested from logcat on next subscription. The currently-running subprocess
+   * keeps its original `-T N` arg until [WhileSubscribed][SharingStarted.WhileSubscribed]
+   * restarts the producer (panel reopen).
+   */
+  var maxEntries: Int
+    get() = entries.capacity
+    set(value) {
+      entries.capacity = value
+    }
 
   // Drops OS-replayed entries from before the last clear (e.g. when the producer
   // restarts on panel reopen and `-T N` walks the OS ring buffer).
@@ -80,7 +94,7 @@ internal class LogcatDataSource(
        * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
        * for new logs (-t option fetches once and exists immediately).
        */
-      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T $maxEntries").also {
+      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T ${entries.capacity}").also {
         synchronized(processLock) {
           currentProcess = it
         }
@@ -155,7 +169,7 @@ internal class LogcatDataSource(
     buildList {
       // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
       val process = Runtime.getRuntime()
-        .exec("logcat -v threadtime,printable,epoch -t $maxEntries")
+        .exec("logcat -v threadtime,printable,epoch -t ${entries.capacity}")
 
       try {
         InputStreamReader(process.inputStream).useLines { lines ->

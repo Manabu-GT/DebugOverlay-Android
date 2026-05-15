@@ -38,10 +38,10 @@ import kotlin.time.Duration.Companion.milliseconds
 /** Default name shown when a custom log source doesn't provide a source name. */
 internal const val DEFAULT_CUSTOM_LOG_SOURCE_NAME = "Custom"
 
-internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScope) {
+internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScope, initialLogcatMaxEntries: Int) {
 
   private val currentNetworkRequestSource = MutableStateFlow<NetworkRequestSource>(NoOpNetworkRequestSource)
-  private val logcatDataSource = LogcatDataSource(scope)
+  private val logcatDataSource = LogcatDataSource(scope, initialMaxEntries = initialLogcatMaxEntries)
   private val customLogSource = MutableStateFlow<LogSource?>(null)
   private val netStatsDataSource = NetStatsDataSource(scope)
   private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
@@ -114,6 +114,10 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   fun setCustomLogSource(source: LogSource?) {
     customLogSource.value = source
+  }
+
+  fun setLogcatMaxEntries(maxEntries: Int) {
+    logcatDataSource.maxEntries = maxEntries
   }
 
   fun startOrResumeJankStatsTracking(activity: Activity) {
