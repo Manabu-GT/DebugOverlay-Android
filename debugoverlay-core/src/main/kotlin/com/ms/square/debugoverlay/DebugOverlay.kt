@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.AnyThread
+import androidx.annotation.IntRange
 import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
@@ -40,6 +41,7 @@ public object DebugOverlay {
         _overlayDataRepository?.apply {
           setNetworkSource(newConfig.networkRequestSource)
           setCustomLogSource(newConfig.customLogSource)
+          setLogcatMaxEntries(newConfig.maxLogcatEntries)
         }
         overlayViewManager?.overlayMode?.value = newConfig.overlayMode
       }
@@ -82,7 +84,11 @@ public object DebugOverlay {
     check(!isInstalled) { "DebugOverlay already installed" }
 
     overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also { scope ->
-      val repository = DebugOverlayDataRepository(application, scope).apply {
+      val repository = DebugOverlayDataRepository(
+        context = application,
+        scope = scope,
+        initialLogcatMaxEntries = config.maxLogcatEntries
+      ).apply {
         setNetworkSource(config.networkRequestSource)
         setCustomLogSource(config.customLogSource)
       }
@@ -220,11 +226,29 @@ public object DebugOverlay {
      */
     public var bugReportExporter: BugReportExporter = initial.bugReportExporter
 
+    /**
+     * Maximum number of entries kept in the built-in Logcat tab buffer.
+     * Also passed to `logcat -T N` / `-t N` so it controls how many lines the
+     * OS replays on producer start (panel open) and on bug-report snapshot.
+     *
+     * Default is [Config.DEFAULT_MAX_LOGCAT_ENTRIES] (300). Each entry holds a parsed
+     * [com.ms.square.debugoverlay.model.LogEntry].
+     *
+     * @throws IllegalArgumentException if assigned a non-positive value.
+     */
+    @IntRange(from = 1)
+    public var maxLogcatEntries: Int = initial.maxLogcatEntries
+      set(value) {
+        require(value > 0) { "maxLogcatEntries must be positive, was $value" }
+        field = value
+      }
+
     internal fun build(): Config = Config(
       overlayMode = overlayMode,
       networkRequestSource = networkRequestSource,
       customLogSource = customLogSource,
-      bugReportExporter = bugReportExporter
+      bugReportExporter = bugReportExporter,
+      maxLogcatEntries = maxLogcatEntries
     )
   }
 
@@ -243,6 +267,8 @@ public object DebugOverlay {
    *   Use debugoverlay-extension-timber for Timber integration.
    * @property bugReportExporter The exporter used when the user submits a bug report.
    *   Default is the built-in share sheet exporter.
+   * @property maxLogcatEntries Maximum number of entries kept in the built-in Logcat
+   *   tab buffer. Default is [DEFAULT_MAX_LOGCAT_ENTRIES].
    *
    * @see configure
    */
@@ -251,5 +277,11 @@ public object DebugOverlay {
     val networkRequestSource: NetworkRequestSource = NoOpNetworkRequestSource,
     val customLogSource: LogSource? = null,
     val bugReportExporter: BugReportExporter = IntentShareExporter,
-  )
+    val maxLogcatEntries: Int = DEFAULT_MAX_LOGCAT_ENTRIES,
+  ) {
+    public companion object {
+      /** Default value for [maxLogcatEntries]. */
+      public const val DEFAULT_MAX_LOGCAT_ENTRIES: Int = 300
+    }
+  }
 }

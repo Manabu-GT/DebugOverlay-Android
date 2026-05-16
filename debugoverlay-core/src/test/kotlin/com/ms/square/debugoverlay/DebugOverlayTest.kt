@@ -29,6 +29,7 @@ class DebugOverlayTest {
       networkRequestSource = NoOpNetworkRequestSource
       customLogSource = null
       bugReportExporter = IntentShareExporter
+      maxLogcatEntries = DebugOverlay.Config.DEFAULT_MAX_LOGCAT_ENTRIES
     }
     DebugOverlay.bugReportContributors.clear()
   }
@@ -41,6 +42,30 @@ class DebugOverlayTest {
     assertThat(config.networkRequestSource).isEqualTo(NoOpNetworkRequestSource)
     assertThat(config.customLogSource).isNull()
     assertThat(config.bugReportExporter).isSameInstanceAs(IntentShareExporter)
+    assertThat(config.maxLogcatEntries).isEqualTo(DebugOverlay.Config.DEFAULT_MAX_LOGCAT_ENTRIES)
+  }
+
+  @Test
+  fun `configure updates maxLogcatEntries`() {
+    DebugOverlay.configure {
+      maxLogcatEntries = 1000
+    }
+
+    assertThat(DebugOverlay.config.maxLogcatEntries).isEqualTo(1000)
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `configure throws when maxLogcatEntries is zero`() {
+    DebugOverlay.configure {
+      maxLogcatEntries = 0
+    }
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `configure throws when maxLogcatEntries is negative`() {
+    DebugOverlay.configure {
+      maxLogcatEntries = -1
+    }
   }
 
   @Test

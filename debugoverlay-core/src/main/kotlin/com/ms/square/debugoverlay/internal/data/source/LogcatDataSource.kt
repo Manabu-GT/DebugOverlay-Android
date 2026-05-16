@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay.internal.data.source
 
 import android.os.Build
 import androidx.annotation.GuardedBy
+import androidx.annotation.IntRange
 import com.ms.square.debugoverlay.Clearable
 import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
@@ -38,7 +39,7 @@ import kotlin.time.Duration.Companion.milliseconds
 internal class LogcatDataSource(
   scope: CoroutineScope,
   private val parser: LogcatEntryParser = LogcatEntryParser(),
-  private val maxEntries: Int = 300,
+  initialMaxEntries: Int,
 ) : LogSource,
   Clearable,
   Closeable {
@@ -49,8 +50,20 @@ internal class LogcatDataSource(
 
   @GuardedBy("processLock")
   private var currentProcess: Process? = null
+  private val entries = EvictingQueue<LogEntry>(initialMaxEntries)
 
-  private val entries = EvictingQueue<LogEntry>(maxEntries)
+  /**
+   * Maximum number of entries retained in the in-memory buffer and the count
+   * requested from logcat on next subscription. The currently-running subprocess
+   * keeps its original `-T N` arg until [WhileSubscribed][SharingStarted.WhileSubscribed]
+   * restarts the producer (panel reopen).
+   */
+  var maxEntries: Int
+    @IntRange(from = 1)
+    get() = entries.capacity
+    set(@IntRange(from = 1) value) {
+      entries.capacity = value
+    }
 
   // Drops OS-replayed entries from before the last clear (e.g. when the producer
   // restarts on panel reopen and `-T N` walks the OS ring buffer).
