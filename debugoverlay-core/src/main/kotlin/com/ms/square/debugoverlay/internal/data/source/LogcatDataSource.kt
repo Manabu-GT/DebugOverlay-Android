@@ -50,9 +50,6 @@ internal class LogcatDataSource(
 
   @GuardedBy("processLock")
   private var currentProcess: Process? = null
-
-  // Single source of truth for the buffer cap: [entries.capacity] also drives the
-  // `logcat -T N` / `-t N` shell args below.
   private val entries = EvictingQueue<LogEntry>(initialMaxEntries)
 
   /**
@@ -96,7 +93,7 @@ internal class LogcatDataSource(
        * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
        * for new logs (-t option fetches once and exists immediately).
        */
-      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T ${entries.capacity}").also {
+      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T $maxEntries").also {
         synchronized(processLock) {
           currentProcess = it
         }
@@ -171,7 +168,7 @@ internal class LogcatDataSource(
     buildList {
       // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
       val process = Runtime.getRuntime()
-        .exec("logcat -v threadtime,printable,epoch -t ${entries.capacity}")
+        .exec("logcat -v threadtime,printable,epoch -t $maxEntries")
 
       try {
         InputStreamReader(process.inputStream).useLines { lines ->
