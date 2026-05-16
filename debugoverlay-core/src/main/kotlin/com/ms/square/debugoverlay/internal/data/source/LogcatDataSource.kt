@@ -2,6 +2,7 @@ package com.ms.square.debugoverlay.internal.data.source
 
 import android.os.Build
 import androidx.annotation.GuardedBy
+import androidx.annotation.IntRange
 import com.ms.square.debugoverlay.Clearable
 import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.internal.InternalDebugOverlayApi
@@ -61,8 +62,9 @@ internal class LogcatDataSource(
    * restarts the producer (panel reopen).
    */
   var maxEntries: Int
+    @IntRange(from = 1)
     get() = entries.capacity
-    set(value) {
+    set(@IntRange(from = 1) value) {
       entries.capacity = value
     }
 

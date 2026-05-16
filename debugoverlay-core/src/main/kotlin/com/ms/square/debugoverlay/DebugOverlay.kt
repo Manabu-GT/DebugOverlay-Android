@@ -233,9 +233,15 @@ public object DebugOverlay {
      *
      * Default is [Config.DEFAULT_MAX_LOGCAT_ENTRIES] (300). Each entry holds a parsed
      * [com.ms.square.debugoverlay.model.LogEntry].
+     *
+     * @throws IllegalArgumentException if assigned a non-positive value.
      */
     @IntRange(from = 1)
     public var maxLogcatEntries: Int = initial.maxLogcatEntries
+      set(value) {
+        require(value > 0) { "maxLogcatEntries must be positive, was $value" }
+        field = value
+      }
 
     internal fun build(): Config = Config(
       overlayMode = overlayMode,

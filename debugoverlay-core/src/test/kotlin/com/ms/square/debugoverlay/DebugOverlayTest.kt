@@ -54,6 +54,20 @@ class DebugOverlayTest {
     assertThat(DebugOverlay.config.maxLogcatEntries).isEqualTo(1000)
   }
 
+  @Test(expected = IllegalArgumentException::class)
+  fun `configure throws when maxLogcatEntries is zero`() {
+    DebugOverlay.configure {
+      maxLogcatEntries = 0
+    }
+  }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `configure throws when maxLogcatEntries is negative`() {
+    DebugOverlay.configure {
+      maxLogcatEntries = -1
+    }
+  }
+
   @Test
   fun `configure updates config properties`() {
     val networkSource = TestNetworkRequestSource()
