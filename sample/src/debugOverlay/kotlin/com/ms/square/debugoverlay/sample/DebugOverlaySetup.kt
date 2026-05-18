@@ -21,8 +21,14 @@ object DebugOverlaySetup {
     // Swap to OverlayMode.Hidden(customTabs) to hide the on-screen overlay entirely
     // and trigger the panel via DebugOverlay.openPanel(context) — see "Open Debug Panel"
     // card on the Overlay Tests screen.
+    //
+    // showThermal = true adds a thermal-status row to the compact overlay. Requires Android 11+
+    // with a fully implemented thermal HAL; on unsupported devices the row stays hidden.
     DebugOverlay.configure {
-      overlayMode = OverlayMode.FullMetrics(customTabs = customTabs)
+      overlayMode = OverlayMode.FullMetrics(
+        customTabs = customTabs,
+        showThermal = true
+      )
     }
 
     // Also contribute the same data to bug reports

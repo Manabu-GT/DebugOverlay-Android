@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.FullscreenExit
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material.icons.filled.Visibility
@@ -46,7 +47,7 @@ import com.ms.square.debugoverlay.sample.SecondActivity
  * Main screen for overlay test scenarios.
  * Displays categorized test scenarios to validate overlay z-order behavior.
  */
-@Suppress("LongMethod")
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun OverlayTestsScreen(modifier: Modifier = Modifier) {
@@ -59,6 +60,9 @@ internal fun OverlayTestsScreen(modifier: Modifier = Modifier) {
   var showComposeBottomSheet by rememberSaveable { mutableStateOf(false) }
   var isFullscreen by rememberSaveable { mutableStateOf(false) }
   var isOverlayHidden by rememberSaveable { mutableStateOf(false) }
+  // Matches DebugOverlaySetup.kt default; both this toggle and the Hide/Show Overlay toggle
+  // honor it so flipping visibility never silently changes the thermal preference.
+  var isThermalOn by rememberSaveable { mutableStateOf(true) }
 
   // Reset fullscreen mode when leaving the screen
   DisposableEffect(Unit) {
@@ -210,9 +214,29 @@ internal fun OverlayTestsScreen(modifier: Modifier = Modifier) {
           onClick = {
             val nextHidden = !isOverlayHidden
             DebugOverlay.configure {
-              overlayMode = if (nextHidden) OverlayMode.Hidden() else OverlayMode.FullMetrics()
+              overlayMode = if (nextHidden) OverlayMode.Hidden() else OverlayMode.FullMetrics(showThermal = isThermalOn)
             }
             isOverlayHidden = nextHidden
+          },
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
+
+      item {
+        TestScenarioCard(
+          title = if (isThermalOn) "Hide Thermal Row" else "Show Thermal Row",
+          description = "Toggle the thermal-status row in the compact overlay (Android 11+ only)",
+          icon = Icons.Default.Thermostat,
+          onClick = {
+            val nextThermalOn = !isThermalOn
+            isThermalOn = nextThermalOn
+            // Only reconfigure when the overlay is currently shown — if hidden, the preference
+            // is recorded locally and applied next time the user shows the overlay.
+            if (!isOverlayHidden) {
+              DebugOverlay.configure {
+                overlayMode = OverlayMode.FullMetrics(showThermal = nextThermalOn)
+              }
+            }
           },
           modifier = Modifier.fillMaxWidth()
         )

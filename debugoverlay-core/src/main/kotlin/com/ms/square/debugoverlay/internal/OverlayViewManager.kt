@@ -233,13 +233,14 @@ internal class OverlayViewManager(
           }
         ) {
           val currentOverlayMode by overlayMode.collectAsStateWithLifecycle()
-          when (currentOverlayMode) {
+          when (val mode = currentOverlayMode) {
             is OverlayMode.FullMetrics -> {
               val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(
                 initialValue = null
               )
               DraggableOverlayPanel(
                 metrics = metrics,
+                showThermal = mode.showThermal,
                 initialOffsetX = overlayPreferences.getOverlayX().toFloat(),
                 initialOffsetY = overlayPreferences.getOverlayY().toFloat(),
                 onPositionChanged = onPositionChanged,

@@ -8,4 +8,5 @@ internal data class DebugOverlayPanelMetrics(
   val fpsMetrics: Metrics,
   val targetFps: Float,
   val maxFps: Float,
+  val thermalState: ThermalState,
 )

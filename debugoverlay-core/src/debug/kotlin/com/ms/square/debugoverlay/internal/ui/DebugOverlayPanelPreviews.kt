@@ -25,6 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
+import com.ms.square.debugoverlay.internal.data.model.ThermalState
+import com.ms.square.debugoverlay.internal.data.model.ThermalStatus
 import kotlinx.coroutines.delay
 
 // Composable Previews with static data (no performance monitoring)
@@ -35,6 +37,8 @@ private fun DebugOverlayPanelPreview(
   heapPercent: Float = 72f,
   pss: Float = 256f,
   fps: Float = 60f,
+  thermalStatus: ThermalStatus = ThermalStatus.UNSUPPORTED,
+  showThermal: Boolean = false,
 ) {
   // Mock data that updates for preview
   var metrics by remember {
@@ -46,7 +50,8 @@ private fun DebugOverlayPanelPreview(
         fpsMetrics = Metrics(fps, listOf(60f, 59f, 60f, 60f, 58f, 60f, 59f, fps)),
         targetFps = 90f,
         maxFps = 90f,
-        maxPss = 512f // Typical mid-range device
+        maxPss = 512f, // Typical mid-range device
+        thermalState = ThermalState(thermalStatus)
       )
     )
   }
@@ -83,6 +88,7 @@ private fun DebugOverlayPanelPreview(
 
   DebugOverlayPanel(
     metrics = metrics,
+    showThermal = showThermal,
     modifier = modifier
   )
 }
@@ -207,6 +213,29 @@ private fun DebugOverlayPreviewHighLoad() {
         heapPercent = 92f,
         pss = 800f,
         fps = 25f
+      )
+    }
+  }
+}
+
+@Preview(name = "Panel Only - With Thermal (Severe)", showBackground = true, widthDp = 200, heightDp = 200)
+@Composable
+private fun DebugOverlayPreviewWithThermal() {
+  MaterialTheme {
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+        .padding(16.dp),
+      contentAlignment = Alignment.Center
+    ) {
+      DebugOverlayPanelPreview(
+        cpuPercent = 72f,
+        heapPercent = 65f,
+        pss = 380f,
+        fps = 42f,
+        thermalStatus = ThermalStatus.SEVERE,
+        showThermal = true
       )
     }
   }

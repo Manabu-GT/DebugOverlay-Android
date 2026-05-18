@@ -20,6 +20,7 @@ internal class DebugOverlayPanelDataSourceImpl(context: Context, overlayScope: C
   private val cpuDataSource = CpuDataSource()
   private val memoryDataSource = MemoryDataSource(context)
   private val fpsDataSource = FpsDataSource(context)
+  private val thermalDataSource = ThermalDataSource(context)
 
   // Accumulators for maintaining history across flow collection restarts
   private val cpuAccumulator = MetricsAccumulator()
@@ -31,8 +32,9 @@ internal class DebugOverlayPanelDataSourceImpl(context: Context, overlayScope: C
     cpuDataSource.cpuUsage().map { cpuAccumulator.accumulate(it.value) },
     memoryDataSource.heapUsage().map { heapAccumulator.accumulate(it.value) },
     memoryDataSource.pss().map { pssAccumulator.accumulate(it) },
-    fpsDataSource.fps().map { fpsAccumulator.accumulate(it) }
-  ) { cpuMetrics, heapMetrics, pssMetrics, fpsMetrics ->
+    fpsDataSource.fps().map { fpsAccumulator.accumulate(it) },
+    thermalDataSource.thermalState()
+  ) { cpuMetrics, heapMetrics, pssMetrics, fpsMetrics, thermalState ->
     DebugOverlayPanelMetrics(
       cpuMetrics = cpuMetrics,
       heapMetrics = heapMetrics,
@@ -40,7 +42,8 @@ internal class DebugOverlayPanelDataSourceImpl(context: Context, overlayScope: C
       maxPss = memoryDataSource.maxPss,
       fpsMetrics = fpsMetrics,
       targetFps = fpsDataSource.currentTargetFps,
-      maxFps = fpsDataSource.maxSupportedFps
+      maxFps = fpsDataSource.maxSupportedFps,
+      thermalState = thermalState
     )
   }
     .shareIn(
