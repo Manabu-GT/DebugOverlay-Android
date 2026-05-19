@@ -189,7 +189,7 @@ DebugOverlay.configure {
 }
 ```
 
-The row shows the current `PowerManager.THERMAL_STATUS_*` level (`NONE`/`LIGHT`/`MOD`/`SEV`/`CRIT`/`EMER`/`SHUT`) with a color-coded dot. Requires Android 11 (API 30) or above; the row stays hidden on older devices or on devices whose thermal HAL is not implemented.
+The row shows the current thermal-throttling level with a color-coded dot. Labels are abbreviated to fit the compact panel — `None` / `Light` / `Mod` / `Sev` / `Crit` / `Emer` / `Shut` — mapping to `PowerManager.THERMAL_STATUS_NONE` / `_LIGHT` / `_MODERATE` / `_SEVERE` / `_CRITICAL` / `_EMERGENCY` / `_SHUTDOWN` respectively. Requires Android 11 (API 30) or above; the row stays hidden on older devices or on devices whose thermal HAL is not implemented.
 
 ### Network request tracking
 

@@ -1,7 +1,5 @@
 package com.ms.square.debugoverlay.internal.data.model
 
-import kotlinx.serialization.Serializable
-
 /**
  * Current thermal throttling state of the device.
  *
@@ -10,7 +8,6 @@ import kotlinx.serialization.Serializable
  * the Android ADPF documentation:
  * https://developer.android.com/games/optimize/adpf/thermal#device-limitations-of-the-thermal-api
  */
-@Serializable
 internal data class ThermalState(val status: ThermalStatus)
 
 /**
@@ -20,7 +17,6 @@ internal data class ThermalState(val status: ThermalStatus)
  *
  * Levels mirror the `PowerManager.THERMAL_STATUS_*` constants.
  */
-@Serializable
 internal enum class ThermalStatus {
   NONE,
   LIGHT,

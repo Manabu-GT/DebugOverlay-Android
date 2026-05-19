@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
+import com.ms.square.debugoverlay.internal.data.model.ThermalState
 import com.ms.square.debugoverlay.internal.data.model.ThermalStatus
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.roundToInt
@@ -55,7 +56,7 @@ private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
 @Composable
 internal fun DraggableOverlayPanel(
   metrics: DebugOverlayPanelMetrics?,
-  showThermal: Boolean,
+  thermalState: ThermalState?,
   initialOffsetX: Float,
   initialOffsetY: Float,
   modifier: Modifier = Modifier,
@@ -113,7 +114,7 @@ internal fun DraggableOverlayPanel(
   ) {
     DebugOverlayPanel(
       metrics = metrics,
-      showThermal = showThermal
+      thermalState = thermalState
     )
   }
 }
@@ -122,7 +123,7 @@ internal fun DraggableOverlayPanel(
 internal fun DebugOverlayPanel(
   metrics: DebugOverlayPanelMetrics?,
   modifier: Modifier = Modifier,
-  showThermal: Boolean = false,
+  thermalState: ThermalState? = null,
 ) {
   // Disable font scaling to maintain consistent overlay panel size regardless of system font settings.
   // Debug overlay panel is for developers, so not supporting font scaling is acceptable.
@@ -155,8 +156,8 @@ internal fun DebugOverlayPanel(
           HeapRow(it.heapMetrics)
           PssRow(it.pssMetrics, it.maxPss)
           FpsRow(it.fpsMetrics, it.targetFps, it.maxFps)
-          if (showThermal && it.thermalState.status != ThermalStatus.UNSUPPORTED) {
-            ThermalRow(it.thermalState.status)
+          if (thermalState != null && thermalState.status != ThermalStatus.UNSUPPORTED) {
+            ThermalRow(thermalState.status)
           }
         }
       }
@@ -243,6 +244,10 @@ private fun Float.toMemPssStatusColor(): Color = when {
   else -> STATUS_COLOR_NORMAL
 }
 
+/**
+ * Bespoke row layout (no `MetricRow` / `LineGraph`) because thermal status is a categorical
+ * enum rather than a continuous time-series — a sparkline would have nothing meaningful to plot.
+ */
 @Composable
 private fun ThermalRow(status: ThermalStatus) {
   Row(

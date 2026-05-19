@@ -37,8 +37,7 @@ private fun DebugOverlayPanelPreview(
   heapPercent: Float = 72f,
   pss: Float = 256f,
   fps: Float = 60f,
-  thermalStatus: ThermalStatus = ThermalStatus.UNSUPPORTED,
-  showThermal: Boolean = false,
+  thermalState: ThermalState? = null,
 ) {
   // Mock data that updates for preview
   var metrics by remember {
@@ -50,8 +49,7 @@ private fun DebugOverlayPanelPreview(
         fpsMetrics = Metrics(fps, listOf(60f, 59f, 60f, 60f, 58f, 60f, 59f, fps)),
         targetFps = 90f,
         maxFps = 90f,
-        maxPss = 512f, // Typical mid-range device
-        thermalState = ThermalState(thermalStatus)
+        maxPss = 512f // Typical mid-range device
       )
     )
   }
@@ -88,8 +86,8 @@ private fun DebugOverlayPanelPreview(
 
   DebugOverlayPanel(
     metrics = metrics,
-    showThermal = showThermal,
-    modifier = modifier
+    modifier = modifier,
+    thermalState = thermalState
   )
 }
 
@@ -234,8 +232,7 @@ private fun DebugOverlayPreviewWithThermal() {
         heapPercent = 65f,
         pss = 380f,
         fps = 42f,
-        thermalStatus = ThermalStatus.SEVERE,
-        showThermal = true
+        thermalState = ThermalState(ThermalStatus.SEVERE)
       )
     }
   }

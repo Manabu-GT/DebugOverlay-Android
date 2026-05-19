@@ -78,15 +78,22 @@ private fun Int.toThermalStatus(): ThermalStatus = when (this) {
  * Data source for [ThermalState] derived from [PowerManager] thermal APIs.
  *
  * Requires Android 11 (API 30) or above. On older devices the data source emits a single
- * [ThermalStatus.UNSUPPORTED] state and stays open. On API 30+ devices with an incomplete
- * thermal HAL (initial [PowerManager.getThermalHeadroom] returns `NaN` or `0`), the data
- * source likewise emits [ThermalStatus.UNSUPPORTED].
+ * [ThermalStatus.UNSUPPORTED] state and stays open.
  *
- * On supported devices, status is derived from a hybrid of:
+ * On API 30+ devices, status is derived from a hybrid of:
  *  - [PowerManager.getCurrentThermalStatus] (push-based via [PowerManager.OnThermalStatusChangedListener])
  *  - [PowerManager.getThermalHeadroom] (polled every [pollInterval]) — used as a fallback signal
  *    when the reported status is [PowerManager.THERMAL_STATUS_NONE], following Google's
  *    recommendation for devices whose thermal HAL is not fully implemented.
+ *
+ * Note: per Google's ADPF docs, [PowerManager.getThermalHeadroom] can return `NaN` shortly
+ * after boot before the HAL accumulates enough thermal samples. We do NOT classify the device
+ * as [ThermalStatus.UNSUPPORTED] in that case — [deriveThermalStatus] treats `NaN` as
+ * [ThermalStatus.NONE], and subsequent polls naturally pick up the real reading once (and if)
+ * the HAL warms up. Typical Pixel devices stabilise within ~30–60 seconds; OEM builds with a
+ * degraded or stub HAL may stay at `NaN` indefinitely. The trade-off: devices with a
+ * permanently broken thermal HAL will report `NONE` for the lifetime of the process instead
+ * of being hidden.
  */
 internal class ThermalDataSource(
   private val context: Context,
@@ -95,19 +102,11 @@ internal class ThermalDataSource(
 
   private val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
 
-  /**
-   * `true` when the device runs API 30+ AND the thermal HAL is wired up
-   * (initial headroom reading is neither `NaN` nor `0`).
-   */
-  val isSupported: Boolean by lazy {
-    isApiLevelSupported() && hasUsableHeadroom()
-  }
-
   fun thermalState(): Flow<ThermalState> {
-    if (!isSupported) {
+    if (!isApiLevelSupported()) {
       return flowOf(ThermalState(ThermalStatus.UNSUPPORTED))
     }
-    @Suppress("NewApi") // isSupported implies SDK_INT >= R
+    @Suppress("NewApi") // isApiLevelSupported implies SDK_INT >= R
     return supportedThermalState()
   }
 
@@ -120,25 +119,27 @@ internal class ThermalDataSource(
   @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R)
   private fun isApiLevelSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
 
-  @Suppress("NewApi") // Guarded by isApiLevelSupported
-  private fun hasUsableHeadroom(): Boolean {
-    if (!isApiLevelSupported()) return false
-    return runCatchingNonCancellation {
-      val initial = powerManager.getThermalHeadroom(0)
-      !initial.isNaN() && initial != 0f
-    }.getOrElse { e ->
-      Logger.w("getThermalHeadroom probe failed", e)
-      false
-    }
-  }
-
   @RequiresApi(Build.VERSION_CODES.R)
   private fun statusFlow(): Flow<Int> = callbackFlow {
     val listener = PowerManager.OnThermalStatusChangedListener { status -> trySend(status) }
     // Register the listener BEFORE the seed read so a concurrent thermal-status change between
     // the read and the registration is not silently dropped. A duplicate emission (seed + push
     // with the same value) is harmless — downstream uses shareIn(replay=1) / combine semantics.
-    powerManager.addThermalStatusListener(ContextCompat.getMainExecutor(context), listener)
+    val registered = runCatchingNonCancellation {
+      powerManager.addThermalStatusListener(ContextCompat.getMainExecutor(context), listener)
+    }.isSuccess
+    if (!registered) {
+      // Listener registration can throw in test environments (notably Robolectric, which does
+      // not shadow the (Executor, OnThermalStatusChangedListener) overload) and conceivably on
+      // OEM builds with a stub PowerManagerService. Degrade gracefully: emit a single NONE so
+      // combine() has a status seed, then keep the channel open. headroomFlow continues to
+      // poll, and deriveThermalStatus consults headroom whenever rawStatus == NONE — so the
+      // row still reflects throttling via the headroom heuristic.
+      Logger.w("addThermalStatusListener failed; falling back to headroom-only thermal signal")
+      trySend(PowerManager.THERMAL_STATUS_NONE)
+      awaitClose { /* nothing to unregister */ }
+      return@callbackFlow
+    }
     trySend(powerManager.currentThermalStatus)
     awaitClose { powerManager.removeThermalStatusListener(listener) }
   }
