@@ -1,17 +1,23 @@
-@file:Suppress("MagicNumber")
+@file:Suppress("MagicNumber", "TooManyFunctions")
 
 package com.ms.square.debugoverlay.internal.ui
 
 import android.view.HapticFeedbackConstants
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -29,11 +36,16 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
+import com.ms.square.debugoverlay.internal.data.model.ThermalState
+import com.ms.square.debugoverlay.internal.data.model.ThermalStatus
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.roundToInt
 
@@ -44,6 +56,7 @@ private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
 @Composable
 internal fun DraggableOverlayPanel(
   metrics: DebugOverlayPanelMetrics?,
+  thermalState: ThermalState?,
   initialOffsetX: Float,
   initialOffsetY: Float,
   modifier: Modifier = Modifier,
@@ -100,13 +113,18 @@ internal fun DraggableOverlayPanel(
       }
   ) {
     DebugOverlayPanel(
-      metrics = metrics
+      metrics = metrics,
+      thermalState = thermalState
     )
   }
 }
 
 @Composable
-internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Modifier = Modifier) {
+internal fun DebugOverlayPanel(
+  metrics: DebugOverlayPanelMetrics?,
+  modifier: Modifier = Modifier,
+  thermalState: ThermalState? = null,
+) {
   // Disable font scaling to maintain consistent overlay panel size regardless of system font settings.
   // Debug overlay panel is for developers, so not supporting font scaling is acceptable.
   CompositionLocalProvider(
@@ -138,6 +156,9 @@ internal fun DebugOverlayPanel(metrics: DebugOverlayPanelMetrics?, modifier: Mod
           HeapRow(it.heapMetrics)
           PssRow(it.pssMetrics, it.maxPss)
           FpsRow(it.fpsMetrics, it.targetFps, it.maxFps)
+          if (thermalState != null && thermalState.status != ThermalStatus.UNSUPPORTED) {
+            ThermalRow(thermalState.status)
+          }
         }
       }
     }
@@ -221,4 +242,61 @@ private fun Float.toMemPssStatusColor(): Color = when {
   this > 750 -> STATUS_COLOR_CRITICAL
   this > 500 -> STATUS_COLOR_WARNING
   else -> STATUS_COLOR_NORMAL
+}
+
+/**
+ * Bespoke row layout (no `MetricRow` / `LineGraph`) because thermal status is a categorical
+ * enum rather than a continuous time-series — a sparkline would have nothing meaningful to plot.
+ */
+@Composable
+private fun ThermalRow(status: ThermalStatus) {
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(4.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Box(
+        modifier = Modifier
+          .size(6.dp)
+          .background(status.toStatusColor(), CircleShape)
+      )
+      Text(
+        text = stringResource(R.string.debugoverlay_thermal_compact_label),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
+    }
+    Text(
+      text = stringResource(status.compactLabelResId()),
+      style = MaterialTheme.typography.titleSmall,
+      color = MaterialTheme.colorScheme.onSurface,
+      fontWeight = FontWeight.SemiBold
+    )
+  }
+}
+
+private fun ThermalStatus.toStatusColor(): Color = when (this) {
+  ThermalStatus.NONE, ThermalStatus.LIGHT -> STATUS_COLOR_NORMAL
+  ThermalStatus.MODERATE, ThermalStatus.SEVERE -> STATUS_COLOR_WARNING
+  ThermalStatus.CRITICAL,
+  ThermalStatus.EMERGENCY,
+  ThermalStatus.SHUTDOWN,
+  -> STATUS_COLOR_CRITICAL
+  ThermalStatus.UNSUPPORTED -> STATUS_COLOR_NORMAL
+}
+
+private fun ThermalStatus.compactLabelResId(): Int = when (this) {
+  ThermalStatus.NONE -> R.string.debugoverlay_thermal_status_none_abbr
+  ThermalStatus.LIGHT -> R.string.debugoverlay_thermal_status_light_abbr
+  ThermalStatus.MODERATE -> R.string.debugoverlay_thermal_status_moderate_abbr
+  ThermalStatus.SEVERE -> R.string.debugoverlay_thermal_status_severe_abbr
+  ThermalStatus.CRITICAL -> R.string.debugoverlay_thermal_status_critical_abbr
+  ThermalStatus.EMERGENCY -> R.string.debugoverlay_thermal_status_emergency_abbr
+  ThermalStatus.SHUTDOWN -> R.string.debugoverlay_thermal_status_shutdown_abbr
+  // Defensive fallback; ThermalRow is hidden when status is UNSUPPORTED so this never renders.
+  ThermalStatus.UNSUPPORTED -> R.string.debugoverlay_thermal_status_none_abbr
 }

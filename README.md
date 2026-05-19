@@ -44,6 +44,7 @@ Draggable overlay with real-time metrics and sparklines:
 - **Heap** – JVM heap usage percentage
 - **PSS** – Proportional Set Size in MB
 - **FPS** – Real-time frame rate
+- **Thermal** – *(optional, Android 11+)* Device thermal status — enable via `OverlayMode.FullMetrics(showThermal = true)`
 
 ### Debug Panel
 Tap the overlay to open a full-screen diagnostic panel:
@@ -177,6 +178,18 @@ DebugOverlay.configure {
   )
 }
 ```
+
+### Thermal status
+
+Opt in to a thermal-status row in the compact overlay:
+
+```kotlin
+DebugOverlay.configure {
+  overlayMode = OverlayMode.FullMetrics(showThermal = true)
+}
+```
+
+The row shows the current thermal-throttling level with a color-coded dot. Labels are abbreviated to fit the compact panel — `None` / `Light` / `Mod` / `Sev` / `Crit` / `Emer` / `Shut` — mapping to `PowerManager.THERMAL_STATUS_NONE` / `_LIGHT` / `_MODERATE` / `_SEVERE` / `_CRITICAL` / `_EMERGENCY` / `_SHUTDOWN` respectively. Requires Android 11 (API 30) or above with a working thermal HAL — the row stays hidden on older devices and on API 30+ devices whose HAL doesn't expose `getThermalHeadroom` data. If the HAL later starts reporting, the row appears on the next poll.
 
 ### Network request tracking
 

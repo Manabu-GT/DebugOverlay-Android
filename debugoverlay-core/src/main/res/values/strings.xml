@@ -152,6 +152,16 @@
   <string name="debugoverlay_device_info_percentage_value">%d%% free</string>
   <string name="debugoverlay_device_info_hz_value">%.0f Hz/%.0f Hz</string>
 
+  <!-- Thermal (compact overlay row, opt-in via OverlayMode.FullMetrics(showThermal = true)) -->
+  <string name="debugoverlay_thermal_compact_label">Therm</string>
+  <string name="debugoverlay_thermal_status_none_abbr">None</string>
+  <string name="debugoverlay_thermal_status_light_abbr">Light</string>
+  <string name="debugoverlay_thermal_status_moderate_abbr">Mod</string>
+  <string name="debugoverlay_thermal_status_severe_abbr">Sev</string>
+  <string name="debugoverlay_thermal_status_critical_abbr">Crit</string>
+  <string name="debugoverlay_thermal_status_emergency_abbr">Emer</string>
+  <string name="debugoverlay_thermal_status_shutdown_abbr">Shut</string>
+
   <!-- Bug Report -->
   <string name="debugoverlay_bug_report">Generate Bug Report</string>
   <string name="debugoverlay_bug_report_generating">Generating bug report</string>

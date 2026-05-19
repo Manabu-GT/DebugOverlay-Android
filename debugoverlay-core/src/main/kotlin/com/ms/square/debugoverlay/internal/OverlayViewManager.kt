@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +31,7 @@ import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.ActivityProvider
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
 import com.ms.square.debugoverlay.internal.bugreport.ui.DraggableBugReporterFab
+import com.ms.square.debugoverlay.internal.data.model.ThermalState
 import com.ms.square.debugoverlay.internal.data.source.DebugOverlayPanelDataSourceImpl
 import com.ms.square.debugoverlay.internal.data.source.OverlayPreferences
 import com.ms.square.debugoverlay.internal.data.source.SharedPreferencesOverlayPreferences
@@ -42,9 +44,11 @@ import curtains.OnRootViewsChangedListener
 import curtains.phoneWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -233,13 +237,18 @@ internal class OverlayViewManager(
           }
         ) {
           val currentOverlayMode by overlayMode.collectAsStateWithLifecycle()
-          when (currentOverlayMode) {
+          when (val mode = currentOverlayMode) {
             is OverlayMode.FullMetrics -> {
               val metrics by debugPanelDataSource.debugOverlayPanelMetrics.collectAsStateWithLifecycle(
                 initialValue = null
               )
+              val thermalFlow: Flow<ThermalState?> = remember(mode.showThermal) {
+                if (mode.showThermal) debugPanelDataSource.thermalState else flowOf(null)
+              }
+              val thermalState by thermalFlow.collectAsStateWithLifecycle(initialValue = null)
               DraggableOverlayPanel(
                 metrics = metrics,
+                thermalState = thermalState,
                 initialOffsetX = overlayPreferences.getOverlayX().toFloat(),
                 initialOffsetY = overlayPreferences.getOverlayY().toFloat(),
                 onPositionChanged = onPositionChanged,

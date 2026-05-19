@@ -26,8 +26,16 @@ public sealed interface OverlayMode {
    * Best for developers during active development/testing.
    *
    * @param customTabs Custom tabs appended after the built-in tabs in the debug panel.
+   * @param showThermal When `true`, adds a thermal-status row to the real-time metrics panel.
+   *   Requires Android 11 (API 30) or above with a working thermal HAL — the row stays hidden
+   *   on older devices and on API 30+ devices whose HAL does not expose `getThermalHeadroom`
+   *   data. If a HAL later starts reporting real values, the row appears on the next poll.
+   *   Defaults to `false`.
    */
-  public data class FullMetrics(override val customTabs: List<DebugTab> = emptyList()) : WithCustomTabs
+  public data class FullMetrics(
+    override val customTabs: List<DebugTab> = emptyList(),
+    public val showThermal: Boolean = false,
+  ) : WithCustomTabs
 
   /**
    * Shows a minimal bug reporter FAB.

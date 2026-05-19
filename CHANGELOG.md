@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 2.6.0 *(2026-05-18)*
+
+### New Features
+
+* **Thermal status row** – Optional thermal-status indicator for the compact overlay, opt-in via `OverlayMode.FullMetrics(showThermal = true)`. Combines `PowerManager.getCurrentThermalStatus()` with `getThermalHeadroom()` per [Google's ADPF guidance](https://developer.android.com/games/optimize/adpf/thermal#device-limitations-of-the-thermal-api) so devices with an incomplete thermal HAL still surface a useful signal. Requires Android 11 (API 30) or above; row stays hidden on older devices. Resolves [#246](https://github.com/Manabu-GT/DebugOverlay-Android/issues/246).
+
 ## Version 2.5.0 *(2026-05-12)*
 
 ### New Features
