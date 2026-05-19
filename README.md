@@ -191,6 +191,18 @@ DebugOverlay.configure {
 
 The row shows the current thermal-throttling level with a color-coded dot. Labels are abbreviated to fit the compact panel — `None` / `Light` / `Mod` / `Sev` / `Crit` / `Emer` / `Shut` — mapping to `PowerManager.THERMAL_STATUS_NONE` / `_LIGHT` / `_MODERATE` / `_SEVERE` / `_CRITICAL` / `_EMERGENCY` / `_SHUTDOWN` respectively. Requires Android 11 (API 30) or above with a working thermal HAL — the row stays hidden on older devices and on API 30+ devices whose HAL doesn't expose `getThermalHeadroom` data. If the HAL later starts reporting, the row appears on the next poll.
 
+### Logcat buffer size
+
+The built-in Logcat tab keeps the last 300 entries by default. Override via `maxLogcatEntries`:
+
+```kotlin
+DebugOverlay.configure {
+  maxLogcatEntries = 1000
+}
+```
+
+The value also bounds the `logcat -T N` / `-t N` calls, so it caps how many lines the OS replays when the panel opens and when a bug report snapshot is captured.
+
 ### Network request tracking
 
 ```kotlin

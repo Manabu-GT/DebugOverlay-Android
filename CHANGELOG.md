@@ -5,6 +5,7 @@
 ### New Features
 
 * **Thermal status row** – Optional thermal-status indicator for the compact overlay, opt-in via `OverlayMode.FullMetrics(showThermal = true)`. Combines `PowerManager.getCurrentThermalStatus()` with `getThermalHeadroom()` per [Google's ADPF guidance](https://developer.android.com/games/optimize/adpf/thermal#device-limitations-of-the-thermal-api) so devices with an incomplete thermal HAL still surface a useful signal. Requires Android 11 (API 30) or above; row stays hidden on older devices. Resolves [#246](https://github.com/Manabu-GT/DebugOverlay-Android/issues/246).
+* **Configurable Logcat buffer size** – New `Config.maxLogcatEntries` controls how many entries the built-in Logcat tab retains (default 300). Also bounds `logcat -T N` / `-t N` so it caps OS replay on panel open and on bug-report snapshots. Reassignable at runtime via `DebugOverlay.configure { maxLogcatEntries = … }`.
 
 ## Version 2.5.0 *(2026-05-12)*
 
