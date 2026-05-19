@@ -56,7 +56,12 @@ internal val DEFAULT_THERMAL_POLL_INTERVAL: Duration = 10L.seconds
  */
 internal fun deriveThermalStatus(rawStatus: Int, headroom: Float): ThermalStatus = when {
   rawStatus > PowerManager.THERMAL_STATUS_NONE -> rawStatus.toThermalStatus()
-  headroom.isNaN() -> ThermalStatus.NONE
+  // Per the Javadoc for getThermalHeadroom, NaN means either "device does not support this
+  // functionality" or "called significantly faster than once per second". We poll at 10s
+  // intervals (well within the rate limit), so NaN in our use case means the device's thermal
+  // HAL does not expose headroom — treat as unsupported so the UI hides the row. If the HAL
+  // ever starts returning real values, this self-heals on the next emission.
+  headroom.isNaN() -> ThermalStatus.UNSUPPORTED
   headroom >= HEADROOM_SEVERE -> ThermalStatus.SEVERE
   headroom > HEADROOM_MODERATE -> ThermalStatus.MODERATE
   headroom > HEADROOM_LIGHT -> ThermalStatus.LIGHT
@@ -78,7 +83,9 @@ private fun Int.toThermalStatus(): ThermalStatus = when (this) {
  * Data source for [ThermalState] derived from [PowerManager] thermal APIs.
  *
  * Requires Android 11 (API 30) or above. On older devices the data source emits a single
- * [ThermalStatus.UNSUPPORTED] state and stays open.
+ * [ThermalStatus.UNSUPPORTED] state via `flowOf(...)` and completes. Downstream consumers
+ * that wrap this in `shareIn(replay = 1)` (e.g. `DebugOverlayPanelDataSource`) will continue
+ * to surface that last value to new subscribers.
  *
  * On API 30+ devices, status is derived from a hybrid of:
  *  - [PowerManager.getCurrentThermalStatus] (push-based via [PowerManager.OnThermalStatusChangedListener])
@@ -86,14 +93,12 @@ private fun Int.toThermalStatus(): ThermalStatus = when (this) {
  *    when the reported status is [PowerManager.THERMAL_STATUS_NONE], following Google's
  *    recommendation for devices whose thermal HAL is not fully implemented.
  *
- * Note: per Google's ADPF docs, [PowerManager.getThermalHeadroom] can return `NaN` shortly
- * after boot before the HAL accumulates enough thermal samples. We do NOT classify the device
- * as [ThermalStatus.UNSUPPORTED] in that case — [deriveThermalStatus] treats `NaN` as
- * [ThermalStatus.NONE], and subsequent polls naturally pick up the real reading once (and if)
- * the HAL warms up. Typical Pixel devices stabilise within ~30–60 seconds; OEM builds with a
- * degraded or stub HAL may stay at `NaN` indefinitely. The trade-off: devices with a
- * permanently broken thermal HAL will report `NONE` for the lifetime of the process instead
- * of being hidden.
+ * Per the [PowerManager.getThermalHeadroom] Javadoc, `NaN` means either "device does not
+ * support this functionality" or "called significantly faster than once per second". Our
+ * 10-second polling sits well within the rate limit, so a persistent `NaN` is treated as
+ * "unsupported": [deriveThermalStatus] maps the `NaN` case to [ThermalStatus.UNSUPPORTED]
+ * and the UI hides the row. If the HAL later starts returning real values, the next
+ * emission self-heals and the row reappears.
  */
 internal class ThermalDataSource(
   private val context: Context,

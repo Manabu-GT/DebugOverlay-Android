@@ -23,7 +23,8 @@ object DebugOverlaySetup {
     // card on the Overlay Tests screen.
     //
     // showThermal = true adds a thermal-status row to the compact overlay. Requires Android 11+
-    // with a fully implemented thermal HAL; on unsupported devices the row stays hidden.
+    // with a working thermal HAL; the row stays hidden on older devices and on devices whose
+    // HAL doesn't expose getThermalHeadroom data.
     DebugOverlay.configure {
       overlayMode = OverlayMode.FullMetrics(
         customTabs = customTabs,

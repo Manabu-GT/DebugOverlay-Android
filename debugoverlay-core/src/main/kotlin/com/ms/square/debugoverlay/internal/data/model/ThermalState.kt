@@ -11,11 +11,13 @@ package com.ms.square.debugoverlay.internal.data.model
 internal data class ThermalState(val status: ThermalStatus)
 
 /**
- * Thermal throttling level reported by the platform, or [UNSUPPORTED] when the device
- * does not support the thermal headroom API (API < 30, or API 30+ device with an
- * incomplete thermal HAL implementation).
- *
- * Levels mirror the `PowerManager.THERMAL_STATUS_*` constants.
+ * Thermal throttling level reported by the platform. Levels [NONE] through [SHUTDOWN] mirror
+ * the `PowerManager.THERMAL_STATUS_*` constants. [UNSUPPORTED] is a synthetic value emitted
+ * when the device cannot report thermal data — either because it pre-dates the thermal API
+ * (Android < 11 / API < 30) or because the thermal HAL is incomplete and
+ * `getThermalHeadroom()` returns `NaN` per its Javadoc contract. The UI hides the row in
+ * both cases. If a HAL later begins returning real headroom values, the state self-heals
+ * to a real level on the next poll.
  */
 internal enum class ThermalStatus {
   NONE,

@@ -16,9 +16,12 @@ import org.robolectric.annotation.Config
  * Tests for [ThermalDataSource] and its [deriveThermalStatus] helper.
  *
  * Robolectric does not shadow [android.os.PowerManager.getThermalHeadroom]; the call falls
- * through to a real (unimplemented) HAL that returns `0` / `NaN`. That mirrors a device with
- * an incomplete thermal HAL, which the data source should treat as `UNSUPPORTED` per Google's
- * ADPF guidance:
+ * through to a real (unimplemented) HAL that returns `0` / `NaN`. Per the Javadoc contract,
+ * `NaN` (at our 10s polling rate) means the device does not support thermal headroom, so
+ * the data source emits [ThermalStatus.UNSUPPORTED] and the UI hides the row. The state
+ * self-heals to a real level if the HAL later starts returning data.
+ *
+ * See Google's ADPF guidance:
  * https://developer.android.com/games/optimize/adpf/thermal#device-limitations-of-the-thermal-api
  */
 @RunWith(RobolectricTestRunner::class)
@@ -29,14 +32,14 @@ class ThermalDataSourceTest {
 
   //region ThermalDataSource — API gate / graceful degradation
   @Test
-  fun `thermalState emits NONE on API 30+ when HAL has no headroom data yet`() = runTest {
+  fun `thermalState emits UNSUPPORTED on API 30+ when headroom HAL is not present`() = runTest {
     // Robolectric defaults to a modern API level (>= R) with a non-shadowed thermal HAL.
-    // PowerManager returns THERMAL_STATUS_NONE and getThermalHeadroom returns 0/NaN — this
-    // mirrors a real device whose HAL hasn't warmed up yet. The data source must emit NONE
-    // (not UNSUPPORTED) so the row recovers gracefully once the HAL produces real readings.
+    // getThermalHeadroom returns NaN, which per the Javadoc means "device does not support
+    // this functionality" (we poll at 10s, so the rate-limit case doesn't apply). The data
+    // source must emit UNSUPPORTED so the UI hides the row.
     val state = dataSource.thermalState().first()
 
-    assertThat(state.status).isEqualTo(ThermalStatus.NONE)
+    assertThat(state.status).isEqualTo(ThermalStatus.UNSUPPORTED)
   }
 
   @Test
@@ -114,10 +117,11 @@ class ThermalDataSourceTest {
   }
 
   @Test
-  fun `deriveThermalStatus returns NONE when raw is NONE and headroom is NaN`() {
-    // NaN from getThermalHeadroom must not promote to a synthetic status.
+  fun `deriveThermalStatus returns UNSUPPORTED when raw is NONE and headroom is NaN`() {
+    // Per the Javadoc, NaN at our 10s polling rate means the device does not support thermal
+    // headroom — emit UNSUPPORTED so the UI hides the row rather than misleadingly showing NONE.
     assertThat(deriveThermalStatus(PowerManager.THERMAL_STATUS_NONE, headroom = Float.NaN))
-      .isEqualTo(ThermalStatus.NONE)
+      .isEqualTo(ThermalStatus.UNSUPPORTED)
   }
   //endregion
 }
