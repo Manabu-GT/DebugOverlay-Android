@@ -91,7 +91,7 @@ internal class LogcatDataSource(
     try {
       /**
        * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
-       * for new logs (-t option fetches once and exists immediately).
+       * for new logs (-t option fetches once and exits immediately).
        */
       val process = ProcessBuilder(
         "logcat",
