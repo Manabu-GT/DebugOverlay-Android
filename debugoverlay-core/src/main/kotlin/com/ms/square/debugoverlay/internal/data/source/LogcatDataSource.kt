@@ -39,7 +39,7 @@ import kotlin.time.Duration.Companion.milliseconds
 internal class LogcatDataSource(
   scope: CoroutineScope,
   private val parser: LogcatEntryParser = LogcatEntryParser(),
-  initialMaxEntries: Int,
+  @IntRange(from = 1) initialMaxEntries: Int,
 ) : LogSource,
   Clearable,
   Closeable {
@@ -91,9 +91,15 @@ internal class LogcatDataSource(
     try {
       /**
        * NOTE: The -T flag with a number fetches the last N lines from this app and continue to listens
-       * for new logs (-t option fetches once and exists immediately).
+       * for new logs (-t option fetches once and exits immediately).
        */
-      val process = Runtime.getRuntime().exec("logcat -v threadtime,printable,epoch -T $maxEntries").also {
+      val process = ProcessBuilder(
+        "logcat",
+        "-v",
+        "threadtime,printable,epoch",
+        "-T",
+        maxEntries.toString()
+      ).start().also {
         synchronized(processLock) {
           currentProcess = it
         }
@@ -167,8 +173,13 @@ internal class LogcatDataSource(
   private suspend fun captureLogcatOnce(): List<LogEntry> = withContext(Dispatchers.IO) {
     buildList {
       // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
-      val process = Runtime.getRuntime()
-        .exec("logcat -v threadtime,printable,epoch -t $maxEntries")
+      val process = ProcessBuilder(
+        "logcat",
+        "-v",
+        "threadtime,printable,epoch",
+        "-t",
+        maxEntries.toString()
+      ).start()
 
       try {
         InputStreamReader(process.inputStream).useLines { lines ->
