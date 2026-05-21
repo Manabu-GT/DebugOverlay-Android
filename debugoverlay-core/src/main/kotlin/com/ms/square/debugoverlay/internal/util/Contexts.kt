@@ -11,8 +11,8 @@ internal fun Context.defaultDisplay(): Display? {
   return dm?.getDisplay(Display.DEFAULT_DISPLAY)
 }
 
-internal tailrec fun Context.findActivity(): Activity = when (this) {
+internal tailrec fun Context.findActivityOrNull(): Activity? = when (this) {
   is Activity -> this
-  is ContextWrapper -> this.baseContext.findActivity()
-  else -> throw IllegalArgumentException("Could not find activity!")
+  is ContextWrapper -> this.baseContext.findActivityOrNull()
+  else -> null
 }

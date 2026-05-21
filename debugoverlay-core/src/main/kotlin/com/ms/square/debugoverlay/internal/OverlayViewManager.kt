@@ -37,7 +37,7 @@ import com.ms.square.debugoverlay.internal.data.source.OverlayPreferences
 import com.ms.square.debugoverlay.internal.data.source.SharedPreferencesOverlayPreferences
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.ui.DraggableOverlayPanel
-import com.ms.square.debugoverlay.internal.util.findActivity
+import com.ms.square.debugoverlay.internal.util.findActivityOrNull
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import curtains.Curtains
 import curtains.OnRootViewsChangedListener
@@ -182,7 +182,7 @@ internal class OverlayViewManager(
       }
 
       // Exclude windows belonging to DebugOverlay's own activities
-      if (view.findActivity()?.isDebugOverlayActivity() == true) return@lastOrNull false
+      if (view.findActivityOrNull()?.isDebugOverlayActivity() == true) return@lastOrNull false
 
       view.windowToken != null && view.isShown
     }
@@ -388,7 +388,8 @@ internal class OverlayViewManager(
         DebugOverlay.overlayDataRepository.stopJankStatsTracking(activity)
       }
     }
-    private fun isCurrentTarget(activity: Activity): Boolean = currentTargetWindowView?.findActivity() === activity
+    private fun isCurrentTarget(activity: Activity): Boolean =
+      currentTargetWindowView?.findActivityOrNull() === activity
   }
 }
 
