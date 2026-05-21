@@ -33,6 +33,7 @@ import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportResult
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
+import com.ms.square.debugoverlay.internal.util.findActivityOrNull
 import com.ms.square.debugoverlay.internal.util.isDarkTheme
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import com.ms.square.debugoverlay.model.ExportResult
@@ -331,7 +332,7 @@ internal class BugReportActivity : ComponentActivity() {
   companion object {
     fun launchWithDraftPicker(context: Context) {
       val intent = Intent(context, BugReportActivity::class.java).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (context.findActivityOrNull() == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         putExtra(INTENT_EXTRA_SHOW_DRAFT_PICKER, true)
       }
       context.startActivity(intent)
@@ -339,7 +340,7 @@ internal class BugReportActivity : ComponentActivity() {
 
     fun launchWithMetadataDialog(context: Context, bugCapturedFolderPath: String) {
       val intent = Intent(context, BugReportActivity::class.java).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (context.findActivityOrNull() == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         putExtra(INTENT_EXTRA_CAPTURE_FOLDER, bugCapturedFolderPath)
       }
       context.startActivity(intent)
