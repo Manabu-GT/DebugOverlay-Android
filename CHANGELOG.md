@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 2.6.1 *(2026-05-21)*
+
+### Bug Fixes
+
+* **Speculative fix for "Create Report" being unresponsive on Xiaomi / MIUI** – `BugReportActivity` is no longer launched with `FLAG_ACTIVITY_NEW_TASK` when invoked from an Activity context; the flag is preserved for the FAB's non-Activity overlay context where it is still required. The combination of `NEW_TASK` + a transparent destination is suspected of tripping MIUI's pop-up window gate, but the symptom reported in [#251](https://github.com/Manabu-GT/DebugOverlay-Android/issues/251) could not be reproduced on the maintainer's devices, so this is an exploratory change rather than a verified fix.
+
 ## Version 2.6.0 *(2026-05-18)*
 
 ### New Features
