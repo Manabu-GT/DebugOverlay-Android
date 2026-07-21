@@ -94,7 +94,7 @@ class HtmlReportBuilderTest {
   }
 
   @Test
-  fun `large body renders a View Full toggle with complete untruncated content`() {
+  fun `large body renders a View Full toggle with expanded content`() {
     val largeArray = (1..500).joinToString(prefix = "[", postfix = "]") { "\"item-$it\"" }
     val html = buildHtml(
       listOf(networkRequest(responseBody = largeArray, responseHeaders = mapOf("Content-Type" to "application/json")))
@@ -102,7 +102,20 @@ class HtmlReportBuilderTest {
 
     assertThat(html).contains("data-full=\"")
     assertThat(html).contains("View Full")
-    assertThat(html).contains("item-500") // present in the full data attribute
+    assertThat(html).contains("item-500") // well under the 64KB cap, so fully present in data-full
     assertThat(html).contains("truncated") // truncation notice still shown in the inline preview
+  }
+
+  @Test
+  fun `very large body caps the View Full content instead of embedding it unbounded`() {
+    // ~200KB of raw content - comfortably exceeds the internal 64KB cap on the "View Full" payload,
+    // guarding against a single report ballooning into hundreds of MB when many large bodies are captured.
+    val hugeArray = (1..9999).joinToString(prefix = "[", postfix = "]") { "\"item-$it\"" }
+    val html = buildHtml(
+      listOf(networkRequest(responseBody = hugeArray, responseHeaders = mapOf("Content-Type" to "application/json")))
+    )
+
+    assertThat(html).contains("item-1&quot;") // early content is well within the cap
+    assertThat(html).doesNotContain("item-9999") // beyond the cap, so not embedded anywhere in the report
   }
 }

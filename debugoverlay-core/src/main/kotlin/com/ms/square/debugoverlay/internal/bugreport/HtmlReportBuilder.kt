@@ -664,8 +664,13 @@ internal object HtmlReportBuilder {
 
   /**
    * Renders a request/response body, pretty-printing it first if it is JSON.
+   *
    * Bodies longer than [MAX_BODY_LENGTH] are truncated inline, with a "View Full" toggle
-   * (backed by a `data-full` attribute) that reveals the complete, untruncated content on click.
+   * (backed by a `data-full` attribute) that reveals more content on click. The OkHttp extension
+   * can retain up to 100 requests with bodies up to 2MB each, so the expanded content is itself
+   * capped at [MAX_FULL_BODY_LENGTH] rather than embedding the true, unbounded body - otherwise a
+   * report with many large captured bodies could balloon the in-memory HTML string into the
+   * hundreds of megabytes and risk an OOM while generating the very report meant to help debug one.
    */
   private fun StringBuilder.appendBodySection(label: String, rawBody: String, contentType: String?) {
     val formatted = if (TextType.from(rawBody, contentType) == TextType.JSON) {
@@ -679,13 +684,13 @@ internal object HtmlReportBuilder {
     append("              <div class=\"detail-label\">${label.escapeHtml()}</div>\n")
     append("              <div class=\"body-content\"")
     if (isTruncated) {
-      append(" data-full=\"${formatted.escapeHtml()}\"")
+      append(" data-full=\"${formatted.truncateBody(MAX_FULL_BODY_LENGTH).escapeHtml()}\"")
     }
     append(">${formatted.truncateBody().escapeHtml()}</div>\n")
     if (isTruncated) {
-      val fullSizeLabel = "View Full (${formatBytes(formatted.length.toLong())})"
-      append("              <div class=\"details-toggle\" data-label=\"${fullSizeLabel.escapeHtml()}\" ")
-      append("onclick=\"toggleFullBody(this)\">${fullSizeLabel.escapeHtml()}</div>\n")
+      val toggleLabel = "View Full (${formatBytes(minOf(formatted.length, MAX_FULL_BODY_LENGTH).toLong())})"
+      append("              <div class=\"details-toggle\" data-label=\"${toggleLabel.escapeHtml()}\" ")
+      append("onclick=\"toggleFullBody(this)\">${toggleLabel.escapeHtml()}</div>\n")
     }
     append("            </div>\n")
   }
@@ -866,6 +871,9 @@ internal object HtmlReportBuilder {
 
   private const val MAX_BODY_LENGTH = 2048
   private const val MAX_TRACE_LENGTH = 8192
+
+  // Caps how much of a body the "View Full" toggle embeds - see appendBodySection() KDoc.
+  private const val MAX_FULL_BODY_LENGTH = 64 * 1024
 
   // Placeholders for metadata injection - used by injectMetadata()
   private const val TITLE_PLACEHOLDER = "<!--TITLE_PLACEHOLDER-->"
