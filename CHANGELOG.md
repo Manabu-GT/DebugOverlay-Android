@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 2.6.2 *(2026-07-21)*
+
+### New Features
+
+* **Formatted JSON bodies and full request/response view in HTML reports** – Request/response bodies in the HTML bug report are now pretty-printed when detected as JSON (via Content-Type header or content sniffing). Truncated bodies (>2KB) get a toggle to view more: "View Full" if the body fits within a 64KB cap, or "View More (first 64.0 KB of Y)" otherwise, capped per-body to bound report memory. Resolves [#258](https://github.com/Manabu-GT/DebugOverlay-Android/issues/258).
+
+### Bug Fixes
+
+* **Debug Panel filter bar now collapses on short-height windows** – The panel gains compact-height support, including height-aware scrolling for the top app bar. Log filtering switches to a responsive filter bar (expanded chips vs. compact dropdown) with improved selection indicators/semantics, and the Network tab renders a compact, pinned statistics header on short-height windows. Resolves [#257](https://github.com/Manabu-GT/DebugOverlay-Android/issues/257).
+
 ## Version 2.6.1 *(2026-05-21)*
 
 ### Bug Fixes
