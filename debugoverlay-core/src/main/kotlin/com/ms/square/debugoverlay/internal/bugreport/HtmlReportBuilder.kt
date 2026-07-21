@@ -5,6 +5,7 @@ import android.util.Base64
 import com.ms.square.debugoverlay.internal.bugreport.model.AppInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportData
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
+import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.AppExitReason
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
@@ -15,6 +16,7 @@ import com.ms.square.debugoverlay.internal.util.escapeHtml
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatBytesFromKb
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
+import com.ms.square.debugoverlay.internal.util.formatJsonIfPossible
 import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
@@ -98,7 +100,7 @@ internal object HtmlReportBuilder {
     append("    </div>")
   }
 
-  private fun buildHtmlString(data: BugReportData): String = buildString {
+  internal fun buildHtmlString(data: BugReportData): String = buildString {
     val timestamp = formatFullTimestamp(data.capturedAt)
 
     append("<!DOCTYPE html>\n")
@@ -636,10 +638,7 @@ internal object HtmlReportBuilder {
     }
     // Request body
     request.requestBody?.let { body ->
-      append("            <div class=\"detail-section\">\n")
-      append("              <div class=\"detail-label\">Request Body</div>\n")
-      append("              <div class=\"body-content\">${body.truncateBody().escapeHtml()}</div>\n")
-      append("            </div>\n")
+      appendBodySection("Request Body", body, request.requestHeaders.contentType())
     }
     // Response headers
     if (request.responseHeaders.isNotEmpty()) {
@@ -656,11 +655,47 @@ internal object HtmlReportBuilder {
     }
     // Response body
     request.responseBody?.let { body ->
-      append("            <div class=\"detail-section\">\n")
-      append("              <div class=\"detail-label\">Response Body</div>\n")
-      append("              <div class=\"body-content\">${body.truncateBody().escapeHtml()}</div>\n")
-      append("            </div>\n")
+      appendBodySection("Response Body", body, request.responseHeaders.contentType())
     }
+  }
+
+  private fun Map<String, String>.contentType(): String? =
+    entries.firstOrNull { it.key.equals("content-type", ignoreCase = true) }?.value
+
+  /**
+   * Renders a request/response body, pretty-printing it first if it is JSON.
+   *
+   * Bodies longer than [MAX_BODY_LENGTH] are truncated inline, with a toggle (backed by a
+   * `data-full` attribute) that reveals more content on click - genuinely the whole body only
+   * when it's at or under [MAX_FULL_BODY_LENGTH]; the label switches to "View More" and states
+   * the actual byte count otherwise, since embedding the true, unbounded body would defeat the
+   * point of capping it. See [MAX_FULL_BODY_LENGTH] for why the cap exists.
+   */
+  private fun StringBuilder.appendBodySection(label: String, rawBody: String, contentType: String?) {
+    val formatted = if (TextType.from(rawBody, contentType) == TextType.JSON) {
+      formatJsonIfPossible(rawBody)
+    } else {
+      rawBody
+    }
+    val isTruncated = formatted.length > MAX_BODY_LENGTH
+
+    append("            <div class=\"detail-section\">\n")
+    append("              <div class=\"detail-label\">${label.escapeHtml()}</div>\n")
+    append("              <div class=\"body-content\"")
+    if (isTruncated) {
+      append(" data-full=\"${formatted.truncateBody(MAX_FULL_BODY_LENGTH).escapeHtml()}\"")
+    }
+    append(">${formatted.truncateBody().escapeHtml()}</div>\n")
+    if (isTruncated) {
+      val toggleLabel = if (formatted.length > MAX_FULL_BODY_LENGTH) {
+        "View More (first ${formatBytes(MAX_FULL_BODY_LENGTH.toLong())} of ${formatBytes(formatted.length.toLong())})"
+      } else {
+        "View Full (${formatBytes(formatted.length.toLong())})"
+      }
+      append("              <div class=\"details-toggle\" data-label=\"${toggleLabel.escapeHtml()}\" ")
+      append("onclick=\"toggleFullBody(this)\">${toggleLabel.escapeHtml()}</div>\n")
+    }
+    append("            </div>\n")
   }
 
   private fun StringBuilder.appendJankStatsSection(jankStats: JankStatsUiState?) {
@@ -798,6 +833,21 @@ internal object HtmlReportBuilder {
     function toggleNetworkDetails(toggle) {
       toggle.parentElement.classList.toggle('expanded');
     }
+    function toggleFullBody(toggle) {
+      var content = toggle.previousElementSibling;
+      if (content.classList.contains('showing-full')) {
+        content.textContent = content.getAttribute('data-preview');
+        content.classList.remove('showing-full');
+        toggle.textContent = toggle.getAttribute('data-label');
+      } else {
+        if (!content.hasAttribute('data-preview')) {
+          content.setAttribute('data-preview', content.textContent);
+        }
+        content.textContent = content.getAttribute('data-full');
+        content.classList.add('showing-full');
+        toggle.textContent = 'Show Less';
+      }
+    }
     function toggleExitTrace(toggle) {
       var trace = toggle.nextElementSibling;
       var arrow = toggle.querySelector('.arrow');
@@ -824,6 +874,23 @@ internal object HtmlReportBuilder {
 
   private const val MAX_BODY_LENGTH = 2048
   private const val MAX_TRACE_LENGTH = 8192
+
+  /**
+   * Per-body cap on what the "View Full" / "View More" toggle embeds (see [appendBodySection]).
+   *
+   * The OkHttp extension's own defaults allow up to 100 stored requests with request/response
+   * bodies up to 2MB each - up to 200 bodies per report. Embedding every one in full, plus
+   * HTML-escaping overhead (quotes alone inflate typical JSON ~1.5-2x; a pathological all-quote
+   * body up to 6x), could add tens of megabytes to the in-memory report string in a realistic
+   * worst case - risking an OOM while generating the very report meant to help debug one.
+   *
+   * 64KB is not derived from that ceiling; it's a per-body limit chosen to feel clearly safer
+   * than [MAX_BODY_LENGTH] without being reckless, not a value computed by working backward from
+   * a target total. At this cap, 200 truncated bodies add roughly ~23MB in the realistic case,
+   * ~79MB in the pathological one - bounded, but a per-body cap, not a whole-report budget: it
+   * doesn't limit the aggregate as tightly as tracking a running total across the report would.
+   */
+  private const val MAX_FULL_BODY_LENGTH = 64 * 1024
 
   // Placeholders for metadata injection - used by injectMetadata()
   private const val TITLE_PLACEHOLDER = "<!--TITLE_PLACEHOLDER-->"
