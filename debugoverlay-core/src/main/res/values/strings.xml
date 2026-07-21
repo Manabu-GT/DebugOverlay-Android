@@ -29,6 +29,7 @@
   <string name="debugoverlay_log_entry_description">Log entry: %1$s, %2$s</string>
   <string name="debugoverlay_filter_chip_description">Filter by %1$s level logs</string>
   <string name="debugoverlay_filter_tag">Filter Tag</string>
+  <string name="debugoverlay_filter_logs_content_description">Filter logs by level</string>
   <string name="debugoverlay_message_label">MESSAGE</string>
   <string name="debugoverlay_clipboard_label_log">Log Line</string>
 

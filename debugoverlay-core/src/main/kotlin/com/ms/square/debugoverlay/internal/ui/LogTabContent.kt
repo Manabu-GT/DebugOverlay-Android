@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -30,12 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +55,7 @@ private data class LogFilterState(
   val onSearchQueryChanged: (String) -> Unit,
   val selectedLevel: LogLevel,
   val onLevelSelected: (LogLevel) -> Unit,
+  val isCompactHeight: Boolean,
 )
 
 /**
@@ -72,9 +70,15 @@ private data class LogFilterState(
  *
  * @param logsFlow Flow of log entries to collect and display.
  * @param modifier Modifier to be applied to the root layout
+ * @param isCompactHeight Whether the window has limited vertical space (e.g. landscape on a
+ *   small device), collapsing the filter bar to reclaim room for the log list.
  */
 @Composable
-internal fun LogTabContent(logsFlow: Flow<List<LogEntry>>, modifier: Modifier = Modifier) {
+internal fun LogTabContent(
+  logsFlow: Flow<List<LogEntry>>,
+  modifier: Modifier = Modifier,
+  isCompactHeight: Boolean = false,
+) {
   val logEntries by logsFlow.collectAsStateWithLifecycle(emptyList())
 
   var selectedLevel by remember { mutableStateOf(LogLevel.DEBUG) }
@@ -117,7 +121,8 @@ internal fun LogTabContent(logsFlow: Flow<List<LogEntry>>, modifier: Modifier = 
           searchQuery = searchQuery,
           onSearchQueryChanged = { searchQuery = it },
           selectedLevel = selectedLevel,
-          onLevelSelected = { selectedLevel = it }
+          onLevelSelected = { selectedLevel = it },
+          isCompactHeight = isCompactHeight
         ),
         filteredEntries = filteredEntries,
         listState = listState,
@@ -157,7 +162,8 @@ private fun LogListScreen(
         searchQuery = filterState.searchQuery,
         onSearchQueryChanged = filterState.onSearchQueryChanged,
         selectedLevel = filterState.selectedLevel,
-        onLevelSelected = filterState.onLevelSelected
+        onLevelSelected = filterState.onLevelSelected,
+        isCompactHeight = filterState.isCompactHeight
       )
 
       LogContent(
@@ -174,54 +180,6 @@ private fun LogListScreen(
         .align(Alignment.BottomEnd)
         .padding(16.dp)
     )
-  }
-}
-
-@Composable
-private fun LogFilterBar(
-  searchQuery: String,
-  onSearchQueryChanged: (String) -> Unit,
-  selectedLevel: LogLevel,
-  onLevelSelected: (LogLevel) -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Column(modifier = modifier.fillMaxWidth().padding(top = 8.dp)) {
-    SearchField(
-      searchPlaceholder = stringResource(R.string.debugoverlay_search_logs),
-      searchQuery = searchQuery,
-      onSearchQueryChanged = onSearchQueryChanged,
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 8.dp)
-    )
-
-    LogLevelFilters(
-      selectedLevel = selectedLevel,
-      onLevelSelected = onLevelSelected
-    )
-  }
-}
-
-@Composable
-private fun LogLevelFilters(
-  selectedLevel: LogLevel,
-  onLevelSelected: (LogLevel) -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  FlowRow(
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = 8.dp, vertical = 4.dp),
-    horizontalArrangement = Arrangement.spacedBy(8.dp)
-  ) {
-    LogLevel.entries.forEach { level ->
-      FilterChip(
-        label = level.name,
-        color = level.toColor(),
-        selected = selectedLevel == level,
-        onClick = { onLevelSelected(level) }
-      )
-    }
   }
 }
 
@@ -374,37 +332,5 @@ private fun LogEntryMetadata(entry: LogEntry, modifier: Modifier = Modifier) {
         overflow = TextOverflow.Ellipsis
       )
     }
-  }
-}
-
-@Composable
-private fun FilterChip(
-  label: String,
-  color: Color,
-  selected: Boolean,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  val chipDescription = stringResource(R.string.debugoverlay_filter_chip_description, label)
-  Surface(
-    onClick = onClick,
-    modifier = modifier.semantics {
-      role = Role.RadioButton
-      contentDescription = chipDescription
-      this.selected = selected
-    },
-    shape = MaterialTheme.shapes.large,
-    color = if (selected) color.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainerHigh,
-    border = androidx.compose.foundation.BorderStroke(
-      width = 1.dp,
-      color = if (selected) color else Color.Transparent
-    )
-  ) {
-    Text(
-      text = label,
-      modifier = Modifier.padding(6.dp),
-      style = MaterialTheme.typography.labelSmall,
-      color = if (selected) color else MaterialTheme.colorScheme.onSurface
-    )
   }
 }
