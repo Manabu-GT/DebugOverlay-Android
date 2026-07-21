@@ -102,12 +102,13 @@ class HtmlReportBuilderTest {
 
     assertThat(html).contains("data-full=\"")
     assertThat(html).contains("View Full")
+    assertThat(html).doesNotContain("View More") // fits entirely within the cap, so it's genuinely "full"
     assertThat(html).contains("item-500") // well under the 64KB cap, so fully present in data-full
     assertThat(html).contains("truncated") // truncation notice still shown in the inline preview
   }
 
   @Test
-  fun `very large body caps the View Full content instead of embedding it unbounded`() {
+  fun `very large body caps the View Full content and labels it as partial`() {
     // ~200KB of raw content - comfortably exceeds the internal 64KB cap on the "View Full" payload,
     // guarding against a single report ballooning into hundreds of MB when many large bodies are captured.
     val hugeArray = (1..9999).joinToString(prefix = "[", postfix = "]") { "\"item-$it\"" }
@@ -117,5 +118,7 @@ class HtmlReportBuilderTest {
 
     assertThat(html).contains("item-1&quot;") // early content is well within the cap
     assertThat(html).doesNotContain("item-9999") // beyond the cap, so not embedded anywhere in the report
+    // Label must make clear this is a partial view, not the true "full" body.
+    assertThat(html).contains("View More (first 64.0 KB of")
   }
 }
