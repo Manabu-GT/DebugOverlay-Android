@@ -347,7 +347,8 @@ private fun DebugPanelTabContent(
       )
       BuiltInTab.NETWORK -> NetworkTabContent(
         netStatsFlow = repository.netStats,
-        networkRequestsFlow = repository.networkRequests
+        networkRequestsFlow = repository.networkRequests,
+        isCompactHeight = isCompactHeight
       )
       BuiltInTab.JANKSTATS -> JankStatsTabContent(jankStatsFlow = repository.jankStats)
       BuiltInTab.UI -> UiTabContent()

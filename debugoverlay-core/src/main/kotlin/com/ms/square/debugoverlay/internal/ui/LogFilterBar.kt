@@ -127,7 +127,10 @@ private fun LogLevelFilterMenu(
   modifier: Modifier = Modifier,
 ) {
   var isMenuExpanded by remember { mutableStateOf(false) }
-  val filterDescription = stringResource(R.string.debugoverlay_filter_logs_content_description)
+  val filterDescription = stringResource(
+    R.string.debugoverlay_filter_logs_content_description,
+    selectedLevel.name
+  )
 
   Box(modifier = modifier) {
     IconButton(

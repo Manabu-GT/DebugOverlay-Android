@@ -4,18 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.North
-import androidx.compose.material.icons.filled.South
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,11 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,12 +46,16 @@ import kotlin.math.roundToInt
  * @param netStatsFlow Flow of network statistics to collect and display.
  * @param networkRequestsFlow Flow of network requests to collect and display.
  * @param modifier Modifier to be applied to the root layout.
+ * @param isCompactHeight Whether the window has limited vertical space (e.g. landscape on a
+ *   small device), condensing the stats header to a single-line summary to reclaim room for
+ *   the request list, while keeping it pinned — see [NetworkStatsHeader].
  */
 @Composable
 internal fun NetworkTabContent(
   netStatsFlow: Flow<NetworkStats>,
   networkRequestsFlow: Flow<List<NetworkRequest>>,
   modifier: Modifier = Modifier,
+  isCompactHeight: Boolean = false,
 ) {
   val networkStats by netStatsFlow.collectAsStateWithLifecycle(
     initialValue = NetworkStats.INITIAL_VALUE
@@ -99,7 +93,8 @@ internal fun NetworkTabContent(
         filteredRequests = filteredRequests,
         searchQuery = searchQuery,
         onSearchQueryChanged = { searchQuery = it },
-        onRequestClick = { selectedRequest = it }
+        onRequestClick = { selectedRequest = it },
+        isCompactHeight = isCompactHeight
       )
     },
     detailContent = { request ->
@@ -114,6 +109,11 @@ internal fun NetworkTabContent(
 
 /**
  * Network list screen with stats header and request list.
+ *
+ * The stats header stays pinned above the [LazyColumn] (not folded into scroll) since aggregate
+ * stats — especially the error count — are ambient signal worth keeping glanceable while
+ * scrolling the request list, not a control the user reaches for and tucks away. See
+ * [NetworkStatsHeader] for how it condenses on short-height windows instead.
  */
 @Composable
 private fun NetworkListScreen(
@@ -122,12 +122,13 @@ private fun NetworkListScreen(
   searchQuery: String,
   onSearchQueryChanged: (String) -> Unit,
   onRequestClick: (NetworkRequest) -> Unit,
+  isCompactHeight: Boolean,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize()) {
     // Stats Header (only shown when supported)
     if (augmentedNetworkStats != NetworkStats.UNSUPPORTED) {
-      NetworkStatsHeader(augmentedNetworkStats)
+      NetworkStatsHeader(augmentedNetworkStats, isCompactHeight = isCompactHeight)
     }
 
     SearchField(
@@ -136,7 +137,6 @@ private fun NetworkListScreen(
       onSearchQueryChanged = onSearchQueryChanged
     )
 
-    // Request List (newest first)
     LazyColumn(
       modifier = Modifier.fillMaxSize(),
       contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -151,118 +151,6 @@ private fun NetworkListScreen(
           onClick = { onRequestClick(request) }
         )
       }
-    }
-  }
-}
-
-/**
- * Stats header showing download/upload totals.
- */
-@Composable
-private fun NetworkStatsHeader(networkStats: NetworkStats, modifier: Modifier = Modifier) {
-  Surface(
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(16.dp),
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-    tonalElevation = 2.dp
-  ) {
-    Column(
-      modifier = Modifier.padding(16.dp)
-    ) {
-      // Main stats row
-      Row(
-        modifier = modifier
-          .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-      ) {
-        // Downloaded
-        NetworkStatsHeaderValue(
-          horizontalAlignment = Alignment.Start,
-          color = MaterialTheme.colorScheme.tertiary,
-          title = stringResource(R.string.debugoverlay_netstat_downloaded),
-          icon = Icons.Default.South,
-          value = formatBytes(networkStats.totalDownloaded)
-        )
-
-        // Uploaded
-        NetworkStatsHeaderValue(
-          horizontalAlignment = Alignment.End,
-          color = MaterialTheme.colorScheme.primary,
-          title = stringResource(R.string.debugoverlay_netstat_uploaded),
-          icon = Icons.Default.North,
-          value = formatBytes(networkStats.totalUploaded)
-        )
-      }
-      NetworkStatsHeaderSubRow(networkStats)
-    }
-  }
-}
-
-@Composable
-private fun NetworkStatsHeaderSubRow(networkStats: NetworkStats) {
-  if (!(networkStats.totalRequests == null || networkStats.errorCount == null || networkStats.avgDuration == null)) {
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // Secondary stats row
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-      Text(
-        text = stringResource(R.string.debugoverlay_netstat_requests, networkStats.totalRequests),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-      )
-
-      if (networkStats.errorCount > 0) {
-        Text(
-          text = stringResource(R.string.debugoverlay_netstat_errors, networkStats.errorCount),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.error
-        )
-      }
-
-      Text(
-        text = stringResource(R.string.debugoverlay_netstat_avg_duration, networkStats.avgDuration),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-      )
-    }
-  }
-}
-
-@Composable
-private fun NetworkStatsHeaderValue(
-  horizontalAlignment: Alignment.Horizontal,
-  color: Color,
-  title: String,
-  icon: ImageVector,
-  value: String,
-) {
-  Column(horizontalAlignment = horizontalAlignment) {
-    Text(
-      text = title,
-      style = MaterialTheme.typography.labelSmall,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-      Icon(
-        imageVector = icon,
-        contentDescription = null,
-        modifier = Modifier.size(20.dp),
-        tint = color
-      )
-      Text(
-        text = value,
-        style = MaterialTheme.typography.headlineSmall,
-        color = color,
-        fontWeight = FontWeight.Bold
-      )
     }
   }
 }
@@ -379,7 +267,7 @@ private fun NetworkRequestMetadata(
 }
 
 @Composable
-private fun Dot() {
+internal fun Dot() {
   Text(
     text = "•",
     style = MaterialTheme.typography.bodySmall,
