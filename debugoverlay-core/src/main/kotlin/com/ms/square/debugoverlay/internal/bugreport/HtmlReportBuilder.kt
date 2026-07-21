@@ -5,6 +5,7 @@ import android.util.Base64
 import com.ms.square.debugoverlay.internal.bugreport.model.AppInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportData
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
+import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.AppExitReason
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
@@ -15,6 +16,7 @@ import com.ms.square.debugoverlay.internal.util.escapeHtml
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatBytesFromKb
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
+import com.ms.square.debugoverlay.internal.util.formatJsonIfPossible
 import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
@@ -98,7 +100,7 @@ internal object HtmlReportBuilder {
     append("    </div>")
   }
 
-  private fun buildHtmlString(data: BugReportData): String = buildString {
+  internal fun buildHtmlString(data: BugReportData): String = buildString {
     val timestamp = formatFullTimestamp(data.capturedAt)
 
     append("<!DOCTYPE html>\n")
@@ -636,10 +638,7 @@ internal object HtmlReportBuilder {
     }
     // Request body
     request.requestBody?.let { body ->
-      append("            <div class=\"detail-section\">\n")
-      append("              <div class=\"detail-label\">Request Body</div>\n")
-      append("              <div class=\"body-content\">${body.truncateBody().escapeHtml()}</div>\n")
-      append("            </div>\n")
+      appendBodySection("Request Body", body, request.requestHeaders.contentType())
     }
     // Response headers
     if (request.responseHeaders.isNotEmpty()) {
@@ -656,11 +655,39 @@ internal object HtmlReportBuilder {
     }
     // Response body
     request.responseBody?.let { body ->
-      append("            <div class=\"detail-section\">\n")
-      append("              <div class=\"detail-label\">Response Body</div>\n")
-      append("              <div class=\"body-content\">${body.truncateBody().escapeHtml()}</div>\n")
-      append("            </div>\n")
+      appendBodySection("Response Body", body, request.responseHeaders.contentType())
     }
+  }
+
+  private fun Map<String, String>.contentType(): String? =
+    entries.firstOrNull { it.key.equals("content-type", ignoreCase = true) }?.value
+
+  /**
+   * Renders a request/response body, pretty-printing it first if it is JSON.
+   * Bodies longer than [MAX_BODY_LENGTH] are truncated inline, with a "View Full" toggle
+   * (backed by a `data-full` attribute) that reveals the complete, untruncated content on click.
+   */
+  private fun StringBuilder.appendBodySection(label: String, rawBody: String, contentType: String?) {
+    val formatted = if (TextType.from(rawBody, contentType) == TextType.JSON) {
+      formatJsonIfPossible(rawBody)
+    } else {
+      rawBody
+    }
+    val isTruncated = formatted.length > MAX_BODY_LENGTH
+
+    append("            <div class=\"detail-section\">\n")
+    append("              <div class=\"detail-label\">${label.escapeHtml()}</div>\n")
+    append("              <div class=\"body-content\"")
+    if (isTruncated) {
+      append(" data-full=\"${formatted.escapeHtml()}\"")
+    }
+    append(">${formatted.truncateBody().escapeHtml()}</div>\n")
+    if (isTruncated) {
+      val fullSizeLabel = "View Full (${formatBytes(formatted.length.toLong())})"
+      append("              <div class=\"details-toggle\" data-label=\"${fullSizeLabel.escapeHtml()}\" ")
+      append("onclick=\"toggleFullBody(this)\">${fullSizeLabel.escapeHtml()}</div>\n")
+    }
+    append("            </div>\n")
   }
 
   private fun StringBuilder.appendJankStatsSection(jankStats: JankStatsUiState?) {
@@ -797,6 +824,21 @@ internal object HtmlReportBuilder {
     }
     function toggleNetworkDetails(toggle) {
       toggle.parentElement.classList.toggle('expanded');
+    }
+    function toggleFullBody(toggle) {
+      var content = toggle.previousElementSibling;
+      if (content.classList.contains('showing-full')) {
+        content.textContent = content.getAttribute('data-preview');
+        content.classList.remove('showing-full');
+        toggle.textContent = toggle.getAttribute('data-label');
+      } else {
+        if (!content.hasAttribute('data-preview')) {
+          content.setAttribute('data-preview', content.textContent);
+        }
+        content.textContent = content.getAttribute('data-full');
+        content.classList.add('showing-full');
+        toggle.textContent = 'Show Less';
+      }
     }
     function toggleExitTrace(toggle) {
       var trace = toggle.nextElementSibling;
