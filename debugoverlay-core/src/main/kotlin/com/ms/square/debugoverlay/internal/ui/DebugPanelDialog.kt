@@ -26,6 +26,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -80,8 +82,10 @@ private sealed class PanelTab {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun DebugPanelDialog(onDismiss: () -> Unit) {
+internal fun DebugPanelDialog(onDismiss: () -> Unit, isCompactHeight: Boolean = false) {
   val snackBarHostState = remember { SnackbarHostState() }
+  // Only collapse the top bar on scroll when vertical space is tight; otherwise keep it static.
+  val scrollBehavior = if (isCompactHeight) TopAppBarDefaults.enterAlwaysScrollBehavior() else null
 
   Dialog(
     onDismissRequest = onDismiss,
@@ -102,7 +106,9 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
     }
 
     Scaffold(
-      modifier = Modifier.fillMaxSize(),
+      modifier = Modifier
+        .fillMaxSize()
+        .let { if (scrollBehavior != null) it.nestedScroll(scrollBehavior.nestedScrollConnection) else it },
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
       snackbarHost = {
         SnackbarHost(hostState = snackBarHostState) { snackBarData ->
@@ -116,11 +122,13 @@ internal fun DebugPanelDialog(onDismiss: () -> Unit) {
       topBar = {
         DebugPanelTopAppBar(
           snackBarHostState = snackBarHostState,
-          onDismiss = onDismiss
+          onDismiss = onDismiss,
+          scrollBehavior = scrollBehavior
         )
       }
     ) { paddingValues ->
       DebugPanelContent(
+        isCompactHeight = isCompactHeight,
         modifier = Modifier
           .fillMaxSize()
           .padding(paddingValues)
@@ -136,6 +144,7 @@ private fun DebugPanelTopAppBar(
   bugReportGenerator: BugReportGenerator = DebugOverlay.bugReportGenerator,
   snackBarHostState: SnackbarHostState,
   onDismiss: () -> Unit,
+  scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
@@ -191,7 +200,8 @@ private fun DebugPanelTopAppBar(
     },
     colors = TopAppBarDefaults.topAppBarColors(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-    )
+    ),
+    scrollBehavior = scrollBehavior
   )
 }
 
@@ -252,7 +262,7 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 }
 
 @Composable
-private fun DebugPanelContent(modifier: Modifier = Modifier) {
+private fun DebugPanelContent(isCompactHeight: Boolean, modifier: Modifier = Modifier) {
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
   val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
@@ -278,7 +288,8 @@ private fun DebugPanelContent(modifier: Modifier = Modifier) {
     )
     DebugPanelTabContent(
       selectedTab = visibleTabs[selectedIndex],
-      repository = repository
+      repository = repository,
+      isCompactHeight = isCompactHeight
     )
   }
 }
@@ -318,18 +329,26 @@ private fun DebugPanelTabRow(
 }
 
 @Composable
-private fun DebugPanelTabContent(selectedTab: PanelTab, repository: DebugOverlayDataRepository) {
+private fun DebugPanelTabContent(
+  selectedTab: PanelTab,
+  repository: DebugOverlayDataRepository,
+  isCompactHeight: Boolean,
+) {
   when (selectedTab) {
     is PanelTab.BuiltIn -> when (selectedTab.tab) {
-      BuiltInTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs)
-      BuiltInTab.CUSTOM_LOG -> LogTabContent(logsFlow = repository.customLogSourceLogs)
+      BuiltInTab.LOGCAT -> LogTabContent(logsFlow = repository.logcatLogs, isCompactHeight = isCompactHeight)
+      BuiltInTab.CUSTOM_LOG -> LogTabContent(
+        logsFlow = repository.customLogSourceLogs,
+        isCompactHeight = isCompactHeight
+      )
       BuiltInTab.APP_EXITS -> AppExitTabContent(
         exitInfosFlow = repository.appExitInfos,
         isSupported = repository.isAppExitSupported
       )
       BuiltInTab.NETWORK -> NetworkTabContent(
         netStatsFlow = repository.netStats,
-        networkRequestsFlow = repository.networkRequests
+        networkRequestsFlow = repository.networkRequests,
+        isCompactHeight = isCompactHeight
       )
       BuiltInTab.JANKSTATS -> JankStatsTabContent(jankStatsFlow = repository.jankStats)
       BuiltInTab.UI -> UiTabContent()
