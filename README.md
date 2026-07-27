@@ -8,6 +8,7 @@
   <a href="https://developer.android.com/develop/ui/compose/bom/bom-mapping"><img src="https://img.shields.io/badge/Compose%20BOM-2025.11-4285F4.svg?style=flat&logo=jetpackcompose&logoColor=white" alt="Compose BOM 2025.11"></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202-brightgreen.svg?style=flat" alt="License"></a>
   <a href="https://github.com/Manabu-GT/DebugOverlay-Android/stargazers"><img src="https://img.shields.io/github/stars/Manabu-GT/DebugOverlay-Android?style=flat&logo=github&label=Star&color=gold" alt="GitHub Stars"></a>
+  <a href="https://androidweekly.net/issues/issue-737"><img src="https://img.shields.io/badge/Featured%20in-Android%20Weekly%20Issue%20%23737-blue?style=flat&logo=android&logoColor=white" alt="Featured in Android Weekly Issue #737"></a>
   <a href="https://appetize.io/app/b_z33sg5t52bni6lrdqqenjyftqe?device=pixel7&osVersion=15.0&toolbar=true"><img src="https://img.shields.io/badge/Live%20Demo-Appetize.io-orange?style=flat&logo=android" alt="Live Demo"></a>
   <br><br>
 </div>
