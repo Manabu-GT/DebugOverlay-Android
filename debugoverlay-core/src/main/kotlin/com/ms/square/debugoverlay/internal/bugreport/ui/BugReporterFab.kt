@@ -64,6 +64,7 @@ internal fun BugReporterFab(
   modifier: Modifier = Modifier,
   bugReportGenerator: BugReportGenerator = DebugOverlay.bugReportGenerator,
   onError: (String) -> Unit = {},
+  clickEnabled: () -> Boolean = { true },
 ) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
@@ -98,7 +99,7 @@ internal fun BugReporterFab(
   Box(modifier = modifier) {
     FloatingActionButton(
       onClick = {
-        if (fabState == BugReporterFabState.Idle) {
+        if (clickEnabled() && fabState == BugReporterFabState.Idle) {
           if (draftCount > 0) {
             BugReportActivity.launchWithDraftPicker(context)
           } else {

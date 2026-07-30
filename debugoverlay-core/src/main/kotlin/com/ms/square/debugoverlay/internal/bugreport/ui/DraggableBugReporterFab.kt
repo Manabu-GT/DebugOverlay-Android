@@ -79,7 +79,7 @@ internal fun DraggableBugReporterFab(
     //   └─ Inner Box [padding reserves space for 1.1x scale]
     //        └─ BugReporterFab [56dp, scales to ~62dp during drag]
     Box(modifier = Modifier.padding(FAB_DRAG_PADDING)) {
-      BugReporterFab(onError = onError)
+      BugReporterFab(onError = onError, clickEnabled = { !state.isDragging })
     }
   }
 }

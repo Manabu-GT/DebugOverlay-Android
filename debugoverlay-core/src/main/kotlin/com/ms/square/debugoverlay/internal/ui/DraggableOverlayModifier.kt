@@ -26,8 +26,10 @@ import kotlinx.coroutines.launch
  * the END/TOP coordinate convention live in [DraggableOverlayState].
  *
  * Tap handling is deliberately NOT included: compose it at the call site with a chained
- * `pointerInput { detectTapGestures { … } }`, guarded on [DraggableOverlayState.isDragging] so a
- * long-press that never moves does not also register as a tap.
+ * `clickable(indication = null)` — not a raw `detectTapGestures`, which never receives the
+ * `ACTION_CLICK` that TalkBack's double-tap dispatches. Guard it on
+ * [DraggableOverlayState.isDragging]: neither has a long-press timeout, so a long-press that never
+ * moves would otherwise also register as a click.
  *
  * [draggingScale] is draw-only and does not enlarge the measured size, so a caller in a WRAP_CONTENT
  * window must reserve layout room for it itself (see `FAB_DRAG_PADDING`, `PANEL_DRAG_PADDING`) or the
@@ -110,7 +112,9 @@ private class DraggableOverlayNode(
         coroutineScope.launch { state.settle() }
       },
       onDragCancel = {
+        // Settle here too, or a canceled gesture strands the overlay mid-screen.
         state.onDragStopped()
+        coroutineScope.launch { state.settle() }
       }
     )
   }

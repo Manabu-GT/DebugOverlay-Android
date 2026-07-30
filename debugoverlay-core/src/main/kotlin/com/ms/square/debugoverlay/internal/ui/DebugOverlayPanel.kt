@@ -31,7 +31,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
@@ -63,7 +63,6 @@ internal fun DraggableOverlayPanel(
 ) {
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
   val currentOnClick by rememberUpdatedState(onClick)
-  val panelDescription = stringResource(R.string.debugoverlay_panel_content_description)
 
   val state = rememberDraggableOverlayState(
     initialOffset = Offset(initialOffsetX, initialOffsetY)
@@ -85,13 +84,17 @@ internal fun DraggableOverlayPanel(
       .clickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null,
-        onClickLabel = stringResource(R.string.debugoverlay_panel_open_action_label)
+        onClickLabel = stringResource(R.string.debugoverlay_panel_open_action_label),
+        role = Role.Button
       ) {
         if (!state.isDragging) {
           currentOnClick()
         }
       }
-      .semantics { contentDescription = panelDescription }
+      // Merge so TalkBack stops once on the panel rather than on every metric row. Deliberately no
+      // contentDescription: on a merging node it would replace the children's text, and those
+      // children are the metric values worth reading out.
+      .semantics(mergeDescendants = true) {}
   ) {
     DebugOverlayPanel(
       metrics = metrics,
