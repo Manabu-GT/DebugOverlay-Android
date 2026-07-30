@@ -1,25 +1,17 @@
 package com.ms.square.debugoverlay.internal.bugreport.ui
 
-import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.ms.square.debugoverlay.internal.ui.DragVisualFeedback
 import com.ms.square.debugoverlay.internal.ui.draggableOverlay
 import com.ms.square.debugoverlay.internal.ui.rememberDraggableOverlayState
 import kotlin.math.roundToInt
@@ -49,50 +41,41 @@ internal fun DraggableBugReporterFab(
   onPositionChanged: (x: Int, y: Int) -> Unit,
   onError: (String) -> Unit = {},
 ) {
-  val windowInfo = LocalWindowInfo.current
-  val view = LocalView.current
-  val scope = rememberCoroutineScope()
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
 
-  var contentSize by remember { mutableStateOf(IntSize.Zero) }
-  val screenSize = remember(windowInfo.containerSize) {
-    IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
-  }
-
   val state = rememberDraggableOverlayState(
-    initialOffsetX = initialOffsetX,
-    initialOffsetY = initialOffsetY
+    initialOffset = Offset(initialOffsetX, initialOffsetY)
   )
 
-  // Clamp position when screen size changes (e.g., rotation)
-  LaunchedEffect(screenSize, contentSize) {
-    state.clampToBounds(contentSize, screenSize)
-  }
-
-  // Report position changes for WindowManager updates
+  // Report position changes for WindowManager updates.
+  // Rounding inside snapshotFlow means only whole-pixel changes are emitted — snapshotFlow drops
+  // emissions equal to the previous one, so this avoids a WindowManager call per animation frame.
   LaunchedEffect(Unit) {
-    snapshotFlow { state.offsetX.value to state.offsetY.value }
-      .collect { (x, y) -> currentOnPositionChanged(x.roundToInt(), y.roundToInt()) }
+    snapshotFlow {
+      IntOffset(state.offset.value.x.roundToInt(), state.offset.value.y.roundToInt())
+    }.collect { position -> currentOnPositionChanged(position.x, position.y) }
   }
 
   Box(
-    modifier = modifier
-      .onSizeChanged { contentSize = it }
-      .draggableOverlay(
-        state = state,
-        screenSize = screenSize,
-        contentSize = contentSize,
-        scope = scope,
-        visualFeedback = DragVisualFeedback(draggingAlpha = 0.7f, draggingScale = 1.1f),
-        onHapticFeedback = { view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
-      ),
+    modifier = modifier.draggableOverlay(
+      state = state,
+      draggingScale = 1.1f
+    ),
     contentAlignment = Alignment.Center
   ) {
     // Inner Box with padding to prevent clipping during drag scale (1.1x).
-    // This padding MUST be inside the outer Box so onSizeChanged() captures
-    // the total size including padding, reserving layout space for the scaled FAB.
+    //
+    // draggingScale is a graphicsLayer transform, so it is draw-only and leaves the measured size
+    // unchanged. This overlay's window is WRAP_CONTENT, so its surface is sized to that measured
+    // size, and the compositor clips anything drawn beyond the surface. That clip is outside
+    // Compose's control: graphicsLayer's clip = false does not affect it, and neither does
+    // clipChildren (AndroidComposeView already sets it to false on itself). The only fix is real
+    // layout space — verified on device, the FAB visibly clips without this.
+    //
+    // The padding MUST be inside the outer Box so the size draggableOverlay observes via
+    // onRemeasured() includes it.
     // Layout structure:
-    // Outer Box [onSizeChanged captures total size including padding]
+    // Outer Box [draggableOverlay observes total size including padding]
     //   └─ Inner Box [padding reserves space for 1.1x scale]
     //        └─ BugReporterFab [56dp, scales to ~62dp during drag]
     Box(modifier = Modifier.padding(FAB_DRAG_PADDING)) {

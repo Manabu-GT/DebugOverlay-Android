@@ -2,10 +2,8 @@
 
 package com.ms.square.debugoverlay.internal.ui
 
-import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,36 +20,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.model.DebugOverlayPanelMetrics
 import com.ms.square.debugoverlay.internal.data.model.Metrics
 import com.ms.square.debugoverlay.internal.data.model.ThermalState
 import com.ms.square.debugoverlay.internal.data.model.ThermalStatus
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.roundToInt
 
 private val STATUS_COLOR_NORMAL = Color(0xFF4CAF50)
 private val STATUS_COLOR_WARNING = Color(0xFFFF9800)
 private val STATUS_COLOR_CRITICAL = Color(0xFFF44336)
+
+// Padding to accommodate scale effect during drag
+private val PANEL_DRAG_PADDING = 8.dp
 
 @Composable
 internal fun DraggableOverlayPanel(
@@ -63,54 +56,20 @@ internal fun DraggableOverlayPanel(
   onPositionChanged: (x: Int, y: Int) -> Unit,
   onClick: () -> Unit,
 ) {
-  val windowInfo = LocalWindowInfo.current
-  val view = LocalView.current
-  val scope = rememberCoroutineScope()
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
-  val currentOnClick by rememberUpdatedState(onClick)
-
-  var panelSize by remember { mutableStateOf(IntSize.Zero) }
-  val screenSize = remember(windowInfo.containerSize) {
-    IntSize(windowInfo.containerSize.width, windowInfo.containerSize.height)
-  }
 
   val state = rememberDraggableOverlayState(
-    initialOffsetX = initialOffsetX,
-    initialOffsetY = initialOffsetY
+    initialOffset = Offset(initialOffsetX, initialOffsetY)
   )
-
-  // Clamp position when screen size changes (e.g., rotation)
-  LaunchedEffect(screenSize, panelSize) {
-    state.clampToBounds(panelSize, screenSize)
-  }
 
   // Report position changes for WindowManager updates
   LaunchedEffect(Unit) {
-    snapshotFlow { state.offsetX.value.roundToInt() to state.offsetY.value.roundToInt() }
-      .distinctUntilChanged()
-      .collect { (x, y) -> currentOnPositionChanged(x, y) }
+    snapshotFlow { IntOffset(state.offset.value.x.roundToInt(), state.offset.value.y.roundToInt()) }
+      .collect { offset -> currentOnPositionChanged(offset.x, offset.y) }
   }
 
   Box(
-    modifier = modifier
-      .onSizeChanged { panelSize = it }
-      .draggableOverlay(
-        state = state,
-        screenSize = screenSize,
-        contentSize = panelSize,
-        scope = scope,
-        onHapticFeedback = { view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS) }
-      )
-      .pointerInput(Unit) {
-        // Tap detection (separate from drag)
-        detectTapGestures(
-          onTap = {
-            if (!state.isDragging) {
-              currentOnClick()
-            }
-          }
-        )
-      }
+    modifier = modifier.draggableOverlay(state = state, onClick = onClick)
   ) {
     DebugOverlayPanel(
       metrics = metrics,
@@ -136,7 +95,7 @@ internal fun DebugOverlayPanel(
     metrics?.let {
       Surface(
         modifier = modifier
-          .padding(all = 8.dp)
+          .padding(all = PANEL_DRAG_PADDING)
           .border(
             width = 1.dp,
             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
