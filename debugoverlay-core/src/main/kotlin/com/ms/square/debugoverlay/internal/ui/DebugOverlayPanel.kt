@@ -4,6 +4,8 @@ package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -28,6 +31,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
@@ -57,6 +62,8 @@ internal fun DraggableOverlayPanel(
   onClick: () -> Unit,
 ) {
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
+  val currentOnClick by rememberUpdatedState(onClick)
+  val panelDescription = stringResource(R.string.debugoverlay_panel_content_description)
 
   val state = rememberDraggableOverlayState(
     initialOffset = Offset(initialOffsetX, initialOffsetY)
@@ -69,7 +76,22 @@ internal fun DraggableOverlayPanel(
   }
 
   Box(
-    modifier = modifier.draggableOverlay(state = state, onClick = onClick)
+    modifier = modifier
+      .draggableOverlay(state = state)
+      // clickable rather than a raw detectTapGestures so TalkBack's double-tap — which dispatches
+      // ACTION_CLICK, never pointer events — can open the panel. indication = null keeps the ripple
+      // off. Like detectTapGestures it has no long-press timeout, so a long-press that never moved
+      // would also register as a click, hence the isDragging guard.
+      .clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClickLabel = stringResource(R.string.debugoverlay_panel_open_action_label)
+      ) {
+        if (!state.isDragging) {
+          currentOnClick()
+        }
+      }
+      .semantics { contentDescription = panelDescription }
   ) {
     DebugOverlayPanel(
       metrics = metrics,

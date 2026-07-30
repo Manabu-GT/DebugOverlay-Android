@@ -1,7 +1,6 @@
 package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -18,32 +17,33 @@ import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**
- * Makes a composable draggable via long-press, with snap-to-edge and tap handling.
+ * Makes a composable draggable via long-press, with snap-to-edge behavior.
  *
  * Owns only the platform plumbing — gestures, haptics, sizes, the visual layer. The motion model and
  * the END/TOP coordinate convention live in [DraggableOverlayState].
  *
+ * Tap handling is deliberately NOT included: compose it at the call site with a chained
+ * `pointerInput { detectTapGestures { … } }`, guarded on [DraggableOverlayState.isDragging] so a
+ * long-press that never moves does not also register as a tap.
+ *
  * [draggingScale] is draw-only and does not enlarge the measured size, so a caller in a WRAP_CONTENT
- * window must reserve layout room for it itself (see `FAB_DRAG_PADDING`) or the window surface clips
- * the scaled draw — a clip outside Compose's control. Left to the caller because it is specific to
- * that host.
+ * window must reserve layout room for it itself (see `FAB_DRAG_PADDING`, `PANEL_DRAG_PADDING`) or the
+ * window surface clips the scaled draw — a clip outside Compose's control. Left to the caller because
+ * it is specific to that host.
  *
  * @param state The draggable state holder
  * @param draggingAlpha Opacity applied while dragging
  * @param draggingScale Scale applied while dragging
  * @param hapticFeedbackEnabled Whether to buzz on drag start
- * @param onClick Invoked on tap. Null disables tap detection entirely.
  */
 internal fun Modifier.draggableOverlay(
   state: DraggableOverlayState,
   draggingAlpha: Float = 0.7f,
   draggingScale: Float = 1.05f,
   hapticFeedbackEnabled: Boolean = true,
-  onClick: (() -> Unit)? = null,
 ): Modifier = this
   // One layer, and isDragging is read in the layer block rather than at composition time, so drag
   // start/end updates layer params only — no recomposition.
@@ -54,24 +54,20 @@ internal fun Modifier.draggableOverlay(
     scaleX = targetScale
     scaleY = targetScale
   }
-  .then(DraggableOverlayElement(state, hapticFeedbackEnabled, onClick))
+  .then(DraggableOverlayElement(state, hapticFeedbackEnabled))
 
-private data class DraggableOverlayElement(
-  val state: DraggableOverlayState,
-  val hapticFeedbackEnabled: Boolean,
-  val onClick: (() -> Unit)?,
-) : ModifierNodeElement<DraggableOverlayNode>() {
+private data class DraggableOverlayElement(val state: DraggableOverlayState, val hapticFeedbackEnabled: Boolean) :
+  ModifierNodeElement<DraggableOverlayNode>() {
 
-  override fun create(): DraggableOverlayNode = DraggableOverlayNode(state, hapticFeedbackEnabled, onClick)
+  override fun create(): DraggableOverlayNode = DraggableOverlayNode(state, hapticFeedbackEnabled)
 
   override fun update(node: DraggableOverlayNode) {
-    node.update(state, hapticFeedbackEnabled, onClick)
+    node.update(state, hapticFeedbackEnabled)
   }
 
   override fun InspectorInfo.inspectableProperties() {
     name = "draggableOverlay"
     properties["hapticFeedbackEnabled"] = hapticFeedbackEnabled
-    properties["onClick"] = onClick
     properties["state"] = state
   }
 }
@@ -79,7 +75,6 @@ private data class DraggableOverlayElement(
 private class DraggableOverlayNode(
   private var state: DraggableOverlayState,
   private var hapticFeedbackEnabled: Boolean,
-  private var onClick: (() -> Unit)?,
 ) : DelegatingNode(),
   LayoutAwareModifierNode,
   CompositionLocalConsumerModifierNode,
@@ -88,30 +83,8 @@ private class DraggableOverlayNode(
   private var contentSize = IntSize.Zero
   private var containerSize = IntSize.Zero
 
-  private val pointerInputNode = delegate(SuspendingPointerInputModifierNode { detectGestures() })
-
-  /**
-   * Both detectors run in parallel on the same events, arbitrating by consumption: once the long
-   * press fires the drag consumes every MOVE, which makes the tap detector's `waitForUpOrCancellation`
-   * return null, so it skips `onTap` and waits for the next gesture. Neither detector ever returns —
-   * both loop until this handler is reset.
-   */
-  private suspend fun PointerInputScope.detectGestures() {
-    coroutineScope {
-      launch { detectDrags() }
-      // Skipped entirely when there is no onClick, so callers like the FAB — whose content has its
-      // own clickable — do not get a down-consumer they have no use for.
-      if (onClick != null) launch { detectTaps() }
-    }
-  }
-
-  /**
-   * [detectTapGestures] with no `onLongPress` applies no long-press timeout: it fires on release
-   * regardless of hold duration. So a long-press that never moves would otherwise register as a tap,
-   * which is what the [DraggableOverlayState.isDragging] guard rules out.
-   */
-  private suspend fun PointerInputScope.detectTaps() {
-    detectTapGestures(onTap = { if (!state.isDragging) onClick?.invoke() })
+  init {
+    delegate(SuspendingPointerInputModifierNode { detectDrags() })
   }
 
   private suspend fun PointerInputScope.detectDrags() {
@@ -172,16 +145,8 @@ private class DraggableOverlayNode(
     state.updateBounds(contentSize, containerSize)
   }
 
-  fun update(state: DraggableOverlayState, hapticFeedbackEnabled: Boolean, onClick: (() -> Unit)?) {
+  fun update(state: DraggableOverlayState, hapticFeedbackEnabled: Boolean) {
     this.hapticFeedbackEnabled = hapticFeedbackEnabled
-
-    // Only the null-ness matters to the handler; the lambda itself is read fresh on every tap, so it
-    // can never go stale and a mere identity change needs no restart.
-    val tapDetectionChanged = (this.onClick == null) != (onClick == null)
-    this.onClick = onClick
-    if (tapDetectionChanged) {
-      pointerInputNode.resetPointerInputHandler()
-    }
 
     if (this.state !== state) {
       this.state = state

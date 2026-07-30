@@ -107,10 +107,18 @@ internal class DraggableOverlayState(initialOffset: Offset, private val decayAni
     offset.snapTo(dragTarget)
 
     val velocity = velocityTracker.calculateVelocity()
-    // Gesture velocity is in screen coords (+x = rightward), but offset uses END gravity
-    // (x=0 is the right edge, increasing leftward) — so x must be negated. y needs no
-    // conversion: gravity is TOP and both increase downward.
-    val initialVelocity = Offset(-velocity.x, velocity.y)
+    // Horizontal only, and the y component is deliberately dropped rather than converted.
+    //
+    // Bounds on a 2-D Animatable are an animation *terminator*, not a per-axis clamp: runAnimation
+    // calls cancelAnimation() as soon as clampToBounds alters ANY component. Since the target below
+    // keeps y where the user left it, any y velocity can only push y out of bounds — which would
+    // abort the x snap mid-flight and strand the overlay mid-screen. Releasing while dragging
+    // against the top or bottom edge did exactly that. Zero y velocity keeps y in bounds, so the
+    // only reachable bound-hit is x arriving at an edge, which is the intended terminator.
+    //
+    // x is negated because gesture velocity is in screen coords (+x = rightward) while offset uses
+    // END gravity (x=0 is the right edge, increasing leftward).
+    val initialVelocity = Offset(-velocity.x, 0f)
     val decay = decayAnimSpec.calculateTargetValue(Offset.VectorConverter, offset.value, initialVelocity)
 
     val maxX = maxOffset.x
@@ -148,7 +156,7 @@ internal class DraggableOverlayState(initialOffset: Offset, private val decayAni
 @Composable
 internal fun rememberDraggableOverlayState(initialOffset: Offset = Offset.Zero): DraggableOverlayState {
   val decay = rememberSplineBasedDecay<Offset>()
-  return remember(decay) {
+  return remember {
     DraggableOverlayState(initialOffset, decay)
   }
 }
