@@ -62,7 +62,6 @@ internal fun DraggableOverlayPanel(
   onClick: () -> Unit,
 ) {
   val currentOnPositionChanged by rememberUpdatedState(onPositionChanged)
-  val currentOnClick by rememberUpdatedState(onClick)
 
   val state = rememberDraggableOverlayState(
     initialOffset = Offset(initialOffsetX, initialOffsetY)
@@ -88,7 +87,7 @@ internal fun DraggableOverlayPanel(
         role = Role.Button
       ) {
         if (!state.isDragging) {
-          currentOnClick()
+          onClick()
         }
       }
       // Merge so TalkBack stops once on the panel rather than on every metric row. Deliberately no

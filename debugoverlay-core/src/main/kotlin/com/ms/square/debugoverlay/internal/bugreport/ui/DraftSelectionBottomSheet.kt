@@ -23,7 +23,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -85,17 +84,6 @@ internal class DraftSelectionState {
 internal fun rememberDraftSelectionState(): DraftSelectionState = remember { DraftSelectionState() }
 
 /**
- * Callbacks for [DraftSelectionBottomSheet] actions.
- */
-@Immutable
-internal data class DraftSelectionCallbacks(
-  val onCreateNew: () -> Unit,
-  val onDraftSelected: (DraftInfo) -> Unit,
-  val onDraftDeleted: (DraftInfo) -> Unit,
-  val onDismiss: () -> Unit,
-)
-
-/**
  * Bottom sheet for selecting a draft to resume or creating a new report.
  *
  * Shows:
@@ -105,7 +93,7 @@ internal data class DraftSelectionCallbacks(
  *
  * Implements delay-delete pattern:
  * - Delete hides the item immediately
- * - Caller shows undo snackbar via [DraftSelectionCallbacks.onDraftDeleted] callback
+ * - Caller shows undo snackbar via the [onDraftDeleted] callback
  * - Caller calls [DraftSelectionState.confirmDelete] after timeout
  * - Caller calls [DraftSelectionState.undoDelete] if user taps undo
  *
@@ -114,8 +102,12 @@ internal data class DraftSelectionCallbacks(
  * @param sheetState Sheet state for controlling visibility
  * @param snackbarHostState Snackbar host state for undo messages
  * @param state State holder for delay-delete pattern
- * @param callbacks Callbacks for user actions
+ * @param onCreateNew Called when the "Create New Report" button is tapped
+ * @param onDraftSelected Called when a draft is chosen
+ * @param onDraftDeleted Called when a draft's delete button is tapped
+ * @param onDismiss Called when the sheet is dismissed
  */
+@Suppress("LongParameterList")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DraftSelectionBottomSheet(
@@ -124,12 +116,15 @@ internal fun DraftSelectionBottomSheet(
   sheetState: SheetState,
   snackbarHostState: SnackbarHostState,
   state: DraftSelectionState,
-  callbacks: DraftSelectionCallbacks,
+  onCreateNew: () -> Unit,
+  onDraftSelected: (DraftInfo) -> Unit,
+  onDraftDeleted: (DraftInfo) -> Unit,
+  onDismiss: () -> Unit,
 ) {
   val visibleDrafts = state.filterVisible(drafts)
 
   ModalBottomSheet(
-    onDismissRequest = callbacks.onDismiss,
+    onDismissRequest = onDismiss,
     sheetState = sheetState,
     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
   ) {
@@ -138,7 +133,9 @@ internal fun DraftSelectionBottomSheet(
         visibleDrafts = visibleDrafts,
         thumbnails = thumbnails,
         state = state,
-        callbacks = callbacks
+        onCreateNew = onCreateNew,
+        onDraftSelected = onDraftSelected,
+        onDraftDeleted = onDraftDeleted
       )
 
       SnackbarHost(
@@ -156,14 +153,16 @@ private fun DraftSelectionContent(
   visibleDrafts: List<DraftInfo>,
   thumbnails: Map<String, Bitmap?>,
   state: DraftSelectionState,
-  callbacks: DraftSelectionCallbacks,
+  onCreateNew: () -> Unit,
+  onDraftSelected: (DraftInfo) -> Unit,
+  onDraftDeleted: (DraftInfo) -> Unit,
 ) {
   Column(
     modifier = Modifier
       .fillMaxWidth()
       .navigationBarsPadding()
   ) {
-    CreateNewButton(onClick = callbacks.onCreateNew)
+    CreateNewButton(onClick = onCreateNew)
     Spacer(modifier = Modifier.height(8.dp))
     HorizontalDivider()
     Spacer(modifier = Modifier.height(8.dp))
@@ -172,8 +171,8 @@ private fun DraftSelectionContent(
       drafts = visibleDrafts,
       thumbnails = thumbnails,
       state = state,
-      onDraftSelected = callbacks.onDraftSelected,
-      onDraftDeleted = callbacks.onDraftDeleted
+      onDraftSelected = onDraftSelected,
+      onDraftDeleted = onDraftDeleted
     )
     Spacer(modifier = Modifier.height(16.dp))
   }
