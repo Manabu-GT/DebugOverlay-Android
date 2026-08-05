@@ -19,6 +19,7 @@
   <!-- Common Actions -->
   <string name="debugoverlay_back">Back</string>
   <string name="debugoverlay_copy">Copy</string>
+  <string name="debugoverlay_copy_all">Copy all</string>
   <string name="debugoverlay_refresh">Refresh</string>
   <string name="debugoverlay_clear_search">Clear search</string>
   <string name="debugoverlay_view_details">View details</string>

@@ -1,0 +1,139 @@
+package com.ms.square.debugoverlay.internal.util
+
+import com.google.common.truth.Truth.assertThat
+import com.ms.square.debugoverlay.model.NetworkError
+import com.ms.square.debugoverlay.model.NetworkRequest
+import org.junit.Test
+
+class NetworkRequestFormattingTest {
+
+  @Test
+  fun `toClipboardText includes all sections for a full request and response`() {
+    val request = NetworkRequest(
+      protocol = "h2",
+      method = "POST",
+      url = "https://api.example.com/v1/users",
+      statusCode = 200,
+      durationMs = 245,
+      responseSize = 128,
+      requestSize = 42,
+      timestampMs = 1_700_000_000_000,
+      requestHeaders = mapOf("content-type" to "application/json"),
+      responseHeaders = mapOf("content-type" to "application/json"),
+      requestBody = """{"name":"test"}""",
+      responseBody = """{"result":"ok"}"""
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).isEqualTo(
+      """
+      POST https://api.example.com/v1/users
+      Status: 200 OK
+      Duration: 245 ms
+      Timestamp: ${formatTimestamp(request.timestampMs)}
+      Request Size: 42 B
+      Response Size: 128 B
+
+      --- Request Headers ---
+      content-type: application/json
+
+      --- Request Body ---
+      {
+          "name": "test"
+      }
+
+      --- Response Headers ---
+      content-type: application/json
+
+      --- Response Body ---
+      {
+          "result": "ok"
+      }
+      """.trimIndent()
+    )
+  }
+
+  @Test
+  fun `toClipboardText omits headers and body sections when absent`() {
+    val request = NetworkRequest(
+      protocol = "http/1.1",
+      method = "GET",
+      url = "https://api.example.com/v1/ping",
+      statusCode = 204,
+      durationMs = 12,
+      responseSize = 0,
+      requestSize = 0,
+      timestampMs = 1_700_000_000_000
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).isEqualTo(
+      """
+      GET https://api.example.com/v1/ping
+      Status: 204 No Content
+      Duration: 12 ms
+      Timestamp: ${formatTimestamp(request.timestampMs)}
+      Request Size: 0 B
+      Response Size: 0 B
+      """.trimIndent()
+    )
+  }
+
+  @Test
+  fun `toClipboardText leaves non-JSON body unformatted`() {
+    val request = NetworkRequest(
+      protocol = "http/1.1",
+      method = "GET",
+      url = "https://api.example.com/v1/text",
+      statusCode = 200,
+      durationMs = 5,
+      responseSize = 11,
+      requestSize = 0,
+      timestampMs = 1_700_000_000_000,
+      responseBody = "plain text"
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).contains("--- Response Body ---\nplain text")
+  }
+
+  @Test
+  fun `toClipboardText shows error section instead of response headers and body`() {
+    val request = NetworkRequest(
+      protocol = "http/1.1",
+      method = "GET",
+      url = "https://api.example.com/v1/fail",
+      statusCode = null,
+      durationMs = 1000,
+      responseSize = null,
+      requestSize = 0,
+      timestampMs = 1_700_000_000_000,
+      error = NetworkError(
+        title = "Connection failed",
+        message = "Unable to resolve host",
+        stackTrace = "java.net.UnknownHostException: api.example.com"
+      )
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).isEqualTo(
+      """
+      GET https://api.example.com/v1/fail
+      Status: Error
+      Duration: 1000 ms
+      Timestamp: ${formatTimestamp(request.timestampMs)}
+      Request Size: 0 B
+      Response Size: —
+
+      --- Error ---
+      Connection failed
+      Unable to resolve host
+      java.net.UnknownHostException: api.example.com
+      """.trimIndent()
+    )
+  }
+}

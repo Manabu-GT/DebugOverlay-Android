@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
@@ -56,6 +57,7 @@ import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatTimestamp
 import com.ms.square.debugoverlay.internal.util.httpStatusColor
 import com.ms.square.debugoverlay.internal.util.httpStatusMessage
+import com.ms.square.debugoverlay.internal.util.toClipboardText
 import com.ms.square.debugoverlay.model.NetworkRequest
 
 /**
@@ -102,6 +104,14 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
             Icon(
               imageVector = Icons.Default.ContentCopy,
               contentDescription = stringResource(R.string.debugoverlay_copy)
+            )
+          }
+          IconButton(onClick = {
+            scope.copyToClipboard(clipboard, request.toClipboardText())
+          }) {
+            Icon(
+              imageVector = Icons.Default.CopyAll,
+              contentDescription = stringResource(R.string.debugoverlay_copy_all)
             )
           }
         },
