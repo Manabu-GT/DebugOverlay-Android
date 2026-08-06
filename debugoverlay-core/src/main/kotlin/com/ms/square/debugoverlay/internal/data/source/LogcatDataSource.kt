@@ -159,6 +159,16 @@ internal class LogcatDataSource(
   }
 
   /**
+   * Returns a snapshot of the in-memory log buffer without suspending or spawning a
+   * subprocess. Safe to call from a crashing thread (e.g. [com.ms.square.debugoverlay.internal.crash.CrashHandler]).
+   *
+   * Unlike [queryLogcatSnapshot], this never falls back to a one-shot `logcat -t N`
+   * capture, so it returns an empty list if the Logcat tab was never subscribed to
+   * this process run.
+   */
+  fun snapshotEntriesSync(): List<LogEntry> = entries.toList()
+
+  /**
    * Returns a snapshot of logcat logs for bug reports.
    * Uses cached value if streaming was active (debug panel was viewed), otherwise captures directly.
    */

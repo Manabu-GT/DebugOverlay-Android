@@ -66,6 +66,7 @@ private enum class BuiltInTab(@param:StringRes val titleResId: Int) {
   LOGCAT(R.string.debugoverlay_tab_logcat),
   CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from source
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
+  CRASH_LOG(R.string.debugoverlay_tab_crash_log), // Only shown when a persisted crash record exists
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
   UI(R.string.debugoverlay_tab_ui),
@@ -265,13 +266,15 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 private fun DebugPanelContent(isCompactHeight: Boolean, modifier: Modifier = Modifier) {
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
+  val hasCrashRecords by repository.hasCrashRecords.collectAsStateWithLifecycle()
   val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
   val customTabs = (DebugOverlay.config.overlayMode as? OverlayMode.WithCustomTabs)?.customTabs.orEmpty()
 
-  // Build visible tabs: built-in tabs (with CUSTOM_LOG conditionally shown) + custom tabs
-  val visibleTabs = remember(hasCustomLogSource, customTabs) {
+  // Build visible tabs: built-in tabs (with CUSTOM_LOG/CRASH_LOG conditionally shown) + custom tabs
+  val visibleTabs = remember(hasCustomLogSource, hasCrashRecords, customTabs) {
     val builtIn = BuiltInTab.entries
       .filter { it != BuiltInTab.CUSTOM_LOG || hasCustomLogSource }
+      .filter { it != BuiltInTab.CRASH_LOG || hasCrashRecords }
       .map { PanelTab.BuiltIn(it) }
     builtIn + customTabs.map { PanelTab.Custom(it) }
   }
@@ -344,6 +347,10 @@ private fun DebugPanelTabContent(
       BuiltInTab.APP_EXITS -> AppExitTabContent(
         exitInfosFlow = repository.appExitInfos,
         isSupported = repository.isAppExitSupported
+      )
+      BuiltInTab.CRASH_LOG -> CrashLogTabContent(
+        crashRecordsFlow = repository.crashRecords,
+        onDeleteCrashRecord = { repository.deleteCrashRecord(it) }
       )
       BuiltInTab.NETWORK -> NetworkTabContent(
         netStatsFlow = repository.netStats,

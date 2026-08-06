@@ -15,6 +15,7 @@
   <string name="debugoverlay_tab_jankstats">JankStats</string>
   <string name="debugoverlay_tab_ui">UI</string>
   <string name="debugoverlay_tab_device_info">DeviceInfo</string>
+  <string name="debugoverlay_tab_crash_log">Crash</string>
 
   <!-- Common Actions -->
   <string name="debugoverlay_back">Back</string>
@@ -51,6 +52,17 @@
   <string name="debugoverlay_app_exits_rss">RSS</string>
   <string name="debugoverlay_app_exits_importance">Importance</string>
   <string name="debugoverlay_app_exits_clipboard_label">AppExit Info</string>
+
+  <!-- Crash Tab -->
+  <string name="debugoverlay_crash_log_empty_title">No Crashes Recorded</string>
+  <string name="debugoverlay_crash_log_empty_subtitle">Crashes will appear here after your app\nrestarts following an unhandled exception.</string>
+  <string name="debugoverlay_crash_log_item_description">Crash: %1$s, %2$s</string>
+  <string name="debugoverlay_crash_log_stack_trace">Stack Trace</string>
+  <string name="debugoverlay_crash_log_logcat">Logcat (%1$d)</string>
+  <string name="debugoverlay_crash_log_network_requests">Network Requests (%1$d)</string>
+  <string name="debugoverlay_crash_log_clipboard_label">Crash Info</string>
+  <string name="debugoverlay_share_crash_log">Share Crash Log</string>
+  <string name="debugoverlay_delete_crash_log">Delete crash record</string>
 
   <!-- Network Tab -->
   <string name="debugoverlay_search_requests">Search requests…</string>

@@ -7,6 +7,9 @@ import com.ms.square.debugoverlay.LogSource
 import com.ms.square.debugoverlay.NetworkRequestSource
 import com.ms.square.debugoverlay.NoOpNetworkRequestSource
 import com.ms.square.debugoverlay.internal.Logger
+import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
+import com.ms.square.debugoverlay.internal.crash.CrashRecordInfo
+import com.ms.square.debugoverlay.internal.crash.DefaultCrashRecordStorage
 import com.ms.square.debugoverlay.internal.data.model.AppExitInfo
 import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
@@ -20,6 +23,7 @@ import com.ms.square.debugoverlay.internal.util.throttleLatest
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +33,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,6 +53,7 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   private val deviceInfoDataSource = DeviceInfoDataSource(context, scope)
   private val jankStatsDataSource = JankStatsDataSource()
   private val appExitDataSource = AppExitDataSource(context, scope)
+  private val crashRecordStorage = DefaultCrashRecordStorage(context)
 
   init {
     scope.launch {
@@ -99,6 +106,19 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   val appExitInfos: Flow<List<AppExitInfo>> = appExitDataSource.appExitInfos
 
+  // Persisted crash records from a prior run. Queried once per subscription (Lazily):
+  // this run's own crashes can't change mid-session since a crash terminates the process.
+  val crashRecords: Flow<List<CrashRecordInfo>> = flow { emit(crashRecordStorage.listCrashRecords()) }
+    .flowOn(Dispatchers.IO)
+    .stateIn(scope, SharingStarted.Lazily, emptyList())
+
+  val hasCrashRecords: StateFlow<Boolean> = crashRecords
+    .map { it.isNotEmpty() }
+    .distinctUntilChanged()
+    .stateIn(scope, SharingStarted.Eagerly, false)
+
+  suspend fun deleteCrashRecord(info: CrashRecordInfo) = crashRecordStorage.deleteCrashRecord(info)
+
   // Snapshot methods for bug reports (use cached value if available, otherwise query directly)
   suspend fun queryLogcatSnapshot(): List<LogEntry> = logcatDataSource.queryLogcatSnapshot()
   suspend fun queryDeviceInfoSnapshot(): DeviceInfo = deviceInfoDataSource.queryDeviceInfoSnapshot()
@@ -107,6 +127,22 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
   @OptIn(ExperimentalCoroutinesApi::class)
   val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestSource
     .flatMapLatest { source -> source.requests }
+
+  // Cached copy of the latest network requests, kept warm for synchronous reads
+  // (e.g. by CrashHandler, which cannot suspend). Mirrors customLogSourceLogs's
+  // SharingStarted.Eagerly pattern above.
+  private val networkRequestsSnapshot: StateFlow<List<NetworkRequest>> =
+    networkRequests.stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+  /** Non-suspending snapshot of the in-memory Logcat buffer. Safe to call from a crashing thread. */
+  fun logcatSnapshotSync(): List<LogEntry> = logcatDataSource.snapshotEntriesSync()
+
+  /** Non-suspending snapshot of the custom log source's latest known logs, if one is registered. */
+  fun customLogSnapshotSync(): CustomLogSourceData? =
+    customLogSourceName.value?.let { name -> CustomLogSourceData(customLogSourceLogs.value, name) }
+
+  /** Non-suspending snapshot of the latest known network requests. */
+  fun networkRequestsSnapshotSync(): List<NetworkRequest> = networkRequestsSnapshot.value
 
   fun setNetworkSource(source: NetworkRequestSource) {
     currentNetworkRequestSource.value = source

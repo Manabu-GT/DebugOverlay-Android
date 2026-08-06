@@ -6,11 +6,13 @@ import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
+import kotlinx.serialization.Serializable
 
 /**
  * Bundled custom log source data.
  * Ensures logs and source name are always provided together.
  */
+@Serializable
 internal data class CustomLogSourceData(val logs: List<LogEntry>, val sourceName: String)
 
 /**
