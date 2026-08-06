@@ -129,22 +129,23 @@ class NetworkRequestFormattingTest {
 
   @Test
   fun `toClipboardText truncates a body larger than the clipboard cap`() {
-    val hugeBody = "a".repeat(HUGE_BODY_LENGTH)
+    val bodyLengthAboveThreshold = 10
+    val hugeBody = "a".repeat(bodyLengthAboveThreshold)
     val request = NetworkRequest(
       protocol = "http/1.1",
       method = "GET",
       url = "https://api.example.com/v1/large",
       statusCode = 200,
       durationMs = 10,
-      responseSize = HUGE_BODY_LENGTH.toLong(),
+      responseSize = bodyLengthAboveThreshold.toLong(),
       requestSize = 0,
       timestampMs = 1_700_000_000_000,
       responseBody = hugeBody
     )
 
-    val result = request.toClipboardText()
+    val result = request.toClipboardText(bodyLengthAboveThreshold / 2)
 
-    assertThat(result).contains("[truncated: showing 64.0 KB of")
+    assertThat(result).contains("[truncated: showing ${bodyLengthAboveThreshold / 2} B of")
     assertThat(result).doesNotContain(hugeBody)
   }
 
@@ -227,5 +228,3 @@ class NetworkRequestFormattingTest {
     )
   }
 }
-
-private const val HUGE_BODY_LENGTH = 70_000

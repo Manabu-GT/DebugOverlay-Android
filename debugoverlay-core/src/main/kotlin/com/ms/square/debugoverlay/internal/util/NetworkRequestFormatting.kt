@@ -10,8 +10,11 @@ import com.ms.square.debugoverlay.model.NetworkRequest
  * omitting any section that has nothing to show. Response headers/body are included whenever
  * captured, even alongside an error section - the OkHttp extension populates [NetworkRequest]'s
  * `error` for any HTTP status of 400 or above while still capturing the response.
+ *
+ * @param maxClipBoardLength per-body character cap before truncation, defaulting to
+ *   [MAX_CLIPBOARD_BODY_LENGTH].
  */
-internal fun NetworkRequest.toClipboardText(): String = buildString {
+internal fun NetworkRequest.toClipboardText(maxClipBoardLength: Int = MAX_CLIPBOARD_BODY_LENGTH): String = buildString {
   appendLine("$method $url")
   appendLine("Status: ${statusCode?.let { "$it ${it.httpStatusMessage}" } ?: "Error"}")
   appendLine("Duration: $durationMs ms")
@@ -20,11 +23,11 @@ internal fun NetworkRequest.toClipboardText(): String = buildString {
   append("Response Size: ${formatBytes(responseSize)}")
 
   appendHeadersSection("Request Headers", requestHeaders)
-  appendBodySection("Request Body", requestBody, requestHeaders.contentType())
+  appendBodySection("Request Body", requestBody, requestHeaders.contentType(), maxClipBoardLength)
 
   error?.let { appendErrorSection(it) }
   appendHeadersSection("Response Headers", responseHeaders)
-  appendBodySection("Response Body", responseBody, responseHeaders.contentType())
+  appendBodySection("Response Body", responseBody, responseHeaders.contentType(), maxClipBoardLength)
 }
 
 private fun StringBuilder.appendHeadersSection(title: String, headers: Map<String, String>) {
@@ -33,11 +36,16 @@ private fun StringBuilder.appendHeadersSection(title: String, headers: Map<Strin
   append(headers.entries.joinToString("\n") { (name, value) -> "$name: $value" })
 }
 
-private fun StringBuilder.appendBodySection(title: String, body: String?, contentType: String?) {
+private fun StringBuilder.appendBodySection(
+  title: String,
+  body: String?,
+  contentType: String?,
+  maxClipBoardLength: Int,
+) {
   if (body.isNullOrEmpty()) return
   append("\n\n--- $title ---\n")
   val formatted = if (TextType.from(body, contentType) == TextType.JSON) formatJsonIfPossible(body) else body
-  append(formatted.truncateForClipboard())
+  append(formatted.truncateForClipboard(maxClipBoardLength))
 }
 
 private fun StringBuilder.appendErrorSection(error: NetworkError) {
@@ -52,16 +60,16 @@ private fun StringBuilder.appendErrorSection(error: NetworkError) {
 }
 
 /**
- * Caps a single body at [MAX_CLIPBOARD_BODY_LENGTH]. The OkHttp extension allows bodies up to
+ * Caps a single body at [maxClipBoardLength]. The OkHttp extension allows bodies up to
  * 2MB each by default; concatenating an uncapped request and response body into one ClipData
  * risks TransactionTooLargeException when it crosses the clipboard's Binder call.
  */
-private fun String.truncateForClipboard(): String = if (length <= MAX_CLIPBOARD_BODY_LENGTH) {
+private fun String.truncateForClipboard(maxClipBoardLength: Int): String = if (length <= maxClipBoardLength) {
   this
 } else {
-  val shownSize = formatBytes(MAX_CLIPBOARD_BODY_LENGTH.toLong())
+  val shownSize = formatBytes(maxClipBoardLength.toLong())
   val totalSize = formatBytes(length.toLong())
-  "${take(MAX_CLIPBOARD_BODY_LENGTH)}...\n\n[truncated: showing $shownSize of $totalSize]"
+  "${take(maxClipBoardLength)}...\n\n[truncated: showing $shownSize of $totalSize]"
 }
 
 private const val MAX_CLIPBOARD_BODY_LENGTH = 64 * 1024

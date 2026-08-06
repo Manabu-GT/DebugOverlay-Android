@@ -43,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -61,7 +60,6 @@ import com.ms.square.debugoverlay.internal.util.httpStatusColor
 import com.ms.square.debugoverlay.internal.util.httpStatusMessage
 import com.ms.square.debugoverlay.internal.util.toClipboardText
 import com.ms.square.debugoverlay.model.NetworkRequest
-import kotlinx.coroutines.CoroutineScope
 
 /**
  * Network request detail screen with TopAppBar and comprehensive information.
@@ -69,8 +67,6 @@ import kotlinx.coroutines.CoroutineScope
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> Unit, modifier: Modifier = Modifier) {
-  val clipboard = LocalClipboard.current
-  val scope = rememberCoroutineScope()
   val urlParts = remember(request.url) { UrlParts.from(request.url) }
 
   Scaffold(
@@ -101,7 +97,7 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
           BackButton(onClick = onBack)
         },
         actions = {
-          NetworkRequestDetailActions(request = request, clipboard = clipboard, scope = scope)
+          NetworkRequestDetailActions(request)
         },
         colors = TopAppBarDefaults.topAppBarColors(
           containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -121,7 +117,9 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
  * TopAppBar actions: copy the URL alone, or the full request/response transaction.
  */
 @Composable
-private fun NetworkRequestDetailActions(request: NetworkRequest, clipboard: Clipboard, scope: CoroutineScope) {
+private fun NetworkRequestDetailActions(request: NetworkRequest) {
+  val clipboard = LocalClipboard.current
+  val scope = rememberCoroutineScope()
   IconButton(onClick = {
     scope.copyToClipboard(clipboard, request.url)
   }) {
@@ -131,7 +129,7 @@ private fun NetworkRequestDetailActions(request: NetworkRequest, clipboard: Clip
     )
   }
   IconButton(onClick = {
-    scope.copyToClipboard(clipboard) { request.toClipboardText() }
+    scope.copyToClipboard(clipboard, request.toClipboardText())
   }) {
     Icon(
       imageVector = Icons.Default.CopyAll,
