@@ -12,6 +12,7 @@ import com.ms.square.debugoverlay.internal.data.model.DeviceInfo
 import com.ms.square.debugoverlay.internal.data.model.JankStatsUiState
 import com.ms.square.debugoverlay.internal.util.HTTP_SUCCESS_END
 import com.ms.square.debugoverlay.internal.util.HTTP_SUCCESS_START
+import com.ms.square.debugoverlay.internal.util.contentType
 import com.ms.square.debugoverlay.internal.util.escapeHtml
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatBytesFromKb
@@ -658,9 +659,6 @@ internal object HtmlReportBuilder {
       appendBodySection("Response Body", body, request.responseHeaders.contentType())
     }
   }
-
-  private fun Map<String, String>.contentType(): String? =
-    entries.firstOrNull { it.key.equals("content-type", ignoreCase = true) }?.value
 
   /**
    * Renders a request/response body, pretty-printing it first if it is JSON.
