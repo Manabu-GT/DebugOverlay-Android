@@ -31,7 +31,7 @@ class NetworkRequestFormattingTest {
       POST https://api.example.com/v1/users
       Status: 200 OK
       Duration: 245 ms
-      Timestamp: ${formatTimestamp(request.timestampMs)}
+      Timestamp: ${formatClipboardTimestamp(request.timestampMs)}
       Request Size: 42 B
       Response Size: 128 B
 
@@ -74,7 +74,7 @@ class NetworkRequestFormattingTest {
       GET https://api.example.com/v1/ping
       Status: 204 No Content
       Duration: 12 ms
-      Timestamp: ${formatTimestamp(request.timestampMs)}
+      Timestamp: ${formatClipboardTimestamp(request.timestampMs)}
       Request Size: 0 B
       Response Size: 0 B
       """.trimIndent()
@@ -101,7 +101,55 @@ class NetworkRequestFormattingTest {
   }
 
   @Test
-  fun `toClipboardText shows error section instead of response headers and body`() {
+  fun `toClipboardText detects JSON via a capitalized Content-Type header`() {
+    val request = NetworkRequest(
+      protocol = "http/1.1",
+      method = "GET",
+      url = "https://api.example.com/v1/data",
+      statusCode = 200,
+      durationMs = 10,
+      responseSize = 20,
+      requestSize = 0,
+      timestampMs = 1_700_000_000_000,
+      responseHeaders = mapOf("Content-Type" to "application/json"),
+      responseBody = """{"a":1}"""
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).contains(
+      """
+      --- Response Body ---
+      {
+          "a": 1
+      }
+      """.trimIndent()
+    )
+  }
+
+  @Test
+  fun `toClipboardText truncates a body larger than the clipboard cap`() {
+    val hugeBody = "a".repeat(HUGE_BODY_LENGTH)
+    val request = NetworkRequest(
+      protocol = "http/1.1",
+      method = "GET",
+      url = "https://api.example.com/v1/large",
+      statusCode = 200,
+      durationMs = 10,
+      responseSize = HUGE_BODY_LENGTH.toLong(),
+      requestSize = 0,
+      timestampMs = 1_700_000_000_000,
+      responseBody = hugeBody
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).contains("[truncated: showing 64.0 KB of")
+    assertThat(result).doesNotContain(hugeBody)
+  }
+
+  @Test
+  fun `toClipboardText shows error section for a transport failure with no response data`() {
     val request = NetworkRequest(
       protocol = "http/1.1",
       method = "GET",
@@ -125,7 +173,7 @@ class NetworkRequestFormattingTest {
       GET https://api.example.com/v1/fail
       Status: Error
       Duration: 1000 ms
-      Timestamp: ${formatTimestamp(request.timestampMs)}
+      Timestamp: ${formatClipboardTimestamp(request.timestampMs)}
       Request Size: 0 B
       Response Size: —
 
@@ -136,4 +184,48 @@ class NetworkRequestFormattingTest {
       """.trimIndent()
     )
   }
+
+  @Test
+  fun `toClipboardText includes both error and response sections for an HTTP error status`() {
+    val request = NetworkRequest(
+      protocol = "http/1.1",
+      method = "GET",
+      url = "https://api.example.com/v1/resource",
+      statusCode = 404,
+      durationMs = 80,
+      responseSize = 42,
+      requestSize = 0,
+      timestampMs = 1_700_000_000_000,
+      responseHeaders = mapOf("content-type" to "application/json"),
+      responseBody = """{"error":"not found"}""",
+      error = NetworkError(title = "HTTP 404", message = "Not Found")
+    )
+
+    val result = request.toClipboardText()
+
+    assertThat(result).isEqualTo(
+      """
+      GET https://api.example.com/v1/resource
+      Status: 404 Not Found
+      Duration: 80 ms
+      Timestamp: ${formatClipboardTimestamp(request.timestampMs)}
+      Request Size: 0 B
+      Response Size: 42 B
+
+      --- Error ---
+      HTTP 404
+      Not Found
+
+      --- Response Headers ---
+      content-type: application/json
+
+      --- Response Body ---
+      {
+          "error": "not found"
+      }
+      """.trimIndent()
+    )
+  }
 }
+
+private const val HUGE_BODY_LENGTH = 70_000

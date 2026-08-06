@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -52,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.data.TextType
 import com.ms.square.debugoverlay.internal.data.UrlParts
+import com.ms.square.debugoverlay.internal.util.contentType
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
 import com.ms.square.debugoverlay.internal.util.formatBytes
 import com.ms.square.debugoverlay.internal.util.formatTimestamp
@@ -59,6 +61,7 @@ import com.ms.square.debugoverlay.internal.util.httpStatusColor
 import com.ms.square.debugoverlay.internal.util.httpStatusMessage
 import com.ms.square.debugoverlay.internal.util.toClipboardText
 import com.ms.square.debugoverlay.model.NetworkRequest
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Network request detail screen with TopAppBar and comprehensive information.
@@ -98,22 +101,7 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
           BackButton(onClick = onBack)
         },
         actions = {
-          IconButton(onClick = {
-            scope.copyToClipboard(clipboard, request.url)
-          }) {
-            Icon(
-              imageVector = Icons.Default.ContentCopy,
-              contentDescription = stringResource(R.string.debugoverlay_copy)
-            )
-          }
-          IconButton(onClick = {
-            scope.copyToClipboard(clipboard, request.toClipboardText())
-          }) {
-            Icon(
-              imageVector = Icons.Default.CopyAll,
-              contentDescription = stringResource(R.string.debugoverlay_copy_all)
-            )
-          }
+          NetworkRequestDetailActions(request = request, clipboard = clipboard, scope = scope)
         },
         colors = TopAppBarDefaults.topAppBarColors(
           containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -125,6 +113,29 @@ internal fun NetworkRequestDetailScreen(request: NetworkRequest, onBack: () -> U
       request = request,
       urlParts = urlParts,
       modifier = Modifier.padding(paddingValues)
+    )
+  }
+}
+
+/**
+ * TopAppBar actions: copy the URL alone, or the full request/response transaction.
+ */
+@Composable
+private fun NetworkRequestDetailActions(request: NetworkRequest, clipboard: Clipboard, scope: CoroutineScope) {
+  IconButton(onClick = {
+    scope.copyToClipboard(clipboard, request.url)
+  }) {
+    Icon(
+      imageVector = Icons.Default.ContentCopy,
+      contentDescription = stringResource(R.string.debugoverlay_copy_url)
+    )
+  }
+  IconButton(onClick = {
+    scope.copyToClipboard(clipboard) { request.toClipboardText() }
+  }) {
+    Icon(
+      imageVector = Icons.Default.CopyAll,
+      contentDescription = stringResource(R.string.debugoverlay_copy_all)
     )
   }
 }
@@ -224,7 +235,7 @@ private fun OverviewTab(request: NetworkRequest, urlParts: UrlParts, modifier: M
         DetailSection(title = "Response Summary") {
           InfoCard {
             var itemCount = 0
-            request.responseHeaders["content-type"]?.let {
+            request.responseHeaders.contentType()?.let {
               InfoRow("Content-Type", it)
               itemCount++
             }
@@ -354,7 +365,7 @@ private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
         if (request.requestBody != null) {
           BodyPreview(
             body = request.requestBody,
-            contentType = request.requestHeaders["content-type"]
+            contentType = request.requestHeaders.contentType()
           )
         } else {
           EmptyState(text = stringResource(R.string.debugoverlay_network_no_request_body))
@@ -375,7 +386,7 @@ private fun BodyTab(request: NetworkRequest, modifier: Modifier = Modifier) {
         if (request.responseBody != null) {
           BodyPreview(
             body = request.responseBody,
-            contentType = request.responseHeaders["content-type"]
+            contentType = request.responseHeaders.contentType()
           )
         } else {
           EmptyState(text = stringResource(R.string.debugoverlay_network_no_response_body))

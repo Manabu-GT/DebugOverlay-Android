@@ -22,7 +22,7 @@ internal fun formatTimestamp(timestamp: Long): String =
 /**
  * Format timestamp for clipboard copy (e.g., "12-11 14:35:22.786").
  */
-private fun formatClipboardTimestamp(timestamp: Long): String =
+internal fun formatClipboardTimestamp(timestamp: Long): String =
   SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US).format(Date(timestamp))
 
 /**
