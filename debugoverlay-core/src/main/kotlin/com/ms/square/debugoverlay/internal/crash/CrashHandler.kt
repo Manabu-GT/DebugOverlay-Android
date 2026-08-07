@@ -1,12 +1,12 @@
 package com.ms.square.debugoverlay.internal.crash
 
-import android.os.Process
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.AppInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.NetworkRequest
-import kotlin.system.exitProcess
+
+private const val DEFAULT_MAX_LOG_LINES = 100
 
 /**
  * Persists a [CrashRecord] to disk on an uncaught exception, then always delegates to
@@ -72,21 +72,11 @@ internal class CrashHandler(
     )
   }
 
+  // previousHandler is effectively always non-null on real devices — the platform installs
+  // its own default handler before any app code runs, well before DebugOverlay.install()
+  // (see class doc). If it's ever null, the crash record above is already persisted; there's
+  // nothing more this library needs to do.
   private fun delegateToPreviousHandler(thread: Thread, throwable: Throwable) {
-    val handler = previousHandler
-    if (handler != null) {
-      handler.uncaughtException(thread, throwable)
-    } else {
-      // Unreachable on real devices: the platform always installs a default handler
-      // before Application.onCreate(). Guards test doubles / edge-case environments
-      // where none was ever installed, so the process still terminates.
-      Process.killProcess(Process.myPid())
-      exitProcess(EXIT_CODE_UNCAUGHT_EXCEPTION)
-    }
-  }
-
-  private companion object {
-    const val EXIT_CODE_UNCAUGHT_EXCEPTION = 10
-    const val DEFAULT_MAX_LOG_LINES = 100
+    previousHandler?.uncaughtException(thread, throwable)
   }
 }
