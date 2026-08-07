@@ -20,15 +20,23 @@ internal const val DEFAULT_MAX_CRASH_RECORDS = 5
  */
 internal sealed interface CrashRecordStorage {
   /**
-   * Writes [record] to disk and evicts old records beyond the retention limit.
+   * Writes [record] to disk. Does not evict old records — see [listCrashRecords].
    *
    * Must be safe to call synchronously from [Thread.UncaughtExceptionHandler.uncaughtException]:
-   * no suspension, no dispatcher hop. Any failure is swallowed and logged — the caller
-   * must be able to unconditionally proceed to the previous crash handler afterward.
+   * no suspension, no dispatcher hop, no more work than writing this one file. Any failure
+   * is swallowed and logged — the caller must be able to unconditionally proceed to the
+   * previous crash handler afterward.
    */
   fun writeSync(record: CrashRecord)
 
-  /** Loads all persisted crash records, most recent first. */
+  /**
+   * Loads all persisted crash records, most recent first.
+   *
+   * Also evicts records beyond the retention limit first. Retention doesn't need real-time
+   * enforcement, so this is deferred here — off the crash path — rather than done in
+   * [writeSync]; between crashes, the on-disk count can transiently exceed the limit until
+   * this is next called.
+   */
   suspend fun listCrashRecords(): List<CrashRecordInfo>
 
   /** Deletes a single persisted crash record. */
@@ -53,8 +61,9 @@ internal class DefaultCrashRecordStorage(
   private val json = Json { ignoreUnknownKeys = true }
 
   // Plain JVM monitor, not a coroutines Mutex: writeSync() runs outside any coroutine
-  // context (it's called directly from uncaughtException()), and guards against two
-  // near-simultaneous crashes on different threads racing on the directory listing.
+  // context (it's called directly from uncaughtException()). Also guards the eviction +
+  // listing step in listCrashRecords() against a concurrent writeSync(), so a write and a
+  // list/evict can't race on the directory contents.
   private val writeLock = Any()
 
   private val recordsDir by lazy {
@@ -67,7 +76,6 @@ internal class DefaultCrashRecordStorage(
     synchronized(writeLock) {
       val file = File(recordsDir, fileNameFor(record))
       file.writeText(json.encodeToString(CrashRecord.serializer(), record))
-      evictOldRecordsLocked()
     }
   }
 
@@ -81,7 +89,13 @@ internal class DefaultCrashRecordStorage(
   }
 
   override suspend fun listCrashRecords(): List<CrashRecordInfo> = withContext(Dispatchers.IO) {
-    val files = recordsDir.listFiles()?.filter { it.isFile }?.sortedDescending() ?: emptyList()
+    // Eviction happens here rather than in writeSync(): retention doesn't need real-time
+    // enforcement, only "eventually pruned back down" — deferring it off the crash path
+    // keeps writeSync() to the bare minimum needed before delegating to the previous handler.
+    val files = synchronized(writeLock) {
+      evictOldRecordsLocked()
+      recordsDir.listFiles()?.filter { it.isFile }?.sortedDescending() ?: emptyList()
+    }
     files.mapNotNull { file -> loadRecord(file)?.let { CrashRecordInfo(file.absolutePath, it) } }
   }
 
