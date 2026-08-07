@@ -50,7 +50,11 @@ internal class CrashHandler(
       // and the platform's own crash handling working.
       runCatching { Logger.e("CrashHandler failed to capture crash record", t) }
     } finally {
-      delegateToPreviousHandler(thread, throwable)
+      // previousHandler is effectively always non-null on real devices — the platform
+      // installs its own default handler before any app code runs, well before
+      // DebugOverlay.install() (see class doc). If it's ever null, the crash record above
+      // is already persisted; there's nothing more this library needs to do.
+      previousHandler?.uncaughtException(thread, throwable)
     }
   }
 
@@ -70,13 +74,5 @@ internal class CrashHandler(
       customLogSourceData = customLogSnapshot,
       networkRequests = networkRequestsSnapshotProvider().takeLast(maxLines)
     )
-  }
-
-  // previousHandler is effectively always non-null on real devices — the platform installs
-  // its own default handler before any app code runs, well before DebugOverlay.install()
-  // (see class doc). If it's ever null, the crash record above is already persisted; there's
-  // nothing more this library needs to do.
-  private fun delegateToPreviousHandler(thread: Thread, throwable: Throwable) {
-    previousHandler?.uncaughtException(thread, throwable)
   }
 }
