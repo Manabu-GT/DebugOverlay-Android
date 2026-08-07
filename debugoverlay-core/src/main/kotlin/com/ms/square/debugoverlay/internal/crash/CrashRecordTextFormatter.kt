@@ -47,5 +47,8 @@ internal fun formatCrashRecordAsText(record: CrashRecord): String = buildString 
   }
 }
 
-private fun NetworkRequest.toSummaryLine(): String =
-  "${formatFullTimestamp(timestampMs)} $method $url -> ${statusCode ?: "?"} (${durationMs}ms)"
+private fun NetworkRequest.toSummaryLine(): String = buildString {
+  append(formatFullTimestamp(timestampMs)).append(' ').append(method).append(' ').append(url)
+  append(" -> ").append(statusCode ?: "?").append(" (").append(durationMs).append("ms)")
+  error?.let { append(" [ERROR: ${it.title}: ${it.message}]") }
+}

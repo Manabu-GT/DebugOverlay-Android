@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.LogLevel
+import com.ms.square.debugoverlay.model.NetworkError
 import com.ms.square.debugoverlay.model.NetworkRequest
 import org.junit.Test
 
@@ -65,6 +66,29 @@ class CrashRecordTextFormatterTest {
     assertThat(text).contains("timber line")
     assertThat(text).contains("--- NETWORK REQUESTS (1) ---")
     assertThat(text).contains("GET https://example.com -> 200 (42ms)")
+  }
+
+  @Test
+  fun `appends error title and message for failed network requests`() {
+    val record = baseRecord.copy(
+      networkRequests = listOf(
+        NetworkRequest(
+          protocol = null,
+          method = "GET",
+          url = "https://example.com",
+          statusCode = null,
+          durationMs = 5_000L,
+          responseSize = null,
+          requestSize = 0L,
+          timestampMs = 1_700_000_000_000L,
+          error = NetworkError(title = "IOException", message = "Connection reset by peer")
+        )
+      )
+    )
+
+    val text = formatCrashRecordAsText(record)
+
+    assertThat(text).contains("[ERROR: IOException: Connection reset by peer]")
   }
 
   private fun fakeLogEntry(message: String) = LogEntry(
