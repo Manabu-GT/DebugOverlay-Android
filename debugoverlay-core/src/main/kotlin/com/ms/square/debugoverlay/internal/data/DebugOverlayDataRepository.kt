@@ -30,15 +30,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.milliseconds
 
 /** Default name shown when a custom log source doesn't provide a source name. */
@@ -106,18 +108,35 @@ internal class DebugOverlayDataRepository(context: Context, scope: CoroutineScop
 
   val appExitInfos: Flow<List<AppExitInfo>> = appExitDataSource.appExitInfos
 
-  // Persisted crash records from a prior run. Queried once per subscription (Lazily):
-  // this run's own crashes can't change mid-session since a crash terminates the process.
-  val crashRecords: Flow<List<CrashRecordInfo>> = flow { emit(crashRecordStorage.listCrashRecords()) }
-    .flowOn(Dispatchers.IO)
-    .stateIn(scope, SharingStarted.Lazily, emptyList())
+  // Persisted crash records from a prior run. Loaded once, lazily, on first subscription
+  // (mirrors BugReportDraftStorage's initDraftsIfNeeded()/refreshDrafts() pattern) — a
+  // crash terminates the process, so nothing can add a new record mid-session, but
+  // deleteCrashRecord() below explicitly re-syncs this after a deletion.
+  private val crashRecordsLoaded = AtomicBoolean(false)
+  private val _crashRecords = MutableStateFlow<List<CrashRecordInfo>>(emptyList())
+
+  val crashRecords: Flow<List<CrashRecordInfo>> = _crashRecords.asStateFlow()
+    .onStart { loadCrashRecordsIfNeeded() }
 
   val hasCrashRecords: StateFlow<Boolean> = crashRecords
     .map { it.isNotEmpty() }
     .distinctUntilChanged()
     .stateIn(scope, SharingStarted.Eagerly, false)
 
-  suspend fun deleteCrashRecord(info: CrashRecordInfo) = crashRecordStorage.deleteCrashRecord(info)
+  private suspend fun loadCrashRecordsIfNeeded() {
+    if (crashRecordsLoaded.compareAndSet(false, true)) {
+      refreshCrashRecords()
+    }
+  }
+
+  private suspend fun refreshCrashRecords() {
+    _crashRecords.value = withContext(Dispatchers.IO) { crashRecordStorage.listCrashRecords() }
+  }
+
+  suspend fun deleteCrashRecord(info: CrashRecordInfo) {
+    crashRecordStorage.deleteCrashRecord(info)
+    refreshCrashRecords()
+  }
 
   // Snapshot methods for bug reports (use cached value if available, otherwise query directly)
   suspend fun queryLogcatSnapshot(): List<LogEntry> = logcatDataSource.queryLogcatSnapshot()
