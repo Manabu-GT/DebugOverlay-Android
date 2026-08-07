@@ -14,6 +14,7 @@ import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.DefaultAppInfoProvider
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
+import com.ms.square.debugoverlay.internal.bugreport.model.AppInfo
 import com.ms.square.debugoverlay.internal.bugreport.validateFilename
 import com.ms.square.debugoverlay.internal.crash.CrashHandler
 import com.ms.square.debugoverlay.internal.crash.DefaultCrashRecordStorage
@@ -24,7 +25,9 @@ import com.ms.square.debugoverlay.internal.util.isMainProcess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Internal entry point for DebugOverlay auto-installers.
@@ -106,7 +109,7 @@ public object DebugOverlay {
         activityProvider = viewManager
       )
 
-      installCrashHandler(application, repository)
+      installCrashHandler(application, scope, repository)
     }
   }
 
@@ -115,15 +118,30 @@ public object DebugOverlay {
    * previously installed (the platform default, or another crash reporter like
    * Crashlytics), so persisting a crash record never interferes with existing crash
    * handling. Captured exactly once here.
+   *
+   * App info is fetched in the background on [scope] rather than inline here: [install]
+   * runs on the main thread before [Application.onCreate] (via AndroidX Startup), so any
+   * blocking work here — [DefaultAppInfoProvider.getAppInfo] does PackageManager IPC
+   * calls — directly delays app startup. [AtomicReference] gives the background write and
+   * the (possibly cross-thread, possibly-crashing-thread) read proper visibility without
+   * needing a coroutine to read it back.
    */
-  private fun installCrashHandler(application: Application, repository: DebugOverlayDataRepository) {
+  private fun installCrashHandler(
+    application: Application,
+    scope: CoroutineScope,
+    repository: DebugOverlayDataRepository,
+  ) {
     val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
-    val cachedAppInfo = runCatching { DefaultAppInfoProvider.getAppInfo(application) }.getOrNull()
+    val cachedAppInfo = AtomicReference<AppInfo?>(null)
+    scope.launch(Dispatchers.IO) {
+      cachedAppInfo.set(runCatching { DefaultAppInfoProvider.getAppInfo(application) }.getOrNull())
+    }
+
     Thread.setDefaultUncaughtExceptionHandler(
       CrashHandler(
         previousHandler = previousHandler,
         storage = DefaultCrashRecordStorage(application),
-        cachedAppInfo = cachedAppInfo,
+        cachedAppInfoProvider = cachedAppInfo::get,
         logcatSnapshotProvider = { repository.logcatSnapshotSync() },
         customLogSnapshotProvider = { repository.customLogSnapshotSync() },
         networkRequestsSnapshotProvider = { repository.networkRequestsSnapshotSync() }

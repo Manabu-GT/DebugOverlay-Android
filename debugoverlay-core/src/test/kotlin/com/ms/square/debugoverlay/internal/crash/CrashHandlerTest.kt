@@ -1,6 +1,7 @@
 package com.ms.square.debugoverlay.internal.crash
 
 import com.google.common.truth.Truth.assertThat
+import com.ms.square.debugoverlay.internal.bugreport.model.AppInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.CustomLogSourceData
 import com.ms.square.debugoverlay.model.LogEntry
 import com.ms.square.debugoverlay.model.LogLevel
@@ -16,11 +17,12 @@ class CrashHandlerTest {
     logs: List<LogEntry> = emptyList(),
     customLogs: CustomLogSourceData? = null,
     networkRequests: List<NetworkRequest> = emptyList(),
+    appInfo: AppInfo? = null,
     maxLogLines: Int = 100,
   ) = CrashHandler(
     previousHandler = previousHandler,
     storage = storage,
-    cachedAppInfo = null,
+    cachedAppInfoProvider = { appInfo },
     logcatSnapshotProvider = { logs },
     customLogSnapshotProvider = { customLogs },
     networkRequestsSnapshotProvider = { networkRequests },
@@ -41,6 +43,36 @@ class CrashHandlerTest {
     assertThat(written.exceptionType).isEqualTo("java.lang.IllegalStateException")
     assertThat(written.message).isEqualTo("boom")
     assertThat(previousHandler.invokedWith).isEqualTo(thread to throwable)
+  }
+
+  @Test
+  fun `uncaughtException writes null appInfo when the background fetch has not completed yet`() {
+    val handler = createHandler(appInfo = null)
+
+    handler.uncaughtException(Thread.currentThread(), RuntimeException("boom"))
+
+    assertThat(storage.written!!.appInfo).isNull()
+  }
+
+  @Test
+  fun `uncaughtException includes appInfo once the background fetch has completed`() {
+    val appInfo = AppInfo(
+      packageName = "com.test.app",
+      versionName = "1.0.0",
+      versionCode = 1,
+      targetSdkVersion = 34,
+      minSdkVersion = 21,
+      isDebuggable = true,
+      installerStore = "Unknown",
+      installerPackage = null,
+      firstInstallTime = 0L,
+      lastUpdateTime = 0L
+    )
+    val handler = createHandler(appInfo = appInfo)
+
+    handler.uncaughtException(Thread.currentThread(), RuntimeException("boom"))
+
+    assertThat(storage.written!!.appInfo).isEqualTo(appInfo)
   }
 
   @Test

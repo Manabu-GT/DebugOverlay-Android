@@ -21,8 +21,10 @@ import kotlin.system.exitProcess
  *   at install time. Never re-fetched, so a handler installed by another SDK *after*
  *   DebugOverlay is never clobbered.
  * @param storage Where the crash record is written.
- * @param cachedAppInfo App info captured once at install time (immutable for the process
- *   lifetime) — avoids PackageManager calls in the crash path.
+ * @param cachedAppInfoProvider Returns app info fetched once, off the main thread, shortly
+ *   after install (see [com.ms.square.debugoverlay.DebugOverlay.install]) — never queried
+ *   fresh here, since that would mean PackageManager IPC calls in the crash path. Returns
+ *   null if a crash happens before that background fetch completes.
  * @param logcatSnapshotProvider Non-suspending snapshot of the in-memory Logcat buffer.
  * @param customLogSnapshotProvider Non-suspending snapshot of the custom log source, if any.
  * @param networkRequestsSnapshotProvider Non-suspending snapshot of recent network requests.
@@ -31,7 +33,7 @@ import kotlin.system.exitProcess
 internal class CrashHandler(
   private val previousHandler: Thread.UncaughtExceptionHandler?,
   private val storage: CrashRecordStorage,
-  private val cachedAppInfo: AppInfo?,
+  private val cachedAppInfoProvider: () -> AppInfo?,
   private val logcatSnapshotProvider: () -> List<LogEntry>,
   private val customLogSnapshotProvider: () -> CustomLogSourceData?,
   private val networkRequestsSnapshotProvider: () -> List<NetworkRequest>,
@@ -63,7 +65,7 @@ internal class CrashHandler(
       exceptionType = throwable.javaClass.name,
       message = throwable.message,
       stackTrace = throwable.stackTraceToString(),
-      appInfo = cachedAppInfo,
+      appInfo = cachedAppInfoProvider(),
       logcatLogs = logcatSnapshotProvider().takeLast(maxLines),
       customLogSourceData = customLogSnapshot,
       networkRequests = networkRequestsSnapshotProvider().takeLast(maxLines)
