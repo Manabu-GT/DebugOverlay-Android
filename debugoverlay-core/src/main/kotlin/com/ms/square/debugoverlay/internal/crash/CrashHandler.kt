@@ -26,10 +26,7 @@ import kotlin.system.exitProcess
  * @param logcatSnapshotProvider Non-suspending snapshot of the in-memory Logcat buffer.
  * @param customLogSnapshotProvider Non-suspending snapshot of the custom log source, if any.
  * @param networkRequestsSnapshotProvider Non-suspending snapshot of recent network requests.
- * @param isEnabled Whether persistence is currently enabled. Read live at crash time so
- *   toggling [com.ms.square.debugoverlay.DebugOverlay.configure] doesn't require
- *   reinstalling this handler.
- * @param maxLogLines Maximum number of entries kept per log/request source, read live.
+ * @param maxLogLines Maximum number of entries kept per log/request source.
  */
 internal class CrashHandler(
   private val previousHandler: Thread.UncaughtExceptionHandler?,
@@ -38,16 +35,13 @@ internal class CrashHandler(
   private val logcatSnapshotProvider: () -> List<LogEntry>,
   private val customLogSnapshotProvider: () -> CustomLogSourceData?,
   private val networkRequestsSnapshotProvider: () -> List<NetworkRequest>,
-  private val isEnabled: () -> Boolean,
-  private val maxLogLines: () -> Int,
+  private val maxLogLines: Int = DEFAULT_MAX_LOG_LINES,
 ) : Thread.UncaughtExceptionHandler {
 
   @Suppress("TooGenericExceptionCaught")
   override fun uncaughtException(thread: Thread, throwable: Throwable) {
     try {
-      if (isEnabled()) {
-        storage.writeSync(buildCrashRecord(thread, throwable))
-      }
+      storage.writeSync(buildCrashRecord(thread, throwable))
     } catch (t: Throwable) {
       // Deliberately broad: capture failure must never prevent the delegate call below
       // from running, since that's what keeps other crash reporters (e.g. Crashlytics)
@@ -59,7 +53,7 @@ internal class CrashHandler(
   }
 
   private fun buildCrashRecord(thread: Thread, throwable: Throwable): CrashRecord {
-    val maxLines = maxLogLines().coerceAtLeast(0)
+    val maxLines = maxLogLines.coerceAtLeast(0)
     val customLogSnapshot = customLogSnapshotProvider()?.let { data ->
       data.copy(logs = data.logs.takeLast(maxLines))
     }
@@ -91,5 +85,6 @@ internal class CrashHandler(
 
   private companion object {
     const val EXIT_CODE_UNCAUGHT_EXCEPTION = 10
+    const val DEFAULT_MAX_LOG_LINES = 100
   }
 }

@@ -16,7 +16,6 @@ class CrashHandlerTest {
     logs: List<LogEntry> = emptyList(),
     customLogs: CustomLogSourceData? = null,
     networkRequests: List<NetworkRequest> = emptyList(),
-    isEnabled: Boolean = true,
     maxLogLines: Int = 100,
   ) = CrashHandler(
     previousHandler = previousHandler,
@@ -25,8 +24,7 @@ class CrashHandlerTest {
     logcatSnapshotProvider = { logs },
     customLogSnapshotProvider = { customLogs },
     networkRequestsSnapshotProvider = { networkRequests },
-    isEnabled = { isEnabled },
-    maxLogLines = { maxLogLines }
+    maxLogLines = maxLogLines
   )
 
   @Test
@@ -43,16 +41,6 @@ class CrashHandlerTest {
     assertThat(written.exceptionType).isEqualTo("java.lang.IllegalStateException")
     assertThat(written.message).isEqualTo("boom")
     assertThat(previousHandler.invokedWith).isEqualTo(thread to throwable)
-  }
-
-  @Test
-  fun `uncaughtException does not write when disabled but still delegates`() {
-    val handler = createHandler(isEnabled = false)
-
-    handler.uncaughtException(Thread.currentThread(), RuntimeException("boom"))
-
-    assertThat(storage.written).isNull()
-    assertThat(previousHandler.invokedWith).isNotNull()
   }
 
   @Test

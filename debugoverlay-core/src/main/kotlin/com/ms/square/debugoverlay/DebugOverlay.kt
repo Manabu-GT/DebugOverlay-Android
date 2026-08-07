@@ -114,8 +114,7 @@ public object DebugOverlay {
    * Chains a [CrashHandler] in front of whatever [Thread.UncaughtExceptionHandler] was
    * previously installed (the platform default, or another crash reporter like
    * Crashlytics), so persisting a crash record never interferes with existing crash
-   * handling. Captured exactly once here; never re-installed on [configure] calls, since
-   * [CrashHandler] reads [config] live via lambdas.
+   * handling. Captured exactly once here.
    */
   private fun installCrashHandler(application: Application, repository: DebugOverlayDataRepository) {
     val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
@@ -127,9 +126,7 @@ public object DebugOverlay {
         cachedAppInfo = cachedAppInfo,
         logcatSnapshotProvider = { repository.logcatSnapshotSync() },
         customLogSnapshotProvider = { repository.customLogSnapshotSync() },
-        networkRequestsSnapshotProvider = { repository.networkRequestsSnapshotSync() },
-        isEnabled = { config.persistCrashLogs },
-        maxLogLines = { config.maxCrashLogLines }
+        networkRequestsSnapshotProvider = { repository.networkRequestsSnapshotSync() }
       )
     )
   }
@@ -272,38 +269,12 @@ public object DebugOverlay {
         field = value
       }
 
-    /**
-     * Whether to persist the last log lines and the exception's stack trace to disk when
-     * an uncaught exception occurs, so they survive process death and can be reviewed or
-     * exported from the Crash tab on the next launch.
-     *
-     * Default is `true`.
-     */
-    public var persistCrashLogs: Boolean = initial.persistCrashLogs
-
-    /**
-     * Maximum number of recent entries kept per source (Logcat, custom log source,
-     * network requests) in a persisted crash record.
-     *
-     * Default is [Config.DEFAULT_MAX_CRASH_LOG_LINES] (100).
-     *
-     * @throws IllegalArgumentException if assigned a negative value.
-     */
-    @IntRange(from = 0)
-    public var maxCrashLogLines: Int = initial.maxCrashLogLines
-      set(value) {
-        require(value >= 0) { "maxCrashLogLines must be non-negative, was $value" }
-        field = value
-      }
-
     internal fun build(): Config = Config(
       overlayMode = overlayMode,
       networkRequestSource = networkRequestSource,
       customLogSource = customLogSource,
       bugReportExporter = bugReportExporter,
-      maxLogcatEntries = maxLogcatEntries,
-      persistCrashLogs = persistCrashLogs,
-      maxCrashLogLines = maxCrashLogLines
+      maxLogcatEntries = maxLogcatEntries
     )
   }
 
@@ -324,11 +295,6 @@ public object DebugOverlay {
    *   Default is the built-in share sheet exporter.
    * @property maxLogcatEntries Maximum number of entries kept in the built-in Logcat
    *   tab buffer. Default is [DEFAULT_MAX_LOGCAT_ENTRIES].
-   * @property persistCrashLogs Whether to persist the last log lines and the exception's
-   *   stack trace to disk on an uncaught exception, reviewable from the Crash tab on the
-   *   next launch. Default is `true`.
-   * @property maxCrashLogLines Maximum number of recent entries kept per source in a
-   *   persisted crash record. Default is [DEFAULT_MAX_CRASH_LOG_LINES].
    *
    * @see configure
    */
@@ -338,15 +304,10 @@ public object DebugOverlay {
     val customLogSource: LogSource? = null,
     val bugReportExporter: BugReportExporter = IntentShareExporter,
     val maxLogcatEntries: Int = DEFAULT_MAX_LOGCAT_ENTRIES,
-    val persistCrashLogs: Boolean = true,
-    val maxCrashLogLines: Int = DEFAULT_MAX_CRASH_LOG_LINES,
   ) {
     public companion object {
       /** Default value for [maxLogcatEntries]. */
       public const val DEFAULT_MAX_LOGCAT_ENTRIES: Int = 300
-
-      /** Default value for [maxCrashLogLines]. */
-      public const val DEFAULT_MAX_CRASH_LOG_LINES: Int = 100
     }
   }
 }
