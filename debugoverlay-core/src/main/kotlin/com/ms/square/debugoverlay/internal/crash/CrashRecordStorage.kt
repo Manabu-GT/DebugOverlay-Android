@@ -3,6 +3,7 @@ package com.ms.square.debugoverlay.internal.crash
 import android.content.Context
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.util.checkFolderExists
+import com.ms.square.debugoverlay.internal.util.isDirectChildOf
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -86,24 +87,13 @@ internal class DefaultCrashRecordStorage(
 
   override suspend fun deleteCrashRecord(info: CrashRecordInfo): Unit = withContext(Dispatchers.IO) {
     val file = info.file
-    if (!isDirectChildOfRecordsDir(file)) {
+    if (!file.isDirectChildOf(recordsDir)) {
       Logger.w("Refusing to delete crash record outside records directory: ${file.absolutePath}")
       return@withContext
     }
     if (file.exists() && !file.delete()) {
       Logger.w("Failed to delete crash record: ${file.absolutePath}")
     }
-  }
-
-  /**
-   * Checks if the given file is a direct child of [recordsDir].
-   * Uses canonical paths to resolve symlinks and ".." traversal attacks.
-   */
-  private fun isDirectChildOfRecordsDir(file: File): Boolean = runCatching {
-    file.canonicalFile.parentFile == recordsDir.canonicalFile
-  }.getOrElse { e ->
-    Logger.w("Failed to resolve canonical path for safety check: ${e.javaClass.simpleName} - ${e.message}")
-    false
   }
 
   private fun loadRecord(file: File): CrashRecord? =
