@@ -4,7 +4,7 @@
 
 ### New Features
 
-* **Copy the full transaction from a network request** – The network request detail screen gains a "Copy all" action in the top app bar, alongside the existing per-section copy buttons. It exports method, URL, status, timing, sizes, both header sets and both bodies as a single plain-text block, with JSON bodies pretty-printed and each body capped at 64 KB so a large transaction cannot overflow a single `ClipData`. Content-Type lookups are now case-insensitive, so HTTP/2's lowercased headers are detected as well. Resolves item 2 of [#256](https://github.com/Manabu-GT/DebugOverlay-Android/issues/256).
+* **Copy the full transaction from a network request** – The network request detail screen gains a "Copy all" action in the top app bar, alongside the existing per-section copy buttons. It exports method, URL, status, timing, sizes, both header sets and both bodies as a single plain-text block, with JSON bodies pretty-printed and each body section capped at 64 KB to reduce the risk of overflowing a single `ClipData`. Content-Type lookups are now case-insensitive, so HTTP/2's lowercased headers are detected as well. Resolves item 2 of [#256](https://github.com/Manabu-GT/DebugOverlay-Android/issues/256).
 
 ### Build
 
