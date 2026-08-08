@@ -115,17 +115,19 @@ internal class DebugOverlayDataRepository(
 
   val appExitInfos: Flow<List<AppExitInfo>> = appExitDataSource.appExitInfos
 
-  // null means "not read from disk yet", which the UI must not render as "no crashes" —
-  // otherwise the empty state flashes for a frame every time the Crash tab opens.
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val networkRequests: StateFlow<List<NetworkRequest>> = currentNetworkRequestSource
+    .flatMapLatest { source -> source.requests }
+    .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+  // null means "not read from disk yet"
   private val _crashRecords = MutableStateFlow<List<CrashRecordInfo>?>(null)
 
   val crashRecords: StateFlow<List<CrashRecordInfo>?> = _crashRecords.asStateFlow()
     .onStart { refreshCrashRecords() }
     .stateIn(scope, SharingStarted.Lazily, null)
 
-  // Drives the Crash tab's count badge. Collecting this is enough to start the lazily-shared
-  // load above, so the panel doesn't have to hold the whole list (and recompose on every
-  // emission) just to show a number.
+  // Drives the Crash tab's count badge.
   val crashRecordCount: StateFlow<Int> = crashRecords
     .map { it?.size ?: 0 }
     .stateIn(scope, SharingStarted.Lazily, 0)
@@ -149,7 +151,7 @@ internal class DebugOverlayDataRepository(
    *
    * App info is queried here rather than cached up front: it's two PackageManager IPC calls,
    * cheap next to the file write below, and caching it would cost every app start for a read
-   * that happens at most once per process. Guarded separately so a failure costs the app info
+   * that might be unnecessary. Guarded separately so a failure costs the app info
    * field, not the whole record.
    */
   fun writeCrashRecordSync(thread: Thread, throwable: Throwable) {
@@ -159,20 +161,14 @@ internal class DebugOverlayDataRepository(
         throwable = throwable,
         appInfo = runCatching { DefaultAppInfoProvider.getAppInfo(context) }.getOrNull(),
         logcatLogs = logcatDataSource.queryLogcatSnapshot(),
-        customLogSourceData = customLogSnapshotSync(),
-        networkRequests = networkRequestsSnapshot.value
+        customLogSourceData = customLogSourceName.value?.let { name -> CustomLogSourceData(customLogSourceLogs.value, name) },
+        networkRequests = networkRequests.value
       )
     )
   }
 
   /**
    * Deletes a persisted crash record and re-syncs [crashRecords].
-   *
-   * Runs on the repository's own [scope], not the caller's: when this ran on the crash tab's
-   * `rememberCoroutineScope()`, closing the panel mid-delete cancelled the coroutine between
-   * the delete and the refresh — `withContext` throws on return once the job is cancelled — so
-   * the file was gone while [crashRecords] still listed it. Nothing re-read it afterwards
-   * either, since the Lazily-shared `onStart` only runs on the first subscription.
    */
   fun deleteCrashRecord(info: CrashRecordInfo) {
     scope.launch {
@@ -185,19 +181,6 @@ internal class DebugOverlayDataRepository(
   fun queryLogcatSnapshot(): List<LogEntry> = logcatDataSource.queryLogcatSnapshot()
   suspend fun queryDeviceInfoSnapshot(): DeviceInfo = deviceInfoDataSource.queryDeviceInfoSnapshot()
   suspend fun queryAppExitInfosSnapshot(): List<AppExitInfo> = appExitDataSource.queryAppExitInfosSnapshot()
-
-  @OptIn(ExperimentalCoroutinesApi::class)
-  val networkRequests: Flow<List<NetworkRequest>> = currentNetworkRequestSource
-    .flatMapLatest { source -> source.requests }
-
-  // Cached copy of the latest network requests, kept warm so writeCrashRecordSync() can read
-  // it without suspending. Mirrors customLogSourceLogs's SharingStarted.Eagerly pattern above.
-  private val networkRequestsSnapshot: StateFlow<List<NetworkRequest>> =
-    networkRequests.stateIn(scope, SharingStarted.Eagerly, emptyList())
-
-  // Non-suspending snapshot of the custom log source's latest known logs, if one is registered.
-  private fun customLogSnapshotSync(): CustomLogSourceData? =
-    customLogSourceName.value?.let { name -> CustomLogSourceData(customLogSourceLogs.value, name) }
 
   fun setNetworkSource(source: NetworkRequestSource) {
     currentNetworkRequestSource.value = source

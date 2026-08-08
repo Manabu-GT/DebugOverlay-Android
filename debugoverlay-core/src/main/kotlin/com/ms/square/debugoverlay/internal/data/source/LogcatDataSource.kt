@@ -160,14 +160,7 @@ internal class LogcatDataSource(
   }
 
   /**
-   * Returns a snapshot of the in-memory log buffer without suspending or spawning a subprocess,
-   * so it stays safe to call while the process is dying — see
-   * [com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository.writeCrashRecordSync],
-   * which calls this from the crashing thread.
-   *
-   * The buffer is filled from process start (the producer is shared eagerly), so this does not
-   * depend on the debug panel ever having been opened. Bug reports read it too. Entries are
-   * already filtered against [clear] as they are appended, so no post-filtering is needed here.
+   * Returns a snapshot of the in-memory log buffer without suspending or spawning a subprocess.
    */
   fun queryLogcatSnapshot(): List<LogEntry> = entries.toList()
 

@@ -66,7 +66,7 @@ private enum class BuiltInTab(@param:StringRes val titleResId: Int) {
   LOGCAT(R.string.debugoverlay_tab_logcat),
   CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from source
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
-  CRASH_LOG(R.string.debugoverlay_tab_crash_log), // Always shown; badged with the record count
+  CRASH_LOG(R.string.debugoverlay_tab_crash_log),
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
   UI(R.string.debugoverlay_tab_ui),
@@ -266,15 +266,11 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 private fun DebugPanelContent(isCompactHeight: Boolean, modifier: Modifier = Modifier) {
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
-  // Collecting this also starts the repository's lazily-shared load of persisted crash records.
   val crashRecordCount by repository.crashRecordCount.collectAsStateWithLifecycle()
   val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
   val customTabs = (DebugOverlay.config.overlayMode as? OverlayMode.WithCustomTabs)?.customTabs.orEmpty()
 
-  // Build visible tabs: built-in tabs (with CUSTOM_LOG conditionally shown) + custom tabs.
-  // CRASH_LOG is always shown — it gates on data, not capability, so hiding it until the first
-  // crash would hide the feature from anyone who hasn't crashed yet (and shift neighbouring tab
-  // indices when one arrives). Its own empty state explains the wait; see AppExitTabContent.
+  // Build visible tabs: built-in tabs (with CUSTOM_LOG conditionally shown) + custom tabs
   val visibleTabs = remember(hasCustomLogSource, customTabs) {
     val builtIn = BuiltInTab.entries
       .filter { it != BuiltInTab.CUSTOM_LOG || hasCustomLogSource }

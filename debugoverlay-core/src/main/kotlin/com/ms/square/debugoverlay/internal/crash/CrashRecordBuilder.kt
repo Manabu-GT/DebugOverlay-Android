@@ -14,9 +14,6 @@ internal const val DEFAULT_MAX_LOG_LINES = 100
  * and can be tested without a [android.content.Context]. Each log/request source is trimmed
  * to the last [maxLogLines] entries, and network requests are reduced to
  * [NetworkRequestSummary] so bodies never reach disk.
- *
- * @param appInfo App info fetched once shortly after install; null if the crash beat that
- *   background fetch.
  */
 internal fun buildCrashRecord(
   thread: Thread,

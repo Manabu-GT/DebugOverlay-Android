@@ -18,19 +18,23 @@
       android:excludeFromRecents="true" />
 
     <!--
-      FileProvider for sharing bug reports via Intent.
+      FileProvider for sharing exports via Intent (bug report archives, crash logs).
       Required since Android 7.0 (API 24) - file:// URIs throw FileUriExposedException
       when shared with other apps. FileProvider creates content:// URIs that grant
       temporary read access to the receiving app.
+
+      One provider serves every export directory: <paths> below declares them all, and
+      grants are per-URI, so a second authority would add a ContentProvider to app startup
+      without narrowing what any recipient can read.
     -->
     <provider
       android:name="androidx.core.content.FileProvider"
-      android:authorities="${applicationId}.debugoverlay.bugreport.provider"
+      android:authorities="${applicationId}.debugoverlay.fileprovider"
       android:exported="false"
       android:grantUriPermissions="true">
       <meta-data
         android:name="android.support.FILE_PROVIDER_PATHS"
-        android:resource="@xml/debugoverlay_bugreport_paths" />
+        android:resource="@xml/debugoverlay_file_provider_paths" />
     </provider>
   </application>
 
