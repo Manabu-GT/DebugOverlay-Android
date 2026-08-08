@@ -3,19 +3,17 @@ package com.ms.square.debugoverlay.internal.bugreport
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import androidx.core.content.FileProvider
 import com.ms.square.debugoverlay.BugReportExporter
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.formatBugReportMarkdown
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.bugreport.model.BugReportArchiveImpl
+import com.ms.square.debugoverlay.internal.util.debugOverlayFileUri
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import com.ms.square.debugoverlay.model.BugReport
 import com.ms.square.debugoverlay.model.ExportResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-private const val PROVIDER_AUTHORITY_SUFFIX = ".debugoverlay.bugreport.provider"
 
 /**
  * Default exporter that shares the bug report via Android's share sheet.
@@ -30,8 +28,7 @@ internal object IntentShareExporter : BugReportExporter {
         UnsupportedOperationException("IntentShareExporter requires file-backed archive")
       )
     }
-    val authority = "${context.packageName}$PROVIDER_AUTHORITY_SUFFIX"
-    val uri = FileProvider.getUriForFile(context, authority, file)
+    val uri = context.debugOverlayFileUri(file)
 
     val subject = context.getString(R.string.debugoverlay_bug_report_subject, file.nameWithoutExtension)
     val chooserTitle = context.getString(R.string.debugoverlay_share_bug_report)

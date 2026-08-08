@@ -2,17 +2,16 @@ package com.ms.square.debugoverlay.internal.crash
 
 import android.content.Context
 import android.content.Intent
-import androidx.core.content.FileProvider
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.util.checkFolderExists
+import com.ms.square.debugoverlay.internal.util.debugOverlayFileUri
 import com.ms.square.debugoverlay.internal.util.formatFilenameTimestamp
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-private const val PROVIDER_AUTHORITY_SUFFIX = ".debugoverlay.bugreport.provider"
 private const val EXPORTS_SUBDIR = "debugoverlay_crash_exports"
 
 /**
@@ -30,8 +29,7 @@ internal object CrashRecordExporter {
       val file = File(exportsDir, "crash_${formatFilenameTimestamp(record.timestampMs)}.txt")
       file.writeText(formatCrashRecordAsText(record))
 
-      val authority = "${context.packageName}$PROVIDER_AUTHORITY_SUFFIX"
-      val uri = FileProvider.getUriForFile(context, authority, file)
+      val uri = context.debugOverlayFileUri(file)
 
       val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"

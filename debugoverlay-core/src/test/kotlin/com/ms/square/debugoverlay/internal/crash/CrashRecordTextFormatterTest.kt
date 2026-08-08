@@ -54,7 +54,7 @@ class CrashRecordTextFormatterTest {
           responseSize = 100L,
           requestSize = 0L,
           timestampMs = 1_700_000_000_000L
-        )
+        ).toSummary()
       )
     )
 
@@ -82,7 +82,7 @@ class CrashRecordTextFormatterTest {
           requestSize = 0L,
           timestampMs = 1_700_000_000_000L,
           error = NetworkError(title = "IOException", message = "Connection reset by peer")
-        )
+        ).toSummary()
       )
     )
 

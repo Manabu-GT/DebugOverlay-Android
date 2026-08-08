@@ -54,6 +54,7 @@
   <string name="debugoverlay_app_exits_clipboard_label">AppExit Info</string>
 
   <!-- Crash Tab -->
+  <string name="debugoverlay_tab_crash_log_description">Crash, %1$d recorded</string>
   <string name="debugoverlay_crash_log_empty_title">No Crashes Recorded</string>
   <string name="debugoverlay_crash_log_empty_subtitle">Crashes will appear here after your app\nrestarts following an unhandled exception.</string>
   <string name="debugoverlay_crash_log_item_description">Crash: %1$s, %2$s</string>

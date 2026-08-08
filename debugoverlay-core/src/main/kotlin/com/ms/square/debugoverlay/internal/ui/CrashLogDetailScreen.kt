@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.crash.CrashRecord
 import com.ms.square.debugoverlay.internal.crash.CrashRecordExporter
-import com.ms.square.debugoverlay.internal.crash.CrashRecordInfo
 import com.ms.square.debugoverlay.internal.crash.formatCrashRecordAsText
 import com.ms.square.debugoverlay.internal.util.copyToClipboard
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
@@ -50,12 +49,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CrashLogDetailScreen(
-  info: CrashRecordInfo,
+  record: CrashRecord,
   onBack: () -> Unit,
   onDelete: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val record = info.record
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
@@ -100,14 +98,12 @@ internal fun CrashLogDetailScreen(
       )
     }
   ) { paddingValues ->
-    CrashLogDetailContent(info = info, modifier = Modifier.padding(paddingValues))
+    CrashLogDetailContent(record = record, modifier = Modifier.padding(paddingValues))
   }
 }
 
 @Composable
-private fun CrashLogDetailContent(info: CrashRecordInfo, modifier: Modifier = Modifier) {
-  val record = info.record
-
+private fun CrashLogDetailContent(record: CrashRecord, modifier: Modifier = Modifier) {
   Column(modifier = modifier.fillMaxSize()) {
     SelectionContainer(
       modifier = Modifier

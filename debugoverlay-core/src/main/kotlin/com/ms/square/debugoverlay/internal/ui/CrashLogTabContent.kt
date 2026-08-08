@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,50 +33,54 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ms.square.debugoverlay.core.R
+import com.ms.square.debugoverlay.internal.crash.CrashRecord
 import com.ms.square.debugoverlay.internal.crash.CrashRecordInfo
 import com.ms.square.debugoverlay.internal.util.formatRelativeTime
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Crash tab content displaying [CrashRecordInfo]s persisted by
  * [com.ms.square.debugoverlay.internal.crash.CrashHandler] from previous app runs.
  *
- * Only shown when at least one crash record exists (see `hasCrashRecords` gating in
- * DebugPanelDialog), so an empty-state fallback is not needed for the list, only within it.
+ * The tab is always present, so the empty state is the common case until the first crash —
+ * it's what tells the reader the feature exists and that a record appears only after a restart.
+ *
+ * @param crashRecordsFlow emits null until the records have been read from disk, which renders
+ *   as blank rather than as the empty state — otherwise "No Crashes Recorded" flashes for a
+ *   frame every time the tab opens, including when records do exist.
  */
 @Composable
 internal fun CrashLogTabContent(
-  crashRecordsFlow: Flow<List<CrashRecordInfo>>,
-  onDeleteCrashRecord: suspend (CrashRecordInfo) -> Unit,
+  crashRecordsFlow: StateFlow<List<CrashRecordInfo>?>,
+  onDeleteCrashRecord: (CrashRecordInfo) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val crashRecords by crashRecordsFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+  val crashRecords by crashRecordsFlow.collectAsStateWithLifecycle()
   var selected by remember { mutableStateOf<CrashRecordInfo?>(null) }
-  val scope = rememberCoroutineScope()
 
   DetailNavigation(
     selectedItem = selected,
     onBack = { selected = null },
     listContent = {
-      if (crashRecords.isEmpty()) {
-        EmptyCrashHistoryState()
-      } else {
-        CrashLogListScreen(
-          crashRecords = crashRecords,
+      when {
+        // Not loaded yet: a directory listing is fast enough that a spinner would itself flash.
+        crashRecords == null -> Box(modifier = Modifier.fillMaxSize())
+        crashRecords.isNullOrEmpty() -> EmptyCrashHistoryState()
+        else -> CrashLogListScreen(
+          crashRecords = crashRecords.orEmpty(),
           onItemClick = { selected = it }
         )
       }
     },
     detailContent = { info ->
       CrashLogDetailScreen(
-        info = info,
+        record = info.record,
         onBack = { selected = null },
         onDelete = {
-          scope.launch {
-            onDeleteCrashRecord(info)
-            selected = null
-          }
+          // Fire-and-forget: the repository owns the deletion's lifetime, so navigating away
+          // immediately can't strand it half-done.
+          onDeleteCrashRecord(info)
+          selected = null
         }
       )
     },
@@ -97,14 +100,13 @@ private fun CrashLogListScreen(
     verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
     items(crashRecords, key = { it.record.id }) { info ->
-      CrashLogItem(info = info, onClick = { onItemClick(info) })
+      CrashLogItem(record = info.record, onClick = { onItemClick(info) })
     }
   }
 }
 
 @Composable
-private fun CrashLogItem(info: CrashRecordInfo, onClick: () -> Unit, modifier: Modifier = Modifier) {
-  val record = info.record
+private fun CrashLogItem(record: CrashRecord, onClick: () -> Unit, modifier: Modifier = Modifier) {
   val timeStamp = remember(record.timestampMs) { formatRelativeTime(record.timestampMs) }
   val itemDescription = stringResource(
     R.string.debugoverlay_crash_log_item_description,

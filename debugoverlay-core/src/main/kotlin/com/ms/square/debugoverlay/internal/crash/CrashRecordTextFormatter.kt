@@ -2,7 +2,6 @@ package com.ms.square.debugoverlay.internal.crash
 
 import com.ms.square.debugoverlay.internal.util.formatFullTimestamp
 import com.ms.square.debugoverlay.internal.util.toClipboardText
-import com.ms.square.debugoverlay.model.NetworkRequest
 
 private const val SEPARATOR_WIDTH = 80
 
@@ -43,12 +42,11 @@ internal fun formatCrashRecordAsText(record: CrashRecord): String = buildString 
   if (record.networkRequests.isNotEmpty()) {
     appendLine()
     appendLine("--- NETWORK REQUESTS (${record.networkRequests.size}) ---")
-    record.networkRequests.forEach { appendLine(it.toSummaryLine()) }
+    record.networkRequests.forEach { appendLine(it.toExportLine()) }
   }
 }
 
-private fun NetworkRequest.toSummaryLine(): String = buildString {
-  append(formatFullTimestamp(timestampMs)).append(' ').append(method).append(' ').append(url)
-  append(" -> ").append(statusCode ?: "?").append(" (").append(durationMs).append("ms)")
-  error?.let { append(" [ERROR: ${it.title}: ${it.message}]") }
+private fun NetworkRequestSummary.toExportLine(): String {
+  val errorSuffix = errorTitle?.let { " [ERROR: $it: $errorMessage]" }.orEmpty()
+  return "${formatFullTimestamp(timestampMs)} $method $url -> ${statusCode ?: "?"} (${durationMs}ms)$errorSuffix"
 }

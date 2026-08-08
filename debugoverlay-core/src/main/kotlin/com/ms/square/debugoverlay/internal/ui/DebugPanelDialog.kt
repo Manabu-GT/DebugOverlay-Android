@@ -4,6 +4,7 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -56,7 +57,6 @@ import com.ms.square.debugoverlay.OverlayMode
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.ui.BugReportActivity
-import com.ms.square.debugoverlay.internal.bugreport.ui.DraftCountBadge
 import com.ms.square.debugoverlay.internal.data.DEFAULT_CUSTOM_LOG_SOURCE_NAME
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import kotlinx.coroutines.isActive
@@ -66,7 +66,7 @@ private enum class BuiltInTab(@param:StringRes val titleResId: Int) {
   LOGCAT(R.string.debugoverlay_tab_logcat),
   CUSTOM_LOG(R.string.debugoverlay_tab_custom_log), // Fallback; UI uses dynamic title from source
   APP_EXITS(R.string.debugoverlay_tab_app_exits),
-  CRASH_LOG(R.string.debugoverlay_tab_crash_log), // Only shown when a persisted crash record exists
+  CRASH_LOG(R.string.debugoverlay_tab_crash_log), // Always shown; badged with the record count
   NETWORK(R.string.debugoverlay_tab_network),
   JANKSTATS(R.string.debugoverlay_tab_jankstats),
   UI(R.string.debugoverlay_tab_ui),
@@ -246,8 +246,8 @@ private fun BugReportButton(isCapturing: Boolean, draftCount: Int, onClick: () -
 
     // Badge positioned at top-right corner
     if (draftCount > 0 && !isCapturing) {
-      DraftCountBadge(
-        draftCount = draftCount,
+      CountBadge(
+        count = draftCount,
         modifier = Modifier.align(Alignment.TopEnd)
       )
     }
@@ -266,15 +266,18 @@ private fun bugReportButtonDescription(isCapturing: Boolean, draftCount: Int) = 
 private fun DebugPanelContent(isCompactHeight: Boolean, modifier: Modifier = Modifier) {
   val repository = DebugOverlay.overlayDataRepository
   val hasCustomLogSource by repository.hasCustomLogSource.collectAsStateWithLifecycle()
-  val hasCrashRecords by repository.hasCrashRecords.collectAsStateWithLifecycle()
+  // Collecting this also starts the repository's lazily-shared load of persisted crash records.
+  val crashRecordCount by repository.crashRecordCount.collectAsStateWithLifecycle()
   val customLogSourceName by repository.customLogSourceName.collectAsStateWithLifecycle()
   val customTabs = (DebugOverlay.config.overlayMode as? OverlayMode.WithCustomTabs)?.customTabs.orEmpty()
 
-  // Build visible tabs: built-in tabs (with CUSTOM_LOG/CRASH_LOG conditionally shown) + custom tabs
-  val visibleTabs = remember(hasCustomLogSource, hasCrashRecords, customTabs) {
+  // Build visible tabs: built-in tabs (with CUSTOM_LOG conditionally shown) + custom tabs.
+  // CRASH_LOG is always shown — it gates on data, not capability, so hiding it until the first
+  // crash would hide the feature from anyone who hasn't crashed yet (and shift neighbouring tab
+  // indices when one arrives). Its own empty state explains the wait; see AppExitTabContent.
+  val visibleTabs = remember(hasCustomLogSource, customTabs) {
     val builtIn = BuiltInTab.entries
       .filter { it != BuiltInTab.CUSTOM_LOG || hasCustomLogSource }
-      .filter { it != BuiltInTab.CRASH_LOG || hasCrashRecords }
       .map { PanelTab.BuiltIn(it) }
     builtIn + customTabs.map { PanelTab.Custom(it) }
   }
@@ -287,6 +290,7 @@ private fun DebugPanelContent(isCompactHeight: Boolean, modifier: Modifier = Mod
       visibleTabs = visibleTabs,
       selectedIndex = selectedIndex,
       customLogSourceName = customLogSourceName,
+      crashRecordCount = crashRecordCount,
       onTabSelected = { selectedIndex = it }
     )
     DebugPanelTabContent(
@@ -302,6 +306,7 @@ private fun DebugPanelTabRow(
   visibleTabs: List<PanelTab>,
   selectedIndex: Int,
   customLogSourceName: String?,
+  crashRecordCount: Int,
   onTabSelected: (Int) -> Unit,
 ) {
   PrimaryScrollableTabRow(
@@ -310,21 +315,42 @@ private fun DebugPanelTabRow(
     containerColor = Color.Transparent
   ) {
     visibleTabs.forEachIndexed { index, panelTab ->
+      val isBadgedCrashTab = panelTab is PanelTab.BuiltIn &&
+        panelTab.tab == BuiltInTab.CRASH_LOG &&
+        crashRecordCount > 0
+      // Announce the count as part of the tab rather than letting the badge read out as a
+      // stray digit after the label.
+      val tabDescription = if (isBadgedCrashTab) {
+        stringResource(R.string.debugoverlay_tab_crash_log_description, crashRecordCount)
+      } else {
+        null
+      }
+
       Tab(
         selected = index == selectedIndex,
         onClick = { onTabSelected(index) },
+        modifier = if (tabDescription != null) {
+          Modifier.semantics(mergeDescendants = true) { contentDescription = tabDescription }
+        } else {
+          Modifier
+        },
         text = {
-          Text(
-            text = when (panelTab) {
-              is PanelTab.BuiltIn -> if (panelTab.tab == BuiltInTab.CUSTOM_LOG) {
-                customLogSourceName ?: DEFAULT_CUSTOM_LOG_SOURCE_NAME
-              } else {
-                stringResource(panelTab.tab.titleResId)
-              }
-              is PanelTab.Custom -> panelTab.tab.title
-            },
-            style = MaterialTheme.typography.labelLarge
-          )
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+              text = when (panelTab) {
+                is PanelTab.BuiltIn -> if (panelTab.tab == BuiltInTab.CUSTOM_LOG) {
+                  customLogSourceName ?: DEFAULT_CUSTOM_LOG_SOURCE_NAME
+                } else {
+                  stringResource(panelTab.tab.titleResId)
+                }
+                is PanelTab.Custom -> panelTab.tab.title
+              },
+              style = MaterialTheme.typography.labelLarge
+            )
+            if (isBadgedCrashTab) {
+              CountBadge(count = crashRecordCount, modifier = Modifier.padding(start = 6.dp))
+            }
+          }
         }
       )
     }

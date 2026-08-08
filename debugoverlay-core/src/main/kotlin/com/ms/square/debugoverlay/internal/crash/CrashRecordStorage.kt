@@ -12,6 +12,8 @@ import java.io.File
 import java.util.UUID
 
 private const val CRASH_RECORDS_SUBDIR = "debugoverlay_crash_records"
+private const val RECORD_SUFFIX = ".json"
+private const val TEMP_SUFFIX = ".tmp"
 internal const val DEFAULT_MAX_CRASH_RECORDS = 5
 
 /**
@@ -23,9 +25,9 @@ internal sealed interface CrashRecordStorage {
    * Writes [record] to disk. Does not evict old records — see [listCrashRecords].
    *
    * Must be safe to call synchronously from [Thread.UncaughtExceptionHandler.uncaughtException]:
-   * no suspension, no dispatcher hop, no more work than writing this one file. Any failure
-   * is swallowed and logged — the caller must be able to unconditionally proceed to the
-   * previous crash handler afterward.
+   * no suspension, no dispatcher hop, no more work than writing this one file. I/O failures
+   * propagate, so callers on the crash path must catch them and proceed to the previous crash
+   * handler regardless — see `CrashHandler.uncaughtException`.
    */
   fun writeSync(record: CrashRecord)
 
@@ -60,10 +62,9 @@ internal class DefaultCrashRecordStorage(
 
   private val json = Json { ignoreUnknownKeys = true }
 
-  // Plain JVM monitor, not a coroutines Mutex: writeSync() runs outside any coroutine
-  // context (it's called directly from uncaughtException()). Also guards the eviction +
-  // listing step in listCrashRecords() against a concurrent writeSync(), so a write and a
-  // list/evict can't race on the directory contents.
+  // Plain JVM monitor, not a coroutines Mutex: writeSync() is called directly from
+  // uncaughtException(), outside any coroutine. A single instance is shared with the crash
+  // path (see DebugOverlayDataRepository), so this also serialises writes against list/evict.
   private val writeLock = Any()
 
   private val recordsDir by lazy {
@@ -74,18 +75,36 @@ internal class DefaultCrashRecordStorage(
 
   override fun writeSync(record: CrashRecord) {
     synchronized(writeLock) {
+      // Write to a temp file and rename, rather than writing the record in place: the
+      // process is already dying, so an in-place write that doesn't finish would leave a
+      // truncated file that occupies a retention slot forever and can never be parsed.
+      // Rename within the same directory is atomic, so a reader sees either no file or a
+      // complete one. Temp files are excluded from listing and cleaned up by eviction.
       val file = File(recordsDir, fileNameFor(record))
-      file.writeText(json.encodeToString(CrashRecord.serializer(), record))
+      val tempFile = File(recordsDir, "${file.name}$TEMP_SUFFIX")
+      tempFile.writeText(json.encodeToString(CrashRecord.serializer(), record))
+      if (!tempFile.renameTo(file)) {
+        Logger.w("Failed to finalize crash record: ${file.name}")
+        tempFile.delete()
+      }
     }
   }
 
   private fun fileNameFor(record: CrashRecord) = "crash_${record.timestampMs}_${UUID.randomUUID()}.json"
 
+  private fun File.isRecordFile() = isFile && name.endsWith(RECORD_SUFFIX)
+
   // Must be called while holding writeLock.
   private fun evictOldRecordsLocked() {
-    val files = recordsDir.listFiles()?.filter { it.isFile } ?: return
+    val allFiles = recordsDir.listFiles() ?: return
+    // Any temp file visible here is orphaned from a write that never finished: writeSync()
+    // holds the same lock for the whole write-and-rename, so none can be in flight now.
+    allFiles.filter { it.isFile && it.name.endsWith(TEMP_SUFFIX) }.forEach { it.delete() }
+
+    val files = allFiles.filter { it.isRecordFile() }
     if (files.size <= maxRecords) return
-    files.sortedDescending().drop(maxRecords).forEach { it.delete() }
+    val staleRecords = files.sortedDescending().drop(maxRecords)
+    staleRecords.forEach { it.delete() }
   }
 
   override suspend fun listCrashRecords(): List<CrashRecordInfo> = withContext(Dispatchers.IO) {
@@ -94,7 +113,7 @@ internal class DefaultCrashRecordStorage(
     // keeps writeSync() to the bare minimum needed before delegating to the previous handler.
     val files = synchronized(writeLock) {
       evictOldRecordsLocked()
-      recordsDir.listFiles()?.filter { it.isFile }?.sortedDescending() ?: emptyList()
+      recordsDir.listFiles()?.filter { it.isRecordFile() }?.sortedDescending() ?: emptyList()
     }
     files.mapNotNull { file -> loadRecord(file)?.let { CrashRecordInfo(file.absolutePath, it) } }
   }
@@ -110,11 +129,10 @@ internal class DefaultCrashRecordStorage(
     }
   }
 
-  private fun loadRecord(file: File): CrashRecord? =
-    runCatchingNonCancellation {
-      json.decodeFromString(CrashRecord.serializer(), file.readText())
-    }.getOrElse { e ->
-      Logger.w("Failed to parse crash record ${file.name}: ${e.message}")
-      null
-    }
+  private fun loadRecord(file: File): CrashRecord? = runCatchingNonCancellation {
+    json.decodeFromString(CrashRecord.serializer(), file.readText())
+  }.getOrElse { e ->
+    Logger.w("Failed to parse crash record ${file.name}: ${e.message}")
+    null
+  }
 }

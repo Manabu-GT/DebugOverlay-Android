@@ -1,4 +1,4 @@
-package com.ms.square.debugoverlay.internal.bugreport.ui
+package com.ms.square.debugoverlay.internal.ui
 
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Badge
@@ -11,21 +11,23 @@ import androidx.compose.ui.unit.dp
 private const val MAX_BADGE_COUNT = 9
 
 /**
- * Badge showing the number of saved drafts.
+ * Badge showing a count of items needing attention (saved drafts, crash records).
  *
  * Display logic:
- * - 1 draft: dot only (no text)
- * - 2-9 drafts: count as text
- * - 10+ drafts: "9+"
+ * - 1 item: dot only (no text)
+ * - 2-9 items: count as text
+ * - 10+ items: "9+"
  *
- * Uses M3 error color per convention for "items requiring attention".
+ * Uses M3 error color per convention for "items requiring attention". Purely decorative —
+ * callers own the accessible description on the element being badged, so the count isn't
+ * announced as a stray digit.
  *
- * @param draftCount Number of drafts to display
+ * @param count Number of items to display; must be positive
  * @param modifier Modifier for positioning (use offset to fine-tune position)
  */
 @Composable
-internal fun DraftCountBadge(draftCount: Int, modifier: Modifier = Modifier) {
-  require(draftCount > 0) { "draftCount must be positive, got: $draftCount" }
+internal fun CountBadge(count: Int, modifier: Modifier = Modifier) {
+  require(count > 0) { "count must be positive, got: $count" }
   Badge(
     // Default offset for top-right corner positioning
     modifier = modifier.offset(x = 1.dp, y = (-1).dp),
@@ -34,9 +36,9 @@ internal fun DraftCountBadge(draftCount: Int, modifier: Modifier = Modifier) {
     contentColor = MaterialTheme.colorScheme.onError
   ) {
     val badgeText = when {
-      draftCount == 1 -> null // Dot only
-      draftCount > MAX_BADGE_COUNT -> "${MAX_BADGE_COUNT}+"
-      else -> draftCount.toString()
+      count == 1 -> null // Dot only
+      count > MAX_BADGE_COUNT -> "${MAX_BADGE_COUNT}+"
+      else -> count.toString()
     }
     badgeText?.let { Text(it) }
   }

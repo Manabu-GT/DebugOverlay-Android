@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.Closeable
 import java.io.IOException
@@ -53,10 +52,9 @@ internal class LogcatDataSource(
   private val entries = EvictingQueue<LogEntry>(initialMaxEntries)
 
   /**
-   * Maximum number of entries retained in the in-memory buffer and the count
-   * requested from logcat on next subscription. The currently-running subprocess
-   * keeps its original `-T N` arg until [WhileSubscribed][SharingStarted.WhileSubscribed]
-   * restarts the producer (panel reopen).
+   * Maximum number of entries retained in the in-memory buffer. Resizing takes effect on the
+   * queue immediately; the running subprocess keeps the `-T N` arg it was started with, which
+   * only affects how much history was replayed at process start.
    */
   var maxEntries: Int
     @IntRange(from = 1)
@@ -65,9 +63,8 @@ internal class LogcatDataSource(
       entries.capacity = value
     }
 
-  // Drops OS-replayed entries from before the last clear (e.g. when the producer
-  // restarts on panel reopen and `-T N` walks the OS ring buffer).
-  // Wall-clock epoch ms, matching `logcat -v ... epoch`.
+  // Drops OS-replayed entries from before the last clear, since `-T N` walks the OS ring
+  // buffer at producer start. Wall-clock epoch ms, matching `logcat -v ... epoch`.
   @Volatile private var clearMarkerMs: Long = 0L
 
   // Forces a downstream re-read after clear() so the UI sees `[]` instantly,
@@ -83,9 +80,8 @@ internal class LogcatDataSource(
    * the queue's current state — the tick payload is irrelevant.
    */
   private val producerSignal: Flow<Unit> = flow {
-    // Each subscription session starts fresh — without this, the hoisted queue
-    // would accumulate duplicates as `logcat -T N` replays the OS ring buffer
-    // on every resubscribe (panel reopen).
+    // Starts fresh. With Eagerly sharing this runs once per process, but the clear is kept
+    // so a restarted producer can't double-count the history `logcat -T N` replays.
     entries.clear()
     var reader: BufferedReader? = null
     try {
@@ -111,8 +107,7 @@ internal class LogcatDataSource(
         val line = reader.readLine() ?: break
         parser.parse(line)?.let { entry ->
           // Drop OS-replayed entries from before the last clear. `-T N` replays the
-          // last N ring-buffer lines on every subprocess start, including when the
-          // panel reopens after WhileSubscribed cancelled us.
+          // last N ring-buffer lines when the subprocess starts, which can predate a clear().
           // (Rare caveat: a backward system-clock jump could mis-drop a real entry.)
           if (entry.timestampMs < clearMarkerMs) return@let
           entries.add(entry)
@@ -131,7 +126,6 @@ internal class LogcatDataSource(
 
   /**
    * Stream logcat entries. Keeps last N entries in memory.
-   * Private StateFlow for direct .value access in [queryLogcatSnapshot].
    *
    * `throttleLatest` is applied only to `producerSignal` so noisy producers
    * are rate-limited, while `clearSignal` flows straight through merge to
@@ -145,7 +139,14 @@ internal class LogcatDataSource(
     .flowOn(Dispatchers.IO)
     .stateIn(
       scope,
-      started = SharingStarted.WhileSubscribed(),
+      // Eagerly, not WhileSubscribed: the buffer has to be warm when an uncaught exception
+      // arrives, and a crash rarely happens with the debug panel open. Under WhileSubscribed
+      // the subprocess only ran while the Logcat tab was visible, so crash records captured
+      // an empty log list for anyone who never opened the panel — and a stale one for anyone
+      // who had opened and closed it. Matches customLogSourceLogs/networkRequests, which the
+      // repository already shares eagerly for the same reason. Costs one `logcat -T N`
+      // subprocess for the process lifetime, with memory bounded by maxEntries.
+      started = SharingStarted.Eagerly,
       initialValue = emptyList()
     )
 
@@ -159,53 +160,16 @@ internal class LogcatDataSource(
   }
 
   /**
-   * Returns a snapshot of the in-memory log buffer without suspending or spawning a
-   * subprocess. Safe to call from a crashing thread (e.g. [com.ms.square.debugoverlay.internal.crash.CrashHandler]).
+   * Returns a snapshot of the in-memory log buffer without suspending or spawning a subprocess,
+   * so it stays safe to call while the process is dying — see
+   * [com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository.writeCrashRecordSync],
+   * which calls this from the crashing thread.
    *
-   * Unlike [queryLogcatSnapshot], this never falls back to a one-shot `logcat -t N`
-   * capture, so it returns an empty list if the Logcat tab was never subscribed to
-   * this process run.
+   * The buffer is filled from process start (the producer is shared eagerly), so this does not
+   * depend on the debug panel ever having been opened. Bug reports read it too. Entries are
+   * already filtered against [clear] as they are appended, so no post-filtering is needed here.
    */
-  fun snapshotEntriesSync(): List<LogEntry> = entries.toList()
-
-  /**
-   * Returns a snapshot of logcat logs for bug reports.
-   * Uses cached value if streaming was active (debug panel was viewed), otherwise captures directly.
-   */
-  suspend fun queryLogcatSnapshot(): List<LogEntry> {
-    val cached = _logs.value
-    if (cached.isNotEmpty()) return cached
-    // drop anything captured before the last clear so a "clear → close panel → bug report" flow
-    // doesn't resurface pre-clear lines.
-    return captureLogcatOnce().filter { it.timestampMs >= clearMarkerMs }
-  }
-
-  private suspend fun captureLogcatOnce(): List<LogEntry> = withContext(Dispatchers.IO) {
-    buildList {
-      // -t N = fetch N recent lines and EXIT (vs -T which streams continuously)
-      val process = ProcessBuilder(
-        "logcat",
-        "-v",
-        "threadtime,printable,epoch",
-        "-t",
-        maxEntries.toString()
-      ).start()
-
-      try {
-        InputStreamReader(process.inputStream).useLines { lines ->
-          lines.forEach { line ->
-            parser.parse(line)?.let { add(it) }
-          }
-        }
-      } catch (e: IOException) {
-        Logger.e("Failed to capture logcat snapshot", e)
-      } catch (e: SecurityException) {
-        Logger.e("Failed to capture logcat snapshot", e)
-      } finally {
-        process.safeDestroy()
-      }
-    }
-  }
+  fun queryLogcatSnapshot(): List<LogEntry> = entries.toList()
 
   override fun close() {
     safeDestroyProcess()
