@@ -14,6 +14,7 @@ import com.ms.square.debugoverlay.internal.OverlayViewManager
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
 import com.ms.square.debugoverlay.internal.bugreport.IntentShareExporter
 import com.ms.square.debugoverlay.internal.bugreport.validateFilename
+import com.ms.square.debugoverlay.internal.crash.CrashHandler
 import com.ms.square.debugoverlay.internal.data.DebugOverlayDataRepository
 import com.ms.square.debugoverlay.internal.ui.DebugPanelActivity
 import com.ms.square.debugoverlay.internal.util.checkMainThread
@@ -102,7 +103,26 @@ public object DebugOverlay {
         repository = repository,
         activityProvider = viewManager
       )
+
+      installCrashHandler(repository)
     }
+  }
+
+  /**
+   * Chains a [CrashHandler] in front of whatever [Thread.UncaughtExceptionHandler] was
+   * previously installed (the platform default, or another crash reporter like
+   * Crashlytics), so persisting a crash record never interferes with existing crash
+   * handling. Captured exactly once here.
+   */
+  private fun installCrashHandler(repository: DebugOverlayDataRepository) {
+    val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
+
+    Thread.setDefaultUncaughtExceptionHandler(
+      CrashHandler(
+        previousHandler = previousHandler,
+        captureCrash = repository::writeCrashRecordSync
+      )
+    )
   }
 
   // CopyOnWriteArrayList enables lock-free iteration during bug report generation
@@ -227,9 +247,10 @@ public object DebugOverlay {
     public var bugReportExporter: BugReportExporter = initial.bugReportExporter
 
     /**
-     * Maximum number of entries kept in the built-in Logcat tab buffer.
-     * Also passed to `logcat -T N` / `-t N` so it controls how many lines the
-     * OS replays on producer start (panel open) and on bug-report snapshot.
+     * Maximum number of entries kept in the built-in Logcat tab buffer, which is also what
+     * bug reports and crash records read.
+     *
+     * Reassigning this resizes the buffer immediately.
      *
      * Default is [Config.DEFAULT_MAX_LOGCAT_ENTRIES] (300). Each entry holds a parsed
      * [com.ms.square.debugoverlay.model.LogEntry].

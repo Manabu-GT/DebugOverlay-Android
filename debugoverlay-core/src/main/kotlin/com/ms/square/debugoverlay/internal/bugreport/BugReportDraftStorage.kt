@@ -20,6 +20,7 @@ import com.ms.square.debugoverlay.internal.bugreport.model.BugReportState
 import com.ms.square.debugoverlay.internal.bugreport.model.DraftInfo
 import com.ms.square.debugoverlay.internal.bugreport.model.UserInput
 import com.ms.square.debugoverlay.internal.util.checkFolderExists
+import com.ms.square.debugoverlay.internal.util.isDirectChildOf
 import com.ms.square.debugoverlay.internal.util.runCatchingNonCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -257,7 +258,7 @@ internal class DefaultBugReportDraftStorage(
   override suspend fun deleteFolder(folder: File): Unit = withContext(Dispatchers.IO) {
     val deleted = folderMutex.withLock {
       // Safety check: only delete folders that are direct children of our drafts directory
-      if (!isDirectChildOfDraftsDir(folder)) {
+      if (!folder.isDirectChildOf(draftsDir)) {
         Logger.w("Refusing to delete folder outside drafts directory: ${folder.absolutePath}")
         return@withLock false
       }
@@ -279,20 +280,6 @@ internal class DefaultBugReportDraftStorage(
     if (deleted) {
       refreshDrafts()
     }
-  }
-
-  /**
-   * Checks if the given folder is a direct child of [draftsDir].
-   *
-   * Uses canonical paths to resolve symlinks and ".." traversal attacks.
-   */
-  private fun isDirectChildOfDraftsDir(folder: File): Boolean = runCatching {
-    val canonicalFolder = folder.canonicalFile
-    val canonicalDraftsDir = draftsDir.canonicalFile
-    canonicalFolder.parentFile == canonicalDraftsDir
-  }.getOrElse { e ->
-    Logger.w("Failed to resolve canonical path for safety check: ${e.javaClass.simpleName} - ${e.message}")
-    false
   }
 
   // ========== Draft Management ==========

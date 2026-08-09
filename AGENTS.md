@@ -31,6 +31,7 @@ A Jetpack Compose library that displays real-time debug information as an overla
 | Create new extension | Implement `LogSource` or `NetworkRequestSource`, self-register in `init` block |
 | Modify bug report flow | `BugReportGenerator.kt` (orchestration), `BugReportDraftStorage.kt` (persistence) |
 | Change metrics display | `internal/ui/DebugOverlayPanel.kt` (compact overlay), `DebugOverlayPanelDataSource.kt` (aggregation) |
+| Modify crash persistence | `internal/crash/CrashHandler.kt` (chains the uncaught-exception handler), `CrashRecordBuilder.kt` (assembles the record), `CrashRecordStorage.kt` (persistence), `CrashLogTabContent.kt`/`CrashLogDetailScreen.kt` (UI). Data is gathered in `DebugOverlayDataRepository.writeCrashRecordSync()` |
 
 ## Build Commands
 

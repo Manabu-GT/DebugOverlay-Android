@@ -105,6 +105,7 @@ The overlay uses a synthetic `OverlayLifecycleOwner` to provide Compose lifecycl
 | **Bounded collections** | `EvictingQueue` prevents OOM from unbounded log/request accumulation |
 | **Main process only** | Overlay is per-process singleton; no multi-process complexity |
 | **Extensions depend on core** | Loose coupling via interfaces; core has no knowledge of extensions |
+| **Crash handler always chains** | `CrashHandler` captures `Thread.getDefaultUncaughtExceptionHandler()` once at install time and always delegates to it (in a `finally` block, even if its own capture logic throws), so other crash reporters (e.g. Crashlytics) installed before or after DebugOverlay keep working. It never calls `Process.killProcess()`/`exitProcess()` itself. |
 
 ## Key Architectural Decisions
 
@@ -117,6 +118,7 @@ The overlay uses a synthetic `OverlayLifecycleOwner` to provide Compose lifecycl
 | **Synthetic LifecycleOwner** | Enables Compose lifecycle APIs for overlay outside activity hierarchy  |
 | **PixelCopy for screenshots** | Hardware-accelerated capture (API 26+); Canvas fallback for older      |
 | **No-backup storage for drafts** | Bug report drafts persist across launches but don't sync to cloud      |
+| **No-backup storage for crash records** | Persisted crash records survive process death like drafts, in a separate directory with its own retention policy |
 
 ## Third-Party Dependencies
 

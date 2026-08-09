@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.ms.square.debugoverlay.DebugOverlay
 import com.ms.square.debugoverlay.core.R
 import com.ms.square.debugoverlay.internal.bugreport.BugReportGenerator
+import com.ms.square.debugoverlay.internal.ui.CountBadge
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -155,8 +156,8 @@ internal fun BugReporterFab(
 
     // Badge positioned at top-right corner of FAB
     if (draftCount > 0 && fabState != BugReporterFabState.Processing) {
-      DraftCountBadge(
-        draftCount = draftCount,
+      CountBadge(
+        count = draftCount,
         modifier = Modifier.align(Alignment.TopEnd)
       )
     }

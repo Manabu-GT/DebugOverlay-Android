@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider paths for every DebugOverlay export, all under the app's cache directory.
+  Bug report archives live in "debugoverlay_bugreports/", crash log exports in
+  "debugoverlay_crash_exports/". Add a <cache-path> here rather than a second provider —
+  see the provider declaration in AndroidManifest.xml.
+-->
+<paths>
+  <cache-path
+    name="debugoverlay_bugreports"
+    path="debugoverlay_bugreports/" />
+  <cache-path
+    name="debugoverlay_crash_exports"
+    path="debugoverlay_crash_exports/" />
+</paths>
