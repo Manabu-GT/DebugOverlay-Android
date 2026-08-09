@@ -206,8 +206,9 @@ DebugOverlay.configure {
 ### Crash logs
 
 No setup required. Crashes are saved to disk and shown in the **Crash** tab on the next launch,
-with the stack trace and the logs/network activity leading up to them. Copy, share or delete each;
-the 5 most recent are kept. Your existing crash reporter is unaffected.
+with the stack trace and the last 100 log entries leading up to them — plus the last 100 requests
+if [network tracking](#network-request-tracking) is configured. Copy, share or delete each; the 5
+most recent are kept. Your existing crash reporter is unaffected.
 
 ### Network request tracking
 
