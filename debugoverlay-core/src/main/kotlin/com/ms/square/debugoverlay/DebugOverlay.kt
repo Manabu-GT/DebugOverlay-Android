@@ -247,9 +247,10 @@ public object DebugOverlay {
     public var bugReportExporter: BugReportExporter = initial.bugReportExporter
 
     /**
-     * Maximum number of entries kept in the built-in Logcat tab buffer.
-     * Also passed to `logcat -T N` / `-t N` so it controls how many lines the
-     * OS replays on producer start (panel open) and on bug-report snapshot.
+     * Maximum number of entries kept in the built-in Logcat tab buffer, which is also what
+     * bug reports and crash records read.
+     *
+     * Reassigning this resizes the buffer immediately.
      *
      * Default is [Config.DEFAULT_MAX_LOGCAT_ENTRIES] (300). Each entry holds a parsed
      * [com.ms.square.debugoverlay.model.LogEntry].

@@ -31,6 +31,12 @@ import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.milliseconds
 
+// How much history `logcat -T N` replays when the reader starts. Fixed rather than tied to
+// maxEntries: the reader starts at install() (process start), so this history predates the
+// process — mostly the previous run's leftovers in the ring buffer. A small, constant amount
+// of context is what's wanted; how much is retained afterwards is maxEntries' job.
+private const val REPLAY_LINES = 100
+
 /**
  * This only reads current app logs, not other apps (such requires a signature-level permission -> READ_LOGS).
  */
@@ -53,8 +59,8 @@ internal class LogcatDataSource(
 
   /**
    * Maximum number of entries retained in the in-memory buffer. Resizing takes effect on the
-   * queue immediately; the running subprocess keeps the `-T N` arg it was started with, which
-   * only affects how much history was replayed at process start.
+   * queue immediately, and affects nothing else — how much history the OS replays at start is
+   * [REPLAY_LINES].
    */
   var maxEntries: Int
     @IntRange(from = 1)
@@ -94,7 +100,7 @@ internal class LogcatDataSource(
         "-v",
         "threadtime,printable,epoch",
         "-T",
-        maxEntries.toString()
+        REPLAY_LINES.toString()
       ).start().also {
         synchronized(processLock) {
           currentProcess = it
@@ -103,11 +109,17 @@ internal class LogcatDataSource(
       reader = InputStreamReader(process.inputStream).buffered()
 
       while (currentCoroutineContext().isActive) {
-        // readLine() returns null at end of stream, so exit early if a process dies unexpectedly
-        val line = reader.readLine() ?: break
+        // readLine() returns null at end of stream, so exit early if a process dies unexpectedly.
+        // Nothing restarts the producer (it is shared eagerly for the process lifetime), so log
+        // it — otherwise the buffer silently freezes and stale logs reach crash records too.
+        val line = reader.readLine()
+        if (line == null) {
+          Logger.w("logcat stream ended unexpectedly; log buffer is frozen for this process")
+          break
+        }
         parser.parse(line)?.let { entry ->
-          // Drop OS-replayed entries from before the last clear. `-T N` replays the
-          // last N ring-buffer lines when the subprocess starts, which can predate a clear().
+          // Drop OS-replayed entries from before the last clear: the ring-buffer lines
+          // `-T` replays at subprocess start can predate a clear().
           // (Rare caveat: a backward system-clock jump could mis-drop a real entry.)
           if (entry.timestampMs < clearMarkerMs) return@let
           entries.add(entry)

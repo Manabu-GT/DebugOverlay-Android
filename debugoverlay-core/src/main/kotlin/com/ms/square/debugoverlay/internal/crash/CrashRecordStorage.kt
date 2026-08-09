@@ -1,6 +1,7 @@
 package com.ms.square.debugoverlay.internal.crash
 
 import android.content.Context
+import android.os.StrictMode
 import com.ms.square.debugoverlay.internal.Logger
 import com.ms.square.debugoverlay.internal.util.checkFolderExists
 import com.ms.square.debugoverlay.internal.util.isDirectChildOf
@@ -74,6 +75,20 @@ internal class DefaultCrashRecordStorage(
   }
 
   override fun writeSync(record: CrashRecord) {
+    // This library ships in debug builds, which is exactly where teams enable StrictMode's
+    // detectDiskWrites(). With penaltyDeath() the policy would kill the process right here —
+    // before CrashHandler's finally block reaches the previous handler — silently swallowing
+    // the crash for the platform and any other reporter. Even penaltyLog would add noise at
+    // the worst possible moment. Permit writes on this thread only, and restore after.
+    val originalPolicy = StrictMode.allowThreadDiskWrites()
+    try {
+      writeRecordLocked(record)
+    } finally {
+      StrictMode.setThreadPolicy(originalPolicy)
+    }
+  }
+
+  private fun writeRecordLocked(record: CrashRecord) {
     synchronized(writeLock) {
       // Write to a temp file and rename, rather than writing the record in place: the
       // process is already dying, so an in-place write that doesn't finish would leave a

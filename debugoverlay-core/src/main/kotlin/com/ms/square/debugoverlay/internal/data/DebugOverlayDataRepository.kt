@@ -161,7 +161,9 @@ internal class DebugOverlayDataRepository(
         throwable = throwable,
         appInfo = runCatching { DefaultAppInfoProvider.getAppInfo(context) }.getOrNull(),
         logcatLogs = logcatDataSource.queryLogcatSnapshot(),
-        customLogSourceData = customLogSourceName.value?.let { name -> CustomLogSourceData(customLogSourceLogs.value, name) },
+        customLogSourceData = customLogSourceName.value?.let { name ->
+          CustomLogSourceData(customLogSourceLogs.value, name)
+        },
         networkRequests = networkRequests.value
       )
     )

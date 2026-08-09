@@ -16,6 +16,7 @@ import java.util.UUID
  * @param version Schema version, for forward-compatible reads via `ignoreUnknownKeys`. Carries
  *   [EncodeDefault] because it always equals its default, which the serializer would otherwise
  *   omit — leaving stored records with no version to read.
+ * @param id unique identifier for the crash record
  * @param timestampMs When the exception was caught (epoch millis).
  * @param threadName Name of the thread that crashed.
  * @param exceptionType Fully-qualified exception class name.
@@ -31,6 +32,7 @@ import java.util.UUID
 internal data class CrashRecord(
   @EncodeDefault
   val version: Int = 1,
+  @EncodeDefault
   val id: String = UUID.randomUUID().toString(),
   val timestampMs: Long,
   val threadName: String,

@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 private const val EXPORTS_SUBDIR = "debugoverlay_crash_exports"
+private const val ID_SUFFIX_LENGTH = 8
 
 /**
  * Shares a [CrashRecord] as a plain-text file via Android's share sheet.
@@ -23,10 +24,16 @@ private const val EXPORTS_SUBDIR = "debugoverlay_crash_exports"
  */
 internal object CrashRecordExporter {
 
-  suspend fun share(context: Context, record: CrashRecord): Boolean = withContext(Dispatchers.IO) {
+  /**
+   * Failures are logged, not reported: the caller has nothing to do with the outcome today.
+   * Surface it (a snackbar, as the bug report flow does) before giving this a return value
+   * — a discarded result reads as if someone is handling it.
+   */
+  suspend fun share(context: Context, record: CrashRecord): Unit = withContext(Dispatchers.IO) {
     runCatchingNonCancellation {
       val exportsDir = File(context.cacheDir, EXPORTS_SUBDIR).also { it.checkFolderExists() }
-      val file = File(exportsDir, "crash_${formatFilenameTimestamp(record.timestampMs)}.txt")
+      val idSuffix = record.id.take(ID_SUFFIX_LENGTH)
+      val file = File(exportsDir, "crash_${formatFilenameTimestamp(record.timestampMs)}_$idSuffix.txt")
       file.writeText(formatCrashRecordAsText(record))
 
       val uri = context.debugOverlayFileUri(file)
@@ -42,10 +49,8 @@ internal object CrashRecordExporter {
       withContext(Dispatchers.Main) {
         context.startActivity(Intent.createChooser(intent, chooserTitle).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
       }
-      true
-    }.getOrElse { e ->
+    }.onFailure { e ->
       Logger.w("Failed to share crash record", e)
-      false
     }
   }
 }
