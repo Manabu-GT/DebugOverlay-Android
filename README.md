@@ -61,7 +61,8 @@ Tap the overlay to open a full-screen diagnostic panel:
 - **Bug Report** – One-tap HTML report with screenshot and diagnostics
 - **Clear Logs** – Toolbar button to wipe Logcat/Timber/network entries so the next bug report covers only the repro window
 
-<img src="art/readme_debug_panel.gif" alt="Debug Panel">
+<img src="art/readme_debug_panel.gif" alt="Debug Panel" width="256">
+<img src="art/readme_crash_log.png" alt="Crash Log Detail" width="256">
 
 ## Installation
 
