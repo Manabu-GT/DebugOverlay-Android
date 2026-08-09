@@ -29,7 +29,7 @@ DebugOverlay gives you a lightweight, always-available look into your app's runt
 
 ```kotlin
 // app/build.gradle.kts
-debugImplementation("com.ms-square:debugoverlay:2.6.3")
+debugImplementation("com.ms-square:debugoverlay:2.7.0")
 
 // That's it! Overlay appears automatically on app launch.
 // Tap to open debug panel. Long-press to drag.
@@ -53,6 +53,7 @@ Tap the overlay to open a full-screen diagnostic panel:
 - **Logcat** – Live system logcat stream with level filtering and search
 - **[Custom Log]** – Additional tab when using [Timber](#timber-log-capture) or custom log sources
 - **AppExits** – App exit (e.g., Crash/ANR) history on Android 11+ with stack traces
+- **Crash** – Crashes from previous runs, with stack trace and the logs/network activity leading up to them ([details](#crash-logs))
 - **Network** – Request list with timing and inspection ([setup required](#network-request-tracking))
 - **JankStats** – Frame timing analysis and jank breakdown
 - **UI** – View hierarchy via [Radiography](https://github.com/square/radiography)
@@ -74,7 +75,7 @@ Add to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-debugoverlay = "2.6.3"
+debugoverlay = "2.7.0"
 
 [libraries]
 debugoverlay = { module = "com.ms-square:debugoverlay", version.ref = "debugoverlay" }
@@ -100,7 +101,7 @@ dependencies {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.6.3")
+  debugImplementation("com.ms-square:debugoverlay:2.7.0")
 }
 ```
 
@@ -155,8 +156,8 @@ For a zero-config shake trigger, add the shake extension:
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.6.3")
-  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.6.3")
+  debugImplementation("com.ms-square:debugoverlay:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.7.0")
 }
 ```
 
@@ -202,14 +203,18 @@ DebugOverlay.configure {
 }
 ```
 
-The value also bounds the `logcat -T N` / `-t N` calls, so it caps how many lines the OS replays when the panel opens and when a bug report snapshot is captured.
+### Crash logs
+
+No setup required. Crashes are saved to disk and shown in the **Crash** tab on the next launch,
+with the stack trace and the logs/network activity leading up to them. Copy, share or delete each;
+the 5 most recent are kept. Your existing crash reporter is unaffected.
 
 ### Network request tracking
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.6.3")
-  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.6.3")
+  debugImplementation("com.ms-square:debugoverlay:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.7.0")
 }
 ```
 
@@ -240,8 +245,8 @@ val client = OkHttpClient.Builder()
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.6.3")
-  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.6.3")
+  debugImplementation("com.ms-square:debugoverlay:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.7.0")
 }
 ```
 
@@ -365,7 +370,7 @@ android {
 }
 
 dependencies {
-  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.6.3")
+  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.7.0")
 }
 ```
 
