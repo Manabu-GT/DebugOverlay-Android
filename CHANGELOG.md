@@ -1,5 +1,20 @@
 # Change Log
 
+## Version 2.7.0 *(2026-08-08)*
+
+### New Features
+
+* **Crash logs** – Uncaught exceptions are now saved to disk and appear in a new **Crash** tab on the next launch, with the stack trace plus the logs and network requests leading up to the crash. Copy, share or delete each record; the 5 most recent are kept. No setup required, and any crash reporter you already use (e.g. Crashlytics) keeps working as before. Resolves [#231](https://github.com/Manabu-GT/DebugOverlay-Android/issues/231).
+
+### Changes
+
+* **Logcat now streams from app start** rather than only while the Logcat tab is open, so crash records include the logs leading up to a crash even if the panel was never opened.
+* **`maxLogcatEntries` controls buffer retention only** – it no longer affects how much history is replayed when logging starts.
+
+### Build
+
+* Update AGP to 9.3.1.
+
 ## Version 2.6.3 *(2026-08-06)*
 
 ### New Features
