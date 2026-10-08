@@ -100,11 +100,13 @@ public class DebugOverlayNetworkInterceptor(
   private val recentRequests = EvictingQueue<NetworkRequest>(maxStoredRequests)
   private val _requests = MutableStateFlow<List<NetworkRequest>>(emptyList())
 
+  override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()
+
+  // Keep this init block last. Registering publishes `this` to DebugOverlay, whose collector may read
+  // `requests` from another thread right away, so every property must be initialized before this runs.
   init {
     DebugOverlay.configure { networkRequestSource = this@DebugOverlayNetworkInterceptor }
   }
-
-  override val requests: Flow<List<NetworkRequest>> = _requests.asStateFlow()
 
   @Suppress("TooGenericExceptionCaught")
   override fun intercept(chain: Interceptor.Chain): Response {
