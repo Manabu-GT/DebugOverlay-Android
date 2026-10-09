@@ -29,7 +29,7 @@ DebugOverlay gives you a lightweight, always-available look into your app's runt
 
 ```kotlin
 // app/build.gradle.kts
-debugImplementation("com.ms-square:debugoverlay:2.7.0")
+debugImplementation("com.ms-square:debugoverlay:2.7.1")
 
 // That's it! Overlay appears automatically on app launch.
 // Tap to open debug panel. Long-press to drag.
@@ -78,7 +78,7 @@ Add to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-debugoverlay = "2.7.0"
+debugoverlay = "2.7.1"
 
 [libraries]
 debugoverlay = { module = "com.ms-square:debugoverlay", version.ref = "debugoverlay" }
@@ -104,7 +104,7 @@ dependencies {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay:2.7.1")
 }
 ```
 
@@ -159,8 +159,8 @@ For a zero-config shake trigger, add the shake extension:
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.7.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay:2.7.1")
+  debugImplementation("com.ms-square:debugoverlay-extension-trigger-shake:2.7.1")
 }
 ```
 
@@ -217,8 +217,8 @@ most recent are kept. Your existing crash reporter is unaffected.
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.7.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay:2.7.1")
+  debugImplementation("com.ms-square:debugoverlay-extension-okhttp:2.7.1")
 }
 ```
 
@@ -249,8 +249,8 @@ val client = OkHttpClient.Builder()
 
 ```kotlin
 dependencies {
-  debugImplementation("com.ms-square:debugoverlay:2.7.0")
-  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.7.0")
+  debugImplementation("com.ms-square:debugoverlay:2.7.1")
+  debugImplementation("com.ms-square:debugoverlay-extension-timber:2.7.1")
 }
 ```
 
@@ -374,7 +374,7 @@ android {
 }
 
 dependencies {
-  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.7.0")
+  "releaseWithOverlayImplementation"("com.ms-square:debugoverlay:2.7.1")
 }
 ```
 

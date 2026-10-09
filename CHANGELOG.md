@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 2.7.1 *(2026-10-08)*
+
+### Bug Fixes
+
+* **Fix a potential crash on startup with the OkHttp extension** – `DebugOverlayNetworkInterceptor` registered itself with `DebugOverlay` before its request buffer was initialized. Since 2.7.0, the network requests flow is collected eagerly on a background dispatcher, so it could read that buffer as `null` and throw a `NullPointerException`, crashing the host app. The interceptor is now fully constructed before it is published. Resolves [#274](https://github.com/Manabu-GT/DebugOverlay-Android/issues/274).
+
 ## Version 2.7.0 *(2026-08-08)*
 
 ### New Features
